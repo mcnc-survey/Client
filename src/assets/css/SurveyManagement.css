@@ -1,0 +1,124 @@
+.survey-management {
+  display: flex;
+  flex-direction: column; /* 세로 방향으로 정렬 */
+  height: 100vh; /* 전체 화면 높이 */
+  padding: 36px;
+  justify-content: space-between;
+}
+
+h2 {
+  font-size: 1.25em;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.survey-list {
+  flex: 1;
+  overflow-y: auto; /* 스크롤 설정 */
+}
+
+.survey-item {
+  height: 95px;
+  background-color: #f7f9fb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 44px;
+  border-radius: 16px;
+  margin-bottom: 13px;
+}
+
+.survey-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.survey-title {
+  font-size: 1.625em;
+  font-weight: bold;
+}
+
+.status {
+  padding: 9px 28px;
+  border-radius: 16px;
+  font-size: 0.875em;
+  font-weight: bold;
+}
+
+.status.in-progress {
+  background-color: #fce391;
+}
+
+.status.stopped {
+  background-color: #fba9a7;
+}
+
+.status.completed {
+  background-color: #dee0e2;
+}
+
+.survey-actions {
+  display: flex;
+  flex-direction: column; /* 수직 정렬 */
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.last-updated {
+  color: #757575;
+  font-size: 0.875em;
+  margin-left: 4px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.icon-preview {
+  background-image: url("@/assets/images/icon-preview.png");
+}
+
+.icon-link {
+  background-image: url("@/assets/images/icon-link.png");
+}
+
+.icon-edit {
+  background-image: url("@/assets/images/icon-edit.png");
+}
+
+.icon-delete {
+  background-image: url("@/assets/images/icon-delete.png");
+}
+
+.create-survey-button {
+  font-family: Pretendard;
+  font-weight: bold;
+  width: 100%; /* 원하는 너비 설정 */
+  height: 3.25em; /* 버튼 높이 */
+  margin-top: 20px; /* 버튼과 섹션 간의 간격 */
+  padding: 10px 20px;
+  background-color: #dfe7ef;
+  border-radius: 20px;
+  border: none;
+  font-size: 1.5em;
+}
