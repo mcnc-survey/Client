@@ -1,6 +1,59 @@
 <template>
-  <div>
-    <h1>SurveyManagement Page</h1>
-    <p>Welcome to the SurveyManagement Page!</p>
+  <div class="survey-management">
+    <h2>설문조사 목록</h2>
+
+    <div class="survey-list">
+      <div v-for="survey in sortedSurveys" :key="survey.id" class="survey-item">
+        <div class="survey-info">
+          <p class="survey-title">{{ survey.title }}</p>
+          <span :class="['status', survey.statusClass]">{{ survey.statusText }}</span>
+        </div>
+        <div class="survey-actions">
+          <div class="action-buttons">
+            <button class="icon-button" @click="handlePreview(survey.id)"><i class="icon icon-preview"></i></button>
+            <button class="icon-button" @click="handleLink(survey.id)"><i class="icon icon-link"></i></button>
+            <button class="icon-button" @click="editSurvey(survey.id)"><i class="icon icon-edit"></i></button>
+            <button class="icon-button" @click="deleteSurvey(survey.id)"><i class="icon icon-delete"></i></button>
+          </div>
+          <span class="last-updated">최근 수정일: {{ survey.lastUpdated }}</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="create-survey-button" @click="createSurvey()">새로운 설문조사 만들기</button>
   </div>
 </template>
+
+<script>
+import { useRouter } from 'vue-router';
+import { useSurveyManagement } from '@/composables/useSurveyManagement';
+import '@/assets/css/CustomAlert.css';
+import '@/assets/css/SurveyManagement.css';
+
+export default {
+  name: 'SurveyManagement',
+
+  setup() {
+    const router = useRouter();
+    const {
+      surveys,
+      sortedSurveys,
+      handlePreview,
+      handleLink,
+      editSurvey,
+      deleteSurvey,
+      createSurvey,
+    } = useSurveyManagement(router);
+
+    return {
+      surveys,
+      sortedSurveys,
+      handlePreview,
+      handleLink,
+      editSurvey,
+      deleteSurvey,
+      createSurvey,
+    };
+  },
+};
+</script>
