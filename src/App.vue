@@ -17,7 +17,20 @@
 <style>
 nav {
   display: flex;
+
   gap: 10px;
   margin-bottom: 20px;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('../public/fonts/Pretendard-Regular.woff2') format('woff2'),
+    url('../public/fonts/Pretendard-Regular.woff') format('woff');
+}
+
+/* 전체 기본 폰트 설정 */
+body {
+  font-family: 'Pretendard', Arial, sans-serif;
+  font-weight: normal;
 }
 </style>
