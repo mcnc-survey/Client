@@ -13,6 +13,7 @@
     "@fullcalendar/timegrid": "^6.1.15",
     "@fullcalendar/vue3": "^6.1.15",
     "core-js": "^3.8.3",
+    "sweetalert2": "^11.14.5",
     "vue": "^3.2.13",
     "vue-router": "^4.4.5"
   },

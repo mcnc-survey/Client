@@ -11,16 +11,49 @@ import ParticipantInfo from "../mobile/ParticipantInfo.vue";
 import SurveyParticipation from "../mobile/SurveyParticipation.vue";
 
 const routes = [
-  { path: "/", component: Login },
-  { path: "/survey-management", component: SurveyManagement },
-  { path: "/survey-edit/id", name: "SurveyEdit", component: SurveyEdit },
-  { path: "/survey-stats/", component: SurveyStats },
-  { path: "/survey-create", component: SurveyCreate },
-  { path: "/survey-completion", component: SurveyCompletion },
-  { path: "/calendar", component: Calendar },
-  { path: "/deleted-items", component: DeletedItems },
-  { path: "/participant-info", component: ParticipantInfo },
-  { path: "/survey-participation", component: SurveyParticipation },
+
+  {
+    path: "/",
+    component: Login,
+  },
+  {
+    path: "/survey-management",
+    component: SurveyManagement,
+  },
+  {
+    path: "/survey-edit/:id",
+    component: SurveyEdit,
+    name: "SurveyEdit",
+  },
+  {
+    path: "/survey-stats/",
+    component: SurveyStats,
+  },
+  {
+    path: "/survey-create",
+    component: SurveyCreate,
+    name: "SurveyCreate",
+  },
+  {
+    path: "/survey-completion",
+    component: SurveyCompletion,
+  },
+  {
+    path: "/calendar",
+    component: Calendar,
+  },
+  {
+    path: "/deleted-items",
+    component: DeletedItems,
+  },
+  {
+    path: "/participant-info",
+    component: ParticipantInfo,
+  },
+  {
+    path: "/survey-participation",
+    component: SurveyParticipation,
+  },
 ];
 
 const router = createRouter({

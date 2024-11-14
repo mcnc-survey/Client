@@ -1,0 +1,49 @@
+/* 팝업창 커스터마이징 */
+.custom-swal-popup {
+  width: 590px;
+  height: 300px;
+  background-color: #fff;
+  border-radius: 15px;
+  padding: 45px 30px 30px;
+}
+
+/* 팝업 내 텍스트 스타일 */
+.custom-alert-content p {
+  font-size: 1.25em;
+  font-weight: bold;
+  color: #000;
+  text-align: center;
+  margin: 10px 0 0 0;
+}
+
+.custom-alert-content small {
+  display: block;
+  margin-top: 12px;
+  font-size: 1em;
+  color: #777;
+  text-align: center;
+}
+
+/* 버튼 스타일 */
+.custom-confirm-button,
+.custom-cancel-button {
+  font-family: Pretendard;
+  font-size: 1.125em;
+  font-weight: bold;
+  width: 143px;
+  height: 43px;
+  border-radius: 24px;
+  border: none;
+  margin: 0 0 10px;
+}
+
+.custom-confirm-button {
+  background-color: #fba9a7;
+  color: #000;
+  margin-right: 36px;
+}
+
+.custom-cancel-button {
+  background-color: #dee0e2;
+  color: #000;
+}
