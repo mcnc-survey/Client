@@ -18,6 +18,7 @@ const routes = [
   {
     path: "/survey-management",
     component: SurveyManagement,
+    name: "SurveyManagement",
   },
   {
     path: "/survey-edit/:id",
