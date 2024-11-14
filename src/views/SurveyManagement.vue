@@ -6,16 +6,16 @@
       <div v-for="survey in sortedSurveys" :key="survey.id" class="survey-item">
         <div class="survey-info">
           <p class="survey-title">{{ survey.title }}</p>
-          <span :class="['status', survey.statusClass]">{{ survey.statusText }}</span>
+          <span :class="['status', getStatusClass(survey.status)]">{{ survey.status }}</span>
         </div>
         <div class="survey-actions">
           <div class="action-buttons">
-            <button class="icon-button" @click="handlePreview(survey.id)"><i class="icon icon-preview"></i></button>
+            <button class="icon-button" @click="previewSurvey(survey.id)"><i class="icon icon-preview"></i></button>
             <button class="icon-button" @click="handleLink(survey.id)"><i class="icon icon-link"></i></button>
             <button class="icon-button" @click="editSurvey(survey.id)"><i class="icon icon-edit"></i></button>
             <button class="icon-button" @click="deleteSurvey(survey.id)"><i class="icon icon-delete"></i></button>
           </div>
-          <span class="last-updated">최근 수정일: {{ survey.lastUpdated }}</span>
+          <span class="last-updated">최근 수정일: {{ survey.modified_at }}</span>
         </div>
       </div>
     </div>
@@ -29,6 +29,7 @@ import { useRouter } from 'vue-router';
 import { useSurveyManagement } from '@/composables/useSurveyManagement';
 import '@/assets/css/CustomAlert.css';
 import '@/assets/css/SurveyManagement.css';
+import '@/assets/css/common.css';
 
 export default {
   name: 'SurveyManagement',
@@ -38,7 +39,8 @@ export default {
     const {
       surveys,
       sortedSurveys,
-      handlePreview,
+      getStatusClass,
+      previewSurvey,
       handleLink,
       editSurvey,
       deleteSurvey,
@@ -48,7 +50,8 @@ export default {
     return {
       surveys,
       sortedSurveys,
-      handlePreview,
+      getStatusClass,
+      previewSurvey,
       handleLink,
       editSurvey,
       deleteSurvey,
