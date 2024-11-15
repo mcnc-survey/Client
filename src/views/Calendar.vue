@@ -1,3 +1,11 @@
+<template>
+  <!-- <div id="calendar-wrapper"> -->
+  <div>
+    <FullCalendar :options="calendarOptions" />
+  </div>
+</template>
+
+<script>
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -77,3 +85,70 @@ export default {
     this.fetchSurveyData(); // 컴포넌트가 마운트되면 데이터를 가져옴
   },
 };
+</script>
+
+<style>
+/* 전체 캘린더 감싸는 박스 */
+#calendar-wrapper {
+  max-width: 900px;
+  margin: 20px auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+}
+
+/* FullCalendar 기본 스타일 수정 */
+.fc {
+  font-family: "Arial", sans-serif;
+  color: #333;
+}
+
+/* 캘린더 헤더 스타일 */
+.fc-toolbar {
+  margin-bottom: 10px;
+}
+.fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4caf50;
+}
+.fc-button {
+  background-color: #4caf50;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.fc-button:hover {
+  background-color: #388e3c;
+}
+.fc-button:disabled {
+  background-color: #a5d6a7;
+}
+
+/* 날짜 셀 스타일 */
+.fc-daygrid-day {
+  border: 1px solid #e0e0e0;
+}
+.fc-daygrid-day-number {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #555;
+}
+
+/* 오늘 날짜 강조 */
+.fc-day-today {
+  background-color: #e8f5e9;
+}
+
+/* 이벤트 스타일 */
+.fc-event {
+  border: none;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+</style>
