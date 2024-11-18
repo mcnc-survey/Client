@@ -23,6 +23,10 @@ export function useSurveyManagement(router) {
     });
   });
 
+  const goToSurveyStats = (surveyId) => {
+    router.push({ name: "SurveyStats", params: { id: surveyId } });
+  };
+
   // 메서드: 설문조사 미리보기
   const handlePreview = (surveyId) => {
     console.log("Preview survey:", surveyId);
@@ -77,6 +81,7 @@ export function useSurveyManagement(router) {
   return {
     surveys,
     sortedSurveys,
+    goToSurveyStats,
     handlePreview,
     handleLink,
     editSurvey,

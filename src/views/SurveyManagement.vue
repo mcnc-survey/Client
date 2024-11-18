@@ -5,7 +5,7 @@
     <div class="survey-list">
       <div v-for="survey in sortedSurveys" :key="survey.id" class="survey-item">
         <div class="survey-info">
-          <p class="survey-title">{{ survey.title }}</p>
+          <p class="survey-title" @click="goToSurveyStats(survey.id)">{{ survey.title }}</p>
           <span :class="['status', survey.statusClass]">{{ survey.statusText }}</span>
         </div>
         <div class="survey-actions">
@@ -38,6 +38,7 @@ export default {
     const {
       surveys,
       sortedSurveys,
+      goToSurveyStats,
       handlePreview,
       handleLink,
       editSurvey,
@@ -48,6 +49,7 @@ export default {
     return {
       surveys,
       sortedSurveys,
+      goToSurveyStats,
       handlePreview,
       handleLink,
       editSurvey,

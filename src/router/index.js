@@ -12,9 +12,9 @@ import ParticipantInfo from "../mobile/ParticipantInfo.vue";
 import SurveyParticipation from "../mobile/SurveyParticipation.vue";
 
 const routes = [
-  { 
+  {
     path: "/signup",
-    component: Signup 
+    component: Signup,
   },
   {
     path: "/",
@@ -30,8 +30,9 @@ const routes = [
     name: "SurveyEdit",
   },
   {
-    path: "/survey-stats/",
+    path: "/survey-stats/:id",
     component: SurveyStats,
+    name: "SurveyStats",
   },
   {
     path: "/survey-create",
