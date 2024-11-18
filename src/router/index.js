@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/Login.vue";
+import Signup from "../views/Signup.vue";
 import SurveyManagement from "../views/SurveyManagement.vue";
 import SurveyEdit from "../views/SurveyEdit.vue";
 import SurveyStats from "../views/SurveyStats.vue";
@@ -11,6 +12,10 @@ import ParticipantInfo from "../mobile/ParticipantInfo.vue";
 import SurveyParticipation from "../mobile/SurveyParticipation.vue";
 
 const routes = [
+  { 
+    path: "/signup",
+    component: Signup 
+  },
   {
     path: "/",
     component: Login,
