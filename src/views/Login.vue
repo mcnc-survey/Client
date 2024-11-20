@@ -3,64 +3,90 @@
     <div class="left-bg">
       <div class="login-layout">
         <h2>로그인</h2>
-        
+
         <!-- 이메일 입력 필드 -->
-        <div class="form-field relative" :class="{ 'has-error': emailError && emailTouched }">
-          <input 
-            type="email" 
-            id="email" 
+        <div
+          class="form-field relative"
+          :class="{ 'has-error': emailError && emailTouched }"
+        >
+          <input
+            type="email"
+            id="email"
             class="input-field peer"
             :class="{ 'error-border': emailError && emailTouched }"
             v-model="email"
             @blur="validateEmail"
             placeholder=" "
-            required 
+            required
           />
-          <label 
-            for="email" 
+          <label
+            for="email"
             class="floating-label"
             :class="{ 'error-label': emailError && emailTouched }"
-          >이메일</label>
-          <span v-if="emailError && emailTouched" class="error-message">잘못된 이메일 형식입니다.</span>
+            >이메일</label
+          >
+          <span v-if="emailError && emailTouched" class="error-message"
+            >잘못된 이메일 형식입니다.</span
+          >
         </div>
-        
+
         <!-- 비밀번호 입력 필드 -->
-        <div class="form-field relative" :class="{ 'has-error': passwordError && passwordTouched }">
-          <input 
+        <div
+          class="form-field relative"
+          :class="{ 'has-error': passwordError && passwordTouched }"
+        >
+          <input
             :type="showPassword ? 'text' : 'password'"
-            id="password" 
+            id="password"
             class="input-field peer"
             :class="{ 'error-border': passwordError && passwordTouched }"
             v-model="password"
             @blur="validatePassword"
             placeholder=" "
-            required 
+            required
           />
-          <label 
-            for="password" 
+          <label
+            for="password"
             class="floating-label"
             :class="{ 'error-label': passwordError && passwordTouched }"
-          >비밀번호</label>
-          <div v-if="password.length > 0" class="password-toggle" @click="togglePassword">
-            <img 
-              :src="showPassword ? require('../assets/images/eye_hide.png') : require('../assets/images/eye_show.png')"
+            >비밀번호</label
+          >
+          <div
+            v-if="password.length > 0"
+            class="password-toggle"
+            @click="togglePassword"
+          >
+            <img
+              :src="
+                showPassword
+                  ? require('../assets/images/eye_hide.png')
+                  : require('../assets/images/eye_show.png')
+              "
               :alt="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'"
               class="eye-icon"
             />
           </div>
-          <span v-if="passwordError && passwordTouched" class="error-message">영문과 특수문자를 포함하여 8자리 이상으로 입력해주세요.</span>
+          <span v-if="passwordError && passwordTouched" class="error-message"
+            >영문과 특수문자를 포함하여 8자리 이상으로 입력해주세요.</span
+          >
         </div>
 
         <div class="login-options">
           <button class="login-button" @click="doLogin">
             로그인
-            <img src="../assets/images/login_button.svg" alt="arrow icon" class="button-icon" />
+            <img
+              src="../assets/images/login_button.svg"
+              alt="arrow icon"
+              class="button-icon"
+            />
           </button>
           <span class="forgot-password">Forgot your password?</span>
         </div>
-        
+
         <div class="create-account-container">
-          <router-link to="/signup" class="create-account">CREATE NEW ACCOUNT</router-link>
+          <router-link to="/signup" class="create-account"
+            >CREATE NEW ACCOUNT</router-link
+          >
         </div>
 
         <div class="social-login-section">
@@ -68,32 +94,47 @@
             <span class="divider-text">Or Sign in with</span>
           </div>
           <div class="social-icons">
-            <img src="../assets/images/login_google.svg" alt="google" class="social-icon" />
-            <img src="../assets/images/login_kakao.png" alt="kakao" class="social-icon" />
-            <img src="../assets/images/login_naver.svg" alt="naver" class="social-icon" />
+            <img
+              src="../assets/images/login_google.svg"
+              alt="google"
+              class="social-icon"
+            />
+            <img
+              src="../assets/images/login_kakao.png"
+              alt="kakao"
+              class="social-icon"
+            />
+            <img
+              src="../assets/images/login_naver.svg"
+              alt="naver"
+              class="social-icon"
+            />
           </div>
         </div>
       </div>
     </div>
     <div class="right-bg">
-      <img src="../assets/images/login_image.svg" class="right-background-img" />
+      <img
+        src="../assets/images/login_image.svg"
+        class="right-background-img"
+      />
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'LoginPage',
+  name: "LoginPage",
   data() {
     return {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
       emailError: false,
       passwordError: false,
       emailTouched: false,
       passwordTouched: false,
-      showPassword: false
-    }
+      showPassword: false,
+    };
   },
   methods: {
     validateEmail() {
@@ -116,13 +157,13 @@ export default {
       this.passwordError = !(hasSpecialChar && hasMinLength);
     },
     doLogin() {
-      this.$router.push('/survey-management');
+      this.$router.push("/web/management");
     },
     togglePassword() {
       this.showPassword = !this.showPassword;
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -171,7 +212,6 @@ input[type="text"] {
   padding-right: 50px;
 }
 
-
 .eye-icon {
   width: 25px;
   height: 25px;
@@ -196,17 +236,17 @@ input[type="text"] {
   border: 1px solid #ddd;
   border-radius: 4px;
   background: transparent;
-  box-sizing: border-box;  /* 모든 입력창에 box-sizing 적용 */
+  box-sizing: border-box; /* 모든 입력창에 box-sizing 적용 */
 }
 
 .input-field:focus {
   outline: none;
-  border-color: #A8C5DA;
+  border-color: #a8c5da;
   border-width: 2px;
 }
 
 .error-border {
-  border-color: #FF6B6B !important;
+  border-color: #ff6b6b !important;
   border-width: 2px;
 }
 
@@ -216,7 +256,7 @@ input[type="text"] {
   top: 50%;
   transform: translateY(-50%);
   font-size: 0.9rem;
-  color: #B3B3B3;
+  color: #b3b3b3;
   pointer-events: none;
   transition: all 0.2s ease-out;
   background-color: white;
@@ -224,7 +264,7 @@ input[type="text"] {
 }
 
 .error-label {
-  color: #FF6B6B;
+  color: #ff6b6b;
 }
 
 .input-field:focus ~ .floating-label,
@@ -233,12 +273,12 @@ input[type="text"] {
 }
 
 .input-field:focus ~ .floating-label {
-  color: #A8C5DA;
+  color: #a8c5da;
 }
 
 /* 에러 상태일 때는 focus 상태에서도 빨간색 유지 */
 .error-border:focus ~ .floating-label {
-  color: #FF6B6B;
+  color: #ff6b6b;
 }
 
 .input-field::placeholder {
@@ -249,7 +289,7 @@ input[type="text"] {
   position: absolute;
   left: 0;
   bottom: -25px;
-  color: #FF6B6B;
+  color: #ff6b6b;
   font-size: 0.73rem;
   opacity: 0;
   transform: translateY(-10px);
@@ -273,7 +313,7 @@ input[type="text"] {
 .login-button {
   width: 45%;
   padding: 10px;
-  background-color: #A8C5DA;
+  background-color: #a8c5da;
   color: white;
   font-size: 1rem;
   border: none;
@@ -294,7 +334,7 @@ input[type="text"] {
 
 .forgot-password {
   font-size: 0.8rem;
-  color: #B3B3B3;
+  color: #b3b3b3;
   cursor: pointer;
   font-weight: bold;
   margin-left: 20px;
@@ -342,7 +382,7 @@ input[type="text"] {
 
 .divider-line::before,
 .divider-line::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   width: calc(50% - 70px);
@@ -393,7 +433,7 @@ input[type="text"] {
 .right-bg {
   width: 60%;
   min-width: 350px;
-  background-color: #F7F9FB;
+  background-color: #f7f9fb;
   display: flex;
   justify-content: center;
   align-items: center;
