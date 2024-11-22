@@ -37,7 +37,11 @@
             <!-- 설문 기간 선택 -->
             <div class="survey-period">
               <div class="period-select" @click="openPeriodModal">
-                <img src="@/assets/images/edit_date.png" alt="달력" class="calendar-icon" />
+                <img
+                  src="@/assets/images/edit_date.png"
+                  alt="달력"
+                  class="calendar-icon"
+                />
                 {{ formattedPeriod }}
               </div>
             </div>
@@ -45,23 +49,23 @@
 
           <!-- 질문 컨테이너들 -->
           <div class="questions-area">
-            <div 
-              v-for="(question, index) in questions" 
-              :key="index" 
+            <div
+              v-for="(question, index) in questions"
+              :key="index"
               class="question-wrapper"
             >
-              <div 
+              <div
                 ref="questionContainer"
                 class="question-container"
                 @click="selectQuestion(index)"
-                :class="{ 'selected': selectedQuestionIndex === index }"
+                :class="{ selected: selectedQuestionIndex === index }"
               >
-                <component 
+                <component
                   :is="getQuestionComponent(question.type)"
                   :question="question"
                   @update="updateQuestion(index, $event)"
                   @delete="deleteQuestion(index)"
-                  @copy="copyQuestion(index)"  
+                  @copy="copyQuestion(index)"
                 />
               </div>
             </div>
@@ -70,7 +74,7 @@
 
         <!-- 사이드 영역 -->
         <div class="side-container">
-          <QuestionTypeTab 
+          <QuestionTypeTab
             :selected-question-index="selectedQuestionIndex"
             :side-tab-top="sideTabTop"
             @change-type="changeQuestionType"
@@ -87,13 +91,20 @@
         <div class="time-group">
           <p>시작</p>
           <div class="date-input">
-            <div class="input-with-icon" :class="{ 'error': showError && !modalStartDate }">
-              <img src="@/assets/images/set_date.png" alt="날짜" class="input-icon" />
-              <input 
-                type="text" 
-                v-model="modalStartDate" 
-                readonly 
-                placeholder="날짜 선택" 
+            <div
+              class="input-with-icon"
+              :class="{ error: showError && !modalStartDate }"
+            >
+              <img
+                src="@/assets/images/set_date.png"
+                alt="날짜"
+                class="input-icon"
+              />
+              <input
+                type="text"
+                v-model="modalStartDate"
+                readonly
+                placeholder="날짜 선택"
                 @click="toggleStartCalendar"
               />
             </div>
@@ -108,18 +119,28 @@
             />
           </div>
           <div class="time-input">
-            <div class="input-with-icon" :class="{ 'error': showError && !startTime }">
-              <img src="@/assets/images/set_time.png" alt="시간" class="input-icon" />
-              <input 
-                type="text" 
+            <div
+              class="input-with-icon"
+              :class="{ error: showError && !startTime }"
+            >
+              <img
+                src="@/assets/images/set_time.png"
+                alt="시간"
+                class="input-icon"
+              />
+              <input
+                type="text"
                 :value="startTime ? formatDisplayTime(startTime) : ''"
-                readonly 
-                placeholder="시간 선택" 
+                readonly
+                placeholder="시간 선택"
                 @click="toggleTimePicker('start')"
               />
             </div>
             <!-- 시작 시간 선택 드롭다운 -->
-            <div v-if="showTimePicker && currentTimeInput === 'start'" class="time-picker-dropdown">
+            <div
+              v-if="showTimePicker && currentTimeInput === 'start'"
+              class="time-picker-dropdown"
+            >
               <div class="time-selector">
                 <div class="time-column ampm-column">
                   <div class="time-scroll">
@@ -127,10 +148,10 @@
                       v-for="ampm in ['AM', 'PM']"
                       :key="ampm"
                       class="time-item"
-                      :class="{ 'selected': selectedAmPm === ampm }"
+                      :class="{ selected: selectedAmPm === ampm }"
                       @click="selectAmPm(ampm)"
                     >
-                      {{ ampm === 'AM' ? '오전' : '오후' }}
+                      {{ ampm === "AM" ? "오전" : "오후" }}
                     </div>
                   </div>
                 </div>
@@ -138,9 +159,9 @@
                   <div class="time-scroll">
                     <div
                       v-for="hour in hours"
-                      :key="'h'+hour"
+                      :key="'h' + hour"
                       class="time-item"
-                      :class="{ 'selected': selectedHour === hour }"
+                      :class="{ selected: selectedHour === hour }"
                       @click="selectHour(hour)"
                     >
                       {{ hour }}
@@ -152,23 +173,28 @@
                   <div class="time-scroll">
                     <div
                       v-for="minute in minutes"
-                      :key="'m'+minute"
+                      :key="'m' + minute"
                       class="time-item"
-                      :class="{ 'selected': selectedMinute === minute }"
+                      :class="{ selected: selectedMinute === minute }"
                       @click="selectMinute(minute)"
                     >
-                      {{ minute.toString().padStart(2, '0') }}
+                      {{ minute.toString().padStart(2, "0") }}
                     </div>
                   </div>
                 </div>
               </div>
               <div class="button-group">
-                <button class="cancel-btn" @click="closeTimePicker">취소</button>
+                <button class="cancel-btn" @click="closeTimePicker">
+                  취소
+                </button>
                 <button class="confirm-btn" @click="confirmTime">확인</button>
               </div>
             </div>
           </div>
-          <div v-if="showError && (!modalStartDate || !startTime)" class="error-message">
+          <div
+            v-if="showError && (!modalStartDate || !startTime)"
+            class="error-message"
+          >
             시작 날짜와 시간을 입력해주세요.
           </div>
         </div>
@@ -176,13 +202,20 @@
         <div class="time-group">
           <p>종료</p>
           <div class="date-input">
-            <div class="input-with-icon" :class="{ 'error': showError && !modalEndDate }">
-              <img src="@/assets/images/set_date.png" alt="날짜" class="input-icon" />
-              <input 
-                type="text" 
-                v-model="modalEndDate" 
-                readonly 
-                placeholder="날짜 선택" 
+            <div
+              class="input-with-icon"
+              :class="{ error: showError && !modalEndDate }"
+            >
+              <img
+                src="@/assets/images/set_date.png"
+                alt="날짜"
+                class="input-icon"
+              />
+              <input
+                type="text"
+                v-model="modalEndDate"
+                readonly
+                placeholder="날짜 선택"
                 @click="toggleEndCalendar"
               />
             </div>
@@ -197,18 +230,28 @@
             />
           </div>
           <div class="time-input">
-            <div class="input-with-icon" :class="{ 'error': showError && !endTime }">
-              <img src="@/assets/images/set_time.png" alt="시간" class="input-icon" />
-              <input 
-                type="text" 
+            <div
+              class="input-with-icon"
+              :class="{ error: showError && !endTime }"
+            >
+              <img
+                src="@/assets/images/set_time.png"
+                alt="시간"
+                class="input-icon"
+              />
+              <input
+                type="text"
                 :value="endTime ? formatDisplayTime(endTime) : ''"
-                readonly 
-                placeholder="시간 선택" 
+                readonly
+                placeholder="시간 선택"
                 @click="toggleTimePicker('end')"
               />
             </div>
             <!-- 종료 시간 선택 드롭다운 -->
-            <div v-if="showTimePicker && currentTimeInput === 'end'" class="time-picker-dropdown">
+            <div
+              v-if="showTimePicker && currentTimeInput === 'end'"
+              class="time-picker-dropdown"
+            >
               <div class="time-selector">
                 <div class="time-column ampm-column">
                   <div class="time-scroll">
@@ -216,10 +259,10 @@
                       v-for="ampm in ['AM', 'PM']"
                       :key="ampm"
                       class="time-item"
-                      :class="{ 'selected': selectedAmPm === ampm }"
+                      :class="{ selected: selectedAmPm === ampm }"
                       @click="selectAmPm(ampm)"
                     >
-                      {{ ampm === 'AM' ? '오전' : '오후' }}
+                      {{ ampm === "AM" ? "오전" : "오후" }}
                     </div>
                   </div>
                 </div>
@@ -227,9 +270,9 @@
                   <div class="time-scroll">
                     <div
                       v-for="hour in hours"
-                      :key="'h'+hour"
+                      :key="'h' + hour"
                       class="time-item"
-                      :class="{ 'selected': selectedHour === hour }"
+                      :class="{ selected: selectedHour === hour }"
                       @click="selectHour(hour)"
                     >
                       {{ hour }}
@@ -241,23 +284,28 @@
                   <div class="time-scroll">
                     <div
                       v-for="minute in minutes"
-                      :key="'m'+minute"
+                      :key="'m' + minute"
                       class="time-item"
-                      :class="{ 'selected': selectedMinute === minute }"
+                      :class="{ selected: selectedMinute === minute }"
                       @click="selectMinute(minute)"
                     >
-                      {{ minute.toString().padStart(2, '0') }}
+                      {{ minute.toString().padStart(2, "0") }}
                     </div>
                   </div>
                 </div>
               </div>
               <div class="button-group">
-                <button class="cancel-btn" @click="closeTimePicker">취소</button>
+                <button class="cancel-btn" @click="closeTimePicker">
+                  취소
+                </button>
                 <button class="confirm-btn" @click="confirmTime">확인</button>
               </div>
             </div>
           </div>
-          <div v-if="showError && (!modalEndDate || !endTime)" class="error-message">
+          <div
+            v-if="showError && (!modalEndDate || !endTime)"
+            class="error-message"
+          >
             종료 날짜와 시간을 입력해주세요.
           </div>
         </div>
@@ -276,15 +324,15 @@
 </template>
 
 <script>
-import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
-import { DatePicker } from 'v-calendar';
-import 'v-calendar/style.css';
-import QuestionTypeTab from '@/components/QuestionTypeTab.vue';
-import SingleChoiceQuestion from '@/components/SingleChoiceQuestion.vue';
-import MultipleChoiceQuestion from '@/components/MultipleChoiceQuestion.vue';
-import GridQuestion from '@/components/GridQuestion.vue';
-import ShortAnswerQuestion from '@/components/ShortAnswerQuestion.vue';
-import LongAnswerQuestion from '@/components/DescriptiveAnswerQuestion.vue';
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { DatePicker } from "v-calendar";
+import "v-calendar/style.css";
+import QuestionTypeTab from "@/components/QuestionTypeTab.vue";
+import SingleChoiceQuestion from "@/components/SingleChoiceQuestion.vue";
+import MultipleChoiceQuestion from "@/components/MultipleChoiceQuestion.vue";
+import GridQuestion from "@/components/GridQuestion.vue";
+import ShortAnswerQuestion from "@/components/ShortAnswerQuestion.vue";
+import LongAnswerQuestion from "@/components/DescriptiveAnswerQuestion.vue";
 
 export default {
   components: {
@@ -294,7 +342,7 @@ export default {
     MultipleChoiceQuestion,
     GridQuestion,
     ShortAnswerQuestion,
-    LongAnswerQuestion
+    LongAnswerQuestion,
   },
 
   setup() {
@@ -303,26 +351,26 @@ export default {
     const questionContainer = ref([]);
 
     // Form data
-    const title = ref('');
-    const description = ref('');
+    const title = ref("");
+    const description = ref("");
     const titleFocused = ref(false);
     const descFocused = ref(false);
 
     // Period modal state
     const showPeriodModal = ref(false);
-    const startDate = ref('');
-    const startTime = ref('');
-    const endDate = ref('');
-    const endTime = ref('');
+    const startDate = ref("");
+    const startTime = ref("");
+    const endDate = ref("");
+    const endTime = ref("");
     const showStartCalendar = ref(false);
     const showEndCalendar = ref(false);
     const showTimePicker = ref(false);
     const currentTimeInput = ref(null);
     const selectedHour = ref(1);
     const selectedMinute = ref(0);
-    const selectedAmPm = ref('AM');
-    const modalStartDate = ref('');
-    const modalEndDate = ref('');
+    const selectedAmPm = ref("AM");
+    const modalStartDate = ref("");
+    const modalEndDate = ref("");
     const showError = ref(false);
     const dateOrderError = ref(false);
 
@@ -338,37 +386,41 @@ export default {
     const questions = ref([
       {
         id: Date.now(),
-        type: 'single',
-        title: '',
-        required: false
-      }
+        type: "single",
+        title: "",
+        required: false,
+      },
     ]);
 
     // Constants
-    const hours = Array.from({length: 12}, (_, i) => i + 1);
+    const hours = Array.from({ length: 12 }, (_, i) => i + 1);
     const minutes = [0, 30];
     const locale = {
       masks: {
-        title: 'YYYY년 M월'
+        title: "YYYY년 M월",
       },
-      weekdays: '일_월_화_수_목_금_토'.split('_'),
+      weekdays: "일_월_화_수_목_금_토".split("_"),
       titleFormat: (date) => {
-        return `${date.getFullYear()}년 ${date.getMonth() + 1}월`
-      }
+        return `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
+      },
     };
 
     // Computed
     const formattedPeriod = computed(() => {
       if (!startDate.value && !endDate.value) {
-        return '시작 날짜 ~ 종료 날짜';
+        return "시작 날짜 ~ 종료 날짜";
       }
-      return `${startDate.value} ${startTime.value ? formatDisplayTime(startTime.value) : ''} ~ ${endDate.value} ${endTime.value ? formatDisplayTime(endTime.value) : ''}`.trim();
+      return `${startDate.value} ${
+        startTime.value ? formatDisplayTime(startTime.value) : ""
+      } ~ ${endDate.value} ${
+        endTime.value ? formatDisplayTime(endTime.value) : ""
+      }`.trim();
     });
 
     // Methods
     const adjustHeight = (e) => {
       const textarea = e.target;
-      textarea.style.height = 'auto';
+      textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
@@ -378,8 +430,12 @@ export default {
     };
 
     const updateSideTabPosition = () => {
-      if (selectedQuestionIndex.value !== null && questionContainer.value[selectedQuestionIndex.value]) {
-        const selectedElement = questionContainer.value[selectedQuestionIndex.value];
+      if (
+        selectedQuestionIndex.value !== null &&
+        questionContainer.value[selectedQuestionIndex.value]
+      ) {
+        const selectedElement =
+          questionContainer.value[selectedQuestionIndex.value];
         const rect = selectedElement.getBoundingClientRect();
         const containerRect = createContainer.value.getBoundingClientRect();
         sideTabTop.value = rect.top - containerRect.top;
@@ -390,7 +446,7 @@ export default {
       if (selectedQuestionIndex.value !== null) {
         questions.value[selectedQuestionIndex.value] = {
           ...questions.value[selectedQuestionIndex.value],
-          type: newType
+          type: newType,
         };
       }
     };
@@ -398,14 +454,16 @@ export default {
     const addNewQuestion = () => {
       const newQuestion = {
         id: Date.now(),
-        type: 'single',
-        title: '',
-        required: false
+        type: "single",
+        title: "",
+        required: false,
       };
-      
-      const insertIndex = selectedQuestionIndex.value !== null ? 
-        selectedQuestionIndex.value + 1 : questions.value.length;
-      
+
+      const insertIndex =
+        selectedQuestionIndex.value !== null
+          ? selectedQuestionIndex.value + 1
+          : questions.value.length;
+
       questions.value.splice(insertIndex, 0, newQuestion);
       nextTick(() => {
         selectQuestion(insertIndex);
@@ -416,7 +474,7 @@ export default {
     const copyQuestion = (index) => {
       const copiedQuestion = {
         ...questions.value[index],
-        id: Date.now() // 새로운 ID 부여
+        id: Date.now(), // 새로운 ID 부여
       };
       questions.value.splice(index + 1, 0, copiedQuestion);
       nextTick(() => {
@@ -431,18 +489,21 @@ export default {
     const deleteQuestion = (index) => {
       questions.value.splice(index, 1);
       if (selectedQuestionIndex.value === index) {
-        selectedQuestionIndex.value = Math.min(index, questions.value.length - 1);
+        selectedQuestionIndex.value = Math.min(
+          index,
+          questions.value.length - 1
+        );
         updateSideTabPosition();
       }
     };
 
     const getQuestionComponent = (type) => {
       const components = {
-        single: 'SingleChoiceQuestion',
-        multiple: 'MultipleChoiceQuestion',
-        grid: 'GridQuestion',
-        short: 'ShortAnswerQuestion',
-        long: 'LongAnswerQuestion'
+        single: "SingleChoiceQuestion",
+        multiple: "MultipleChoiceQuestion",
+        grid: "GridQuestion",
+        short: "ShortAnswerQuestion",
+        long: "LongAnswerQuestion",
       };
       return components[type];
     };
@@ -463,22 +524,26 @@ export default {
       showStartCalendar.value = false;
       showEndCalendar.value = false;
       showTimePicker.value = false;
-      
+
       if (!startDate.value && !endDate.value) {
-        modalStartDate.value = '';
-        modalEndDate.value = '';
+        modalStartDate.value = "";
+        modalEndDate.value = "";
         tempStartDate.value = null;
         tempEndDate.value = null;
         selectedStartDate.value = null;
         selectedEndDate.value = null;
-        startTime.value = '';
-        endTime.value = '';
+        startTime.value = "";
+        endTime.value = "";
       }
     };
 
     const confirmPeriod = () => {
-      showError.value = !modalStartDate.value || !modalEndDate.value || !startTime.value || !endTime.value;
-      
+      showError.value =
+        !modalStartDate.value ||
+        !modalEndDate.value ||
+        !startTime.value ||
+        !endTime.value;
+
       if (showError.value) return;
 
       const startDateTime = getDateTime(modalStartDate.value, startTime.value);
@@ -501,17 +566,17 @@ export default {
       tempStartDate.value = date;
       modalStartDate.value = formatDate(date);
     };
-    
+
     const updateEndDate = (date) => {
       tempEndDate.value = date;
       modalEndDate.value = formatDate(date);
     };
 
     const formatDate = (date) => {
-      if (!date) return '';
+      if (!date) return "";
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
       return `${year}. ${month}. ${day}`;
     };
 
@@ -530,23 +595,23 @@ export default {
     const toggleTimePicker = (type) => {
       showStartCalendar.value = false;
       showEndCalendar.value = false;
-      
+
       if (currentTimeInput.value === type) {
         closeTimePicker();
       } else {
         showTimePicker.value = true;
         currentTimeInput.value = type;
-        
-        const currentTime = type === 'start' ? startTime.value : endTime.value;
+
+        const currentTime = type === "start" ? startTime.value : endTime.value;
         if (currentTime) {
-          const [hours, minutes] = currentTime.split(':').map(Number);
-          selectedAmPm.value = hours < 12 ? 'AM' : 'PM';
+          const [hours, minutes] = currentTime.split(":").map(Number);
+          selectedAmPm.value = hours < 12 ? "AM" : "PM";
           selectedHour.value = hours % 12 || 12;
           selectedMinute.value = minutes;
         } else {
           selectedHour.value = 1;
           selectedMinute.value = 0;
-          selectedAmPm.value = 'AM';
+          selectedAmPm.value = "AM";
         }
 
         nextTick(() => {
@@ -582,23 +647,25 @@ export default {
     };
 
     const formatDisplayTime = (time) => {
-      if (!time) return '';
-      const [hours, minutes] = time.split(':').map(Number);
-      const ampm = hours < 12 ? '오전' : '오후';
+      if (!time) return "";
+      const [hours, minutes] = time.split(":").map(Number);
+      const ampm = hours < 12 ? "오전" : "오후";
       const hour = hours % 12 || 12;
-      return `${ampm} ${hour}:${minutes.toString().padStart(2, '0')}`;
+      return `${ampm} ${hour}:${minutes.toString().padStart(2, "0")}`;
     };
 
     const confirmTime = () => {
       let hour = selectedHour.value;
-      if (selectedAmPm.value === 'PM' && hour !== 12) {
+      if (selectedAmPm.value === "PM" && hour !== 12) {
         hour += 12;
-      } else if (selectedAmPm.value === 'AM' && hour === 12) {
+      } else if (selectedAmPm.value === "AM" && hour === 12) {
         hour = 0;
       }
-      
-      const time = `${hour.toString().padStart(2, '0')}:${selectedMinute.value.toString().padStart(2, '0')}`;
-      if (currentTimeInput.value === 'start') {
+
+      const time = `${hour.toString().padStart(2, "0")}:${selectedMinute.value
+        .toString()
+        .padStart(2, "0")}`;
+      if (currentTimeInput.value === "start") {
         startTime.value = time;
       } else {
         endTime.value = time;
@@ -607,33 +674,42 @@ export default {
     };
 
     const scrollToSelected = () => {
-      const timeColumns = document.querySelectorAll('.time-column');
-      
+      const timeColumns = document.querySelectorAll(".time-column");
+
       const ampmColumn = timeColumns[0];
-      const selectedAmPm = ampmColumn.querySelector('.selected');
+      const selectedAmPm = ampmColumn.querySelector(".selected");
       if (selectedAmPm) {
-        const scrollPosition = selectedAmPm.offsetTop - ampmColumn.offsetHeight / 2 + selectedAmPm.offsetHeight / 2;
+        const scrollPosition =
+          selectedAmPm.offsetTop -
+          ampmColumn.offsetHeight / 2 +
+          selectedAmPm.offsetHeight / 2;
         ampmColumn.scrollTop = scrollPosition;
       }
 
       const hourColumn = timeColumns[1];
-      const selectedHour = hourColumn.querySelector('.selected');
+      const selectedHour = hourColumn.querySelector(".selected");
       if (selectedHour) {
-        const scrollPosition = selectedHour.offsetTop - hourColumn.offsetHeight / 2 + selectedHour.offsetHeight / 2;
+        const scrollPosition =
+          selectedHour.offsetTop -
+          hourColumn.offsetHeight / 2 +
+          selectedHour.offsetHeight / 2;
         hourColumn.scrollTop = scrollPosition;
       }
 
       const minuteColumn = timeColumns[2];
-      const selectedMinute = minuteColumn.querySelector('.selected');
+      const selectedMinute = minuteColumn.querySelector(".selected");
       if (selectedMinute) {
-        const scrollPosition = selectedMinute.offsetTop - minuteColumn.offsetHeight / 2 + selectedMinute.offsetHeight / 2;
+        const scrollPosition =
+          selectedMinute.offsetTop -
+          minuteColumn.offsetHeight / 2 +
+          selectedMinute.offsetHeight / 2;
         minuteColumn.scrollTop = scrollPosition;
       }
     };
 
     const getDateTime = (dateStr, timeStr) => {
-      const [year, month, day] = dateStr.split('.').map(s => s.trim());
-      const [hours, minutes] = timeStr.split(':').map(Number);
+      const [year, month, day] = dateStr.split(".").map((s) => s.trim());
+      const [hours, minutes] = timeStr.split(":").map(Number);
       return new Date(year, month - 1, day, hours, minutes);
     };
 
@@ -641,12 +717,12 @@ export default {
     onMounted(() => {
       nextTick(() => {
         updateSideTabPosition();
-        window.addEventListener('resize', updateSideTabPosition);
+        window.addEventListener("resize", updateSideTabPosition);
       });
     });
 
     onBeforeUnmount(() => {
-      window.removeEventListener('resize', updateSideTabPosition);
+      window.removeEventListener("resize", updateSideTabPosition);
     });
 
     return {
@@ -715,9 +791,9 @@ export default {
       formatDisplayTime,
       confirmTime,
       scrollToSelected,
-      getDateTime
+      getDateTime,
     };
-  }
+  },
 };
 </script>
 
@@ -728,18 +804,18 @@ export default {
   min-height: 100vh;
   padding: 10px 20px 20px;
 }
- 
+
 h2 {
   font-size: 1.25em;
   padding-left: 10px;
   margin-bottom: 20px;
   font-weight: 700;
 }
- 
+
 .create-container {
   width: 96%;
   min-height: 100%;
-  background-color: #F7F9FB;
+  background-color: #f7f9fb;
   border-radius: 30px;
   padding: 20px;
 }
@@ -749,16 +825,17 @@ h2 {
   justify-content: center;
   min-height: 100%;
 }
- 
+
 .survey-container {
   width: 60%;
   height: 100%;
   min-height: 100vh;
+  display: block;
 }
 
 .side-container {
-  width: 120px;  /* 사이드탭의 너비 */
-  position: sticky;  /* 내부 QuestionTypeTab의 기준점 */
+  width: 120px; /* 사이드탭의 너비 */
+  position: sticky; /* 내부 QuestionTypeTab의 기준점 */
   top: 20px;
   height: fit-content;
 }
@@ -785,7 +862,7 @@ h2 {
   position: relative;
   margin-bottom: 5px;
 }
- 
+
 textarea {
   margin-top: 10px;
   width: 100%;
@@ -798,16 +875,16 @@ textarea {
   display: block;
   font-family: Pretendard;
 }
- 
+
 .title-input {
   font-size: 25px;
   font-weight: 700;
 }
- 
+
 .description-input {
   font-size: 16px;
 }
- 
+
 .underline {
   position: absolute;
   left: 0;
@@ -817,26 +894,26 @@ textarea {
   background: transparent;
   transition: 0.2s ease;
 }
- 
+
 .input-wrapper:not(:focus-within):hover .underline {
   background: rgba(191, 208, 224, 0.4);
 }
- 
+
 .underline.focused {
-  background: #BFD0E0;
+  background: #bfd0e0;
   height: 1px;
 }
- 
+
 /* 설문 기간 관련 스타일 */
 .survey-period {
   margin-top: 25px;
 }
- 
+
 .period-select {
   position: relative;
   cursor: pointer;
   padding: 8px 30px;
-  background-color: #F7F9FB;
+  background-color: #f7f9fb;
   border-radius: 23.38px;
   width: fit-content;
   color: #000;
@@ -852,7 +929,7 @@ textarea {
   width: 16px;
   height: 16px;
 }
- 
+
 .period-modal {
   position: fixed;
   top: 0;
@@ -865,7 +942,7 @@ textarea {
   align-items: center;
   z-index: 1000;
 }
- 
+
 .modal-content {
   background: white;
   border-radius: 20px;
@@ -873,7 +950,7 @@ textarea {
   width: 90%;
   max-width: 250px;
 }
- 
+
 .modal-content h3 {
   font-weight: bold;
   margin-bottom: 15px;
@@ -882,11 +959,11 @@ textarea {
   font-family: Pretendard;
   font-size: 20px;
 }
- 
+
 .time-group {
   margin-bottom: 15px;
 }
- 
+
 .time-group p {
   padding-left: 5px;
   margin-bottom: 6px;
@@ -894,7 +971,7 @@ textarea {
   color: #000;
   font-family: Pretendard;
 }
- 
+
 .input-with-icon {
   position: relative;
   display: flex;
@@ -910,8 +987,9 @@ textarea {
   height: 16px;
 }
 
-.date-input input, .time-input input {
-  background: #F7F9FB;
+.date-input input,
+.time-input input {
+  background: #f7f9fb;
   border: none;
   border-radius: 8px;
   padding: 12px 16px 10px 36px;
@@ -988,13 +1066,13 @@ textarea {
 }
 
 .time-item:hover {
-  background: #F7F9FB;
+  background: #f7f9fb;
 }
 
 .time-item.selected {
   color: #000;
   font-weight: bold;
-  background: #F7F9FB;
+  background: #f7f9fb;
 }
 
 .time-item.disabled {
@@ -1089,8 +1167,8 @@ textarea {
 }
 
 :deep(.vc-day.is-today .vc-day-content) {
-  background-color: #A8C5DA;
-  color: #FFFFFF;
+  background-color: #a8c5da;
+  color: #ffffff;
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -1101,18 +1179,18 @@ textarea {
 
 /* 새로운 에러 관련 스타일 */
 .input-with-icon.error input {
-  border: 1px solid #FF6B6B;
+  border: 1px solid #ff6b6b;
 }
 
 .error-message {
-  color: #FF6B6B;
+  color: #ff6b6b;
   font-size: 12px;
   margin-top: 4px;
   padding-left: 5px;
 }
 
 .date-order-error {
-  color: #FF6B6B;
+  color: #ff6b6b;
   font-size: 12px;
   text-align: left;
   margin-top: 4px;
@@ -1125,8 +1203,9 @@ textarea {
   gap: 10px;
   margin-top: 15px;
 }
- 
-.cancel-btn, .confirm-btn {
+
+.cancel-btn,
+.confirm-btn {
   flex: 1;
   padding: 10px;
   border-radius: 10px;
@@ -1136,14 +1215,14 @@ textarea {
   font-size: 16px;
   font-weight: bold;
 }
- 
+
 .cancel-btn {
-  background: #F2F2F2;
-  color: #A8C5DA;
+  background: #f2f2f2;
+  color: #a8c5da;
 }
- 
+
 .confirm-btn {
-  background: #BFD0E0;
-  color: #FFFFFF;
+  background: #bfd0e0;
+  color: #ffffff;
 }
 </style>
