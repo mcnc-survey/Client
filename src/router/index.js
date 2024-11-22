@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/Login.vue";
+import Signup from "../views/Signup.vue";
 import SurveyManagement from "../views/SurveyManagement.vue";
 import SurveyEdit from "../views/SurveyEdit.vue";
 import SurveyStats from "../views/SurveyStats.vue";
@@ -10,49 +11,70 @@ import DeletedItems from "../views/DeletedItems.vue";
 import ParticipantInfo from "../mobile/ParticipantInfo.vue";
 import SurveyParticipation from "../mobile/SurveyParticipation.vue";
 
+import MobileLayout from "../layouts/MobileLayout.vue";
+import WebLayout from "../layouts/WebLayout.vue";
+
 const routes = [
+  {
+    path: "/signup",
+    component: Signup,
+  },
   {
     path: "/",
     component: Login,
   },
   {
-    path: "/survey-management",
-    component: SurveyManagement,
-    name: "SurveyManagement",
+    path: "/web",
+    component: WebLayout,
+    children: [
+      {
+        path: "management",
+        component: SurveyManagement,
+      },
+      {
+        path: "edit/:id",
+        component: SurveyEdit,
+        name: "SurveyEdit",
+      },
+      {
+        path: "stats/",
+        component: SurveyStats,
+        name: "SurveyStats",
+      },
+      {
+        path: "create",
+        component: SurveyCreate,
+        name: "SurveyCreate",
+      },
+
+      {
+        path: "calendar",
+        component: Calendar,
+      },
+
+      {
+        path: "recycle",
+        component: DeletedItems,
+      },
+    ],
   },
   {
-    path: "/survey-edit/:id",
-    component: SurveyEdit,
-    name: "SurveyEdit",
-  },
-  {
-    path: "/survey-stats/",
-    component: SurveyStats,
-  },
-  {
-    path: "/survey-create",
-    component: SurveyCreate,
-    name: "SurveyCreate",
-  },
-  {
-    path: "/survey-completion",
-    component: SurveyCompletion,
-  },
-  {
-    path: "/calendar",
-    component: Calendar,
-  },
-  {
-    path: "/deleted-items",
-    component: DeletedItems,
-  },
-  {
-    path: "/participant-info",
-    component: ParticipantInfo,
-  },
-  {
-    path: "/survey-participation",
-    component: SurveyParticipation,
+    path: "/mobile",
+    component: MobileLayout,
+    children: [
+      {
+        path: "",
+        component: ParticipantInfo,
+      },
+      {
+        path: "completion",
+        component: SurveyCompletion,
+      },
+      {
+        path: "survey",
+        component: SurveyParticipation,
+      },
+    ],
   },
 ];
 
