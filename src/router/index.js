@@ -30,6 +30,7 @@ const routes = [
       {
         path: "management",
         component: SurveyManagement,
+        name: "SurveyManagement",
       },
       {
         path: "edit/:id",
@@ -39,13 +40,18 @@ const routes = [
       {
         path: "stats/",
         component: SurveyStats,
+        name: "SurveyStats",
       },
       {
         path: "create",
         component: SurveyCreate,
         name: "SurveyCreate",
       },
-
+      {
+        path: "complete",
+        component: SurveyCompletion,
+        name: "SurveyCompletion",
+      },
       {
         path: "calendar",
         component: Calendar,
