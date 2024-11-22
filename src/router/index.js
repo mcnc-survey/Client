@@ -39,6 +39,7 @@ const routes = [
       {
         path: "stats/",
         component: SurveyStats,
+        name: "SurveyStats",
       },
       {
         path: "create",
