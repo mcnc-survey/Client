@@ -1,16 +1,16 @@
 <template>
-  <div class="survey-create-complete">
-    <h2>설문조사 생성</h2>
-    <div class="survey-complete-area">
-      <div class="survey-complete-assets">
+  <div class="survey-completion">
+    <h2 class="survey-title">설문조사 생성</h2>
+    <div class="survey-container">
+      <div class="survey-content">
         <div class="completion-message">
           <p class="completion-title">설문조사 등록이 완료되었습니다!</p>
-          <p class="completion-instruction">참여 링크를 공유하고, 소중한 의견을 모아보세요.</p>
-          <img src="@/assets/images/img-koala.png" alt="Koala" class="koala-image" />
+          <p class="completion-subtitle">참여 링크를 공유하고, 소중한 의견을 모아보세요.</p>
+          <img src="@/assets/images/img-koala.png" alt="Koala" class="completion-image" />
         </div>
-        <div class="complete-buttons">
-          <button class="back-button" @click="goToSurveyList">목록으로 돌아가기</button>
-          <button class="share-button" @click="shareLink">공유하기</button>
+        <div class="button-group">
+          <button class="btn btn-secondary" @click="goToSurveyList">목록으로 돌아가기</button>
+          <button class="btn btn-primary" @click="shareLink">공유하기</button>
         </div>
       </div>
     </div>
@@ -18,20 +18,40 @@
 </template>
 
 <script>
-import { useRouter } from 'vue-router';
-import { useSurveyCompletion } from '@/composables/useSurveyCompletion.js';
-import '@/assets/css/SurveyCompletion.css';
-import '@/assets/css/common.css';
+import { useRouter } from "vue-router";
+import { toast } from "vue3-toastify"; // toastify
+import "vue3-toastify/dist/index.css"; // toastify 스타일 추가
+
+// 토스트 메시지 옵션 객체
+const toastOptions = {
+  position: toast.POSITION.TOP_CENTER,
+  autoClose: 1000,
+};
 
 export default {
   name: "SurveyCompletion",
 
   setup() {
     const router = useRouter();
-    const {
-      goToSurveyList,
-      shareLink,
-    } = useSurveyCompletion(router);
+
+    const goToSurveyList = () => {
+      router.push({ name: "SurveyManagement" }).catch((error) => {
+        console.error("SurveyManagement 페이지로 이동 실패:", error);
+      });
+    };
+
+    const shareLink = () => {
+      // 공유 링크를 복사하는 로직
+      const link = "https://example.com/survey-link"; // 실제 링크로 변경
+      navigator.clipboard
+        .writeText(link)
+        .then(() => {
+          toast.success("링크가 복사되었습니다!", toastOptions);
+        })
+        .catch(() => {
+          toast.error("링크 복사에 실패했습니다.", toastOptions);
+        });
+    };
 
     return {
       goToSurveyList,
@@ -40,3 +60,84 @@ export default {
   },
 };
 </script>
+
+<style>
+.survey-completion {
+  display: flex;
+  flex-direction: column;
+  padding: 36px;
+}
+
+.survey-title {
+  font-size: 1.25rem;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.survey-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 700px;
+  width: 100%;
+  background-color: #f7f9fb;
+  border-radius: 24px;
+}
+
+.survey-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 800px;
+  padding: 54px;
+  background-color: #fff;
+  border-radius: 24px;
+}
+
+.completion-message {
+  text-align: center;
+}
+
+.completion-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: bold;
+}
+
+.completion-subtitle {
+  margin: 13px 0 0;
+  font-size: 1.5rem;
+}
+
+.completion-image {
+  width: 180px;
+  margin: 30px 0 60px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.btn {
+  font-family: Pretendard;
+  font-weight: bold;
+  width: 230px;
+  height: 50px;
+  font-size: 1.25rem;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 28px;
+  cursor: pointer;
+  color: #000;
+}
+
+.btn-secondary {
+  background-color: #efefef;
+}
+
+.btn-primary {
+  background-color: #bfd0e0;
+}
+</style>
