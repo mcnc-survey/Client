@@ -11,6 +11,9 @@ import DeletedItems from "../views/DeletedItems.vue";
 import ParticipantInfo from "../mobile/ParticipantInfo.vue";
 import SurveyParticipation from "../mobile/SurveyParticipation.vue";
 
+import MobileLayout from "../layouts/MobileLayout.vue";
+import WebLayout from "../layouts/WebLayout.vue";
+
 const routes = [
   {
     path: "/signup",
@@ -21,43 +24,56 @@ const routes = [
     component: Login,
   },
   {
-    path: "/survey-management",
-    component: SurveyManagement,
+    path: "/web",
+    component: WebLayout,
+    children: [
+      {
+        path: "management",
+        component: SurveyManagement,
+      },
+      {
+        path: "edit/:id",
+        component: SurveyEdit,
+        name: "SurveyEdit",
+      },
+      {
+        path: "stats/",
+        component: SurveyStats,
+      },
+      {
+        path: "create",
+        component: SurveyCreate,
+        name: "SurveyCreate",
+      },
+
+      {
+        path: "calendar",
+        component: Calendar,
+      },
+
+      {
+        path: "recycle",
+        component: DeletedItems,
+      },
+    ],
   },
   {
-    path: "/survey-edit/:id",
-    component: SurveyEdit,
-    name: "SurveyEdit",
-  },
-  {
-    path: "/survey-stats/:id",
-    component: SurveyStats,
-    name: "SurveyStats",
-  },
-  {
-    path: "/survey-create",
-    component: SurveyCreate,
-    name: "SurveyCreate",
-  },
-  {
-    path: "/survey-completion",
-    component: SurveyCompletion,
-  },
-  {
-    path: "/calendar",
-    component: Calendar,
-  },
-  {
-    path: "/deleted-items",
-    component: DeletedItems,
-  },
-  {
-    path: "/participant-info",
-    component: ParticipantInfo,
-  },
-  {
-    path: "/survey-participation",
-    component: SurveyParticipation,
+    path: "/mobile",
+    component: MobileLayout,
+    children: [
+      {
+        path: "",
+        component: ParticipantInfo,
+      },
+      {
+        path: "completion",
+        component: SurveyCompletion,
+      },
+      {
+        path: "survey",
+        component: SurveyParticipation,
+      },
+    ],
   },
 ];
 

@@ -1,62 +1,16 @@
 <template>
   <div id="app">
-    <div class="container">
-      <!-- 왼쪽 네비게이션 -->
-      <Sidebar :isSidebarOpen="isSidebarOpen" />
-
-      <div class="content-wrapper">
-        <!-- 상단 탭바 -->
-        <div class="topbar">
-          <button @click="toggleSidebar">☰</button>
-          <span>My Application</span>
-          <button @click="toggleNotifications">☰</button>
-        </div>
-
-        <!-- 가운데 콘텐츠 -->
-        <div class="content">
-          <router-view></router-view>
-        </div>
-      </div>
-
-      <!-- 오른쪽 알림 -->
-      <Notifications :isNotificationsOpen="isNotificationsOpen" />
-    </div>
+    <router-view />
   </div>
 </template>
 
 <script>
-import Sidebar from "./components/Sidebar.vue";
-import Notifications from "./components/Notifications.vue";
-
 export default {
-  components: {
-    Sidebar,
-    Notifications,
-  },
-  data() {
-    return {
-      isSidebarOpen: true,
-      isNotificationsOpen: true,
-    };
-  },
-  methods: {
-    toggleSidebar() {
-      this.isSidebarOpen = !this.isSidebarOpen;
-    },
-    toggleNotifications() {
-      this.isNotificationsOpen = !this.isNotificationsOpen;
-    },
-  },
+  name: "App",
 };
 </script>
 
 <style>
-@font-face {
-  font-family: "Pretendard";
-  src: url("../public/fonts/Pretendard-Regular.woff2") format("woff2"),
-    url("../public/fonts/Pretendard-Regular.woff") format("woff");
-}
-
 /* 전체 기본 폰트 설정 */
 body {
   font-family: "Pretendard", Arial, sans-serif;

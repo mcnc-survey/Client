@@ -25,11 +25,11 @@
         </li>
       </ul>
     </transition>
-    <router-link to="/survey-management" class="menu-item">
+    <router-link to="/web/management" class="menu-item">
       설문조사 목록
     </router-link>
-    <router-link to="/calendar" class="menu-item">캘린더</router-link>
-    <router-link to="/deleted-items" class="menu-item">삭제된 항목</router-link>
+    <router-link to="/web/calendar" class="menu-item">캘린더</router-link>
+    <router-link to="/web/recycle" class="menu-item">삭제된 항목</router-link>
     <router-link to="/" class="menu-item">로그아웃</router-link>
   </nav>
 </template>
@@ -47,9 +47,9 @@ export default {
       isFavoritesOpen: true, // 즐겨찾기 리스트 표시 여부
       isFavoritesHovered: false, // hover 상태
       favorites: [
-        { label: "입학 설명회 참가", route: "/survey-edit/id1" },
-        { label: "독립 서점 이용 경험", route: "/survey-edit/id2" },
-        { label: "지하철 앱 사용 경험", route: "/survey-edit/id3" },
+        { label: "입학 설명회 참가", route: "/web/edit/id1" },
+        { label: "독립 서점 이용 경험", route: "/web/edit/id2" },
+        { label: "지하철 앱 사용 경험", route: "/web/edit/id3" },
       ],
     };
   },
