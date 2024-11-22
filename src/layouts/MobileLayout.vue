@@ -9,12 +9,13 @@ export default {
   name: "MobileLayout",
 };
 </script>
-
 <style>
-/* 모바일 전용 스타일 */
 .mobile-layout {
-  padding: 20px;
-  font-size: 1rem;
-  background-color: #f9f9f9;
+  height: 100%; /* 화면 전체 높이 */
+  display: flex; /* 레이아웃 정렬 */
+  justify-content: center; /* 수평 중앙 정렬 */
+  align-items: center; /* 수직 중앙 정렬 */
+  background-color: #d9d9d9; /* 배경색 설정 */
+  margin: 20px;
 }
 </style>
