@@ -1,0 +1,335 @@
+<template>
+  <div class="question">
+    <!-- 질문 제목 -->
+    <div class="question-header">
+      <div class="question-title-wrapper">
+        <textarea
+          v-model="questionData.title"
+          class="question-title"
+          placeholder="질문"
+          rows="1"
+          @input="adjustHeight"
+        ></textarea>
+      </div>
+      <div class="question-actions">
+        <!-- 옵션 컨테이너 -->
+        <div class="options-container">
+          <label class="action-item required-toggle">
+            <span class="toggle-label">필수</span>
+            <div class="toggle-switch">
+              <input 
+                type="checkbox"
+                v-model="questionData.required"
+                @change="updateQuestion"
+              >
+              <span class="slider"></span>
+            </div>
+          </label>
+          <button @click="copyQuestion" class="action-item copy-btn">
+            <img src="@/assets/images/copy_question.png" alt="복사" />
+          </button>
+          <button @click="$emit('delete')" class="action-item delete-btn">
+            <img src="@/assets/images/delete_question.png" alt="삭제" />
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 선택지 목록 -->
+    <div class="options-list">
+      <div 
+        v-for="(option, index) in questionData.options" 
+        :key="index"
+        class="option-item"
+      >
+        <div class="radio-circle"></div>
+        <input
+          type="text"
+          v-model="option.text"
+          placeholder="옵션"
+          @input="updateQuestion"
+        >
+        <button 
+          @click="removeOption(index)"
+          class="remove-option"
+          v-if="questionData.options.length > 1"
+        >
+          <img src="@/assets/images/delete_option.png" alt="옵션 삭제" />
+        </button>
+      </div>
+    </div>
+
+    <!-- 옵션 추가 버튼들 -->
+    <div class="add-buttons">
+      <button @click="addOption" class="add-option">
+        <img src="@/assets/images/add_question.png" alt="옵션 추가" />
+        <span>옵션 추가</span>
+      </button>
+      <button @click="addOtherOption" class="add-option">
+        <img src="@/assets/images/add_question.png" alt="기타 추가" />
+        <span>기타 추가</span>
+      </button>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'SingleChoiceQuestion',
+  
+  props: {
+    question: {
+      type: Object,
+      required: true
+    }
+  },
+
+  data() {
+    return {
+      questionData: {
+        ...this.question,
+        options: this.question.options || [
+          { id: Date.now(), text: '' },
+          { id: Date.now() + 1, text: '' }
+        ]
+      }
+    }
+  },
+
+  methods: {
+    adjustHeight(e) {
+      const textarea = e.target;
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    },
+
+    addOption() {
+      this.questionData.options.push({
+        id: Date.now(),
+        text: ''
+      });
+      this.updateQuestion();
+    },
+
+    addOtherOption() {
+      this.questionData.options.push({
+        id: Date.now(),
+        text: '기타...',
+        isOther: true
+      });
+      this.updateQuestion();
+    },
+
+    removeOption(index) {
+      this.questionData.options.splice(index, 1);
+      this.updateQuestion();
+    },
+
+    copyQuestion() {
+      this.$emit('copy', {...this.questionData});
+    },
+
+    updateQuestion() {
+      this.$emit('update', {...this.questionData});
+    }
+  }
+}
+</script>
+
+<style scoped>
+.question {
+  width: 100%;
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.question-title-wrapper {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.question-title {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0;
+  resize: none;
+  font-family: Pretendard;
+  background: transparent;
+}
+
+.question-actions {
+  display: flex;
+  align-items: center;
+}
+
+.options-container {
+  display: flex;
+  align-items: center;
+  background: #F7F9FB;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: #666;
+  border-radius: 4px;
+}
+
+.action-item:hover {
+  background: #E8EEF3;
+}
+
+.action-item img {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.required-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+}
+
+.toggle-label {
+  font-size: 10px;
+  color: #000;
+  font-weight: bold;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #FFFFFF;
+  transition: .4s;
+  border-radius: 18px;
+  border: 1.5px solid #E8EEF3;
+  cursor: pointer;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #E8EEF3;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .slider {
+  background-color: #FFFFFF;
+  border-color: #A8C5DA;
+}
+
+.toggle-switch input:checked + .slider:before {
+  transform: translateX(13px);
+  background-color: #A8C5DA;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.radio-circle {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #BFD0E0;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.option-item input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 8px;
+  font-size: 14px;
+  background: #F7F9FB;
+  border-radius: 8px;
+  font-family: Pretendard;
+}
+
+.remove-option {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.remove-option img {
+  width: 16px;
+  height: 16px;
+}
+
+.add-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.add-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 14px;
+  padding: 5px;
+}
+
+.add-option:hover {
+  color: #333;
+}
+
+.add-option img {
+  width: 16px;
+  height: 16px;
+}
+</style>
