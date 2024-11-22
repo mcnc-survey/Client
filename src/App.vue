@@ -15,17 +15,23 @@ export default {
 body {
   font-family: "Pretendard", Arial, sans-serif;
   font-weight: normal;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
+
 /* 전체 컨테이너 */
 .container {
   display: flex;
   height: 100vh;
 }
+
 /* 가운데 콘텐츠 영역 */
 .content-wrapper {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 /* 상단 탭바 */
@@ -50,18 +56,17 @@ body {
 .topbar button:hover {
   background-color: #2e7d32;
 }
-/* 가운데 콘텐츠 */
-.content-wrapper {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-}
 
 .content {
   background-color: #ffffff;
   padding: 0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px; /* 모서리 둥글게 */
-  overflow-y: auto; /* 스크롤 설정 */
+  border-radius: 8px;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.content::-webkit-scrollbar {
+  display: none;
 }
 </style>

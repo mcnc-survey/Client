@@ -1,24 +1,15 @@
 <template>
   <nav v-if="isSidebarOpen" class="sidebar">
     <div class="user-info">
-      <img
-        src="@/assets/images/icon-user.png"
-        alt="User Image"
-        class="user-image"
-      />
+      <img src="@/assets/images/icon-user.png" alt="User Image" class="user-image" />
       <h>홍길동</h>
     </div>
     <br />
     <!-- 즐겨찾기 헤더 -->
-    <div
-      class="favorites-header"
-      :class="{
-        active: isFavoritesActive,
-        hover: isFavoritesHovered,
-      }"
-      @mouseenter="isFavoritesHovered = true"
-      @mouseleave="isFavoritesHovered = false"
-    >
+    <div class="favorites-header" :class="{
+      active: isFavoritesActive,
+      hover: isFavoritesHovered,
+    }" @mouseenter="isFavoritesHovered = true" @mouseleave="isFavoritesHovered = false">
       <button @click="toggleFavoritesList" class="toggle-btn">
         {{ isFavoritesOpen ? "▽" : "▶" }}
       </button>
@@ -27,13 +18,9 @@
     <!-- 즐겨찾기 목록 -->
     <transition name="fade">
       <ul v-if="isFavoritesOpen" class="favorites-list">
-        <li
-          v-for="(item, index) in favorites"
-          :key="index"
-          :class="{
-            active: isActiveRoute(item.route),
-          }"
-        >
+        <li v-for="(item, index) in favorites" :key="index" :class="{
+          active: isActiveRoute(item.route),
+        }">
           <router-link :to="item.route">{{ item.label }}</router-link>
         </li>
       </ul>
@@ -86,6 +73,7 @@ export default {
 .sidebar {
   width: 15%;
   background-color: #f4f4f4;
+  padding: 20px;
 }
 
 .user-info {
@@ -109,9 +97,11 @@ export default {
   border-radius: 4px;
   transition: background-color 0.3s, color 0.3s;
 }
+
 .sidebar a:hover {
   background-color: #ddd;
 }
+
 .sidebar .menu-item.router-link-active {
   background-color: #bbb;
   font-weight: bold;
@@ -128,14 +118,17 @@ export default {
   list-style: none;
   padding: 0;
 }
+
 .favorites-list li.active {
   background-color: #bbb;
   font-weight: bold;
   border-radius: 4px;
 }
+
 .favorites-list li.active a {
   color: black;
 }
+
 .favorites-list li:hover {
   background-color: #ddd;
   border-radius: 4px;
@@ -154,6 +147,7 @@ export default {
   color: #999;
   transition: color 0.3s, background-color 0.3s;
 }
+
 .favorites-header.active p {
   color: black;
   font-weight: bold;
