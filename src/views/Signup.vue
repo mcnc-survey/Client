@@ -8,112 +8,57 @@
           </router-link>
           <h2>회원가입</h2>
         </div>
-        
+
         <div class="name-container">
           <div class="form-field relative">
-            <input 
-              type="text" 
-              id="lastName" 
-              class="input-field peer" 
-              v-model="lastName"
-              placeholder=" " 
-            />
+            <input type="text" id="lastName" class="input-field peer" v-model="lastName" placeholder=" " />
             <label for="lastName" class="floating-label">성</label>
           </div>
           <div class="form-field relative">
-            <input 
-              type="text" 
-              id="firstName" 
-              class="input-field peer" 
-              v-model="firstName"
-              placeholder=" " 
-            />
+            <input type="text" id="firstName" class="input-field peer" v-model="firstName" placeholder=" " />
             <label for="firstName" class="floating-label">이름</label>
           </div>
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': emailError && emailTouched }">
-          <input 
-            type="email" 
-            id="email" 
-            class="input-field peer"
-            :class="{ 'error-border': emailError && emailTouched }"
-            v-model="email"
-            @blur="validateEmail"
-            placeholder=" " 
-          />
-          <label 
-            for="email" 
-            class="floating-label"
-            :class="{ 'error-label': emailError && emailTouched }"
-          >이메일</label>
+          <input type="email" id="email" class="input-field peer"
+            :class="{ 'error-border': emailError && emailTouched }" v-model="email" @blur="validateEmail"
+            placeholder=" " />
+          <label for="email" class="floating-label" :class="{ 'error-label': emailError && emailTouched }">이메일</label>
           <span v-if="emailError && emailTouched" class="error-message">잘못된 이메일 형식입니다</span>
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': phoneError && phoneTouched }">
-          <input 
-            type="tel" 
-            id="phone" 
-            class="input-field peer"
-            :class="{ 'error-border': phoneError && phoneTouched }"
-            v-model="phone"
-            @blur="validatePhone"
-            placeholder=" " 
-          />
-          <label 
-            for="phone" 
-            class="floating-label"
-            :class="{ 'error-label': phoneError && phoneTouched }"
-          >전화번호</label>
+          <input type="tel" id="phone" class="input-field peer" :class="{ 'error-border': phoneError && phoneTouched }"
+            v-model="phone" @blur="validatePhone" placeholder=" " />
+          <label for="phone" class="floating-label" :class="{ 'error-label': phoneError && phoneTouched }">전화번호</label>
           <span v-if="phoneError && phoneTouched" class="error-message">올바른 전화번호 형식이 아닙니다</span>
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': passwordError && passwordTouched }">
-          <input 
-            :type="showPassword ? 'text' : 'password'"
-            id="password" 
-            class="input-field peer"
-            :class="{ 'error-border': passwordError && passwordTouched }"
-            v-model="password"
-            @blur="validatePassword"
-            placeholder=" " 
-          />
-          <label 
-            for="password" 
-            class="floating-label"
-            :class="{ 'error-label': passwordError && passwordTouched }"
-          >비밀번호</label>
+          <input :type="showPassword ? 'text' : 'password'" id="password" class="input-field peer"
+            :class="{ 'error-border': passwordError && passwordTouched }" v-model="password" @blur="validatePassword"
+            placeholder=" " />
+          <label for="password" class="floating-label"
+            :class="{ 'error-label': passwordError && passwordTouched }">비밀번호</label>
           <div v-if="password.length > 0" class="password-toggle" @click="togglePassword">
-            <img 
+            <img
               :src="showPassword ? require('../assets/images/eye_hide.png') : require('../assets/images/eye_show.png')"
-              :alt="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'"
-              class="eye-icon"
-            />
+              :alt="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'" class="eye-icon" />
           </div>
           <span v-if="passwordError && passwordTouched" class="error-message">영문과 특수문자를 포함하여 8자리 이상으로 입력해주세요</span>
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': confirmPasswordError && confirmPasswordTouched }">
-          <input 
-            :type="showConfirmPassword ? 'text' : 'password'"
-            id="confirmPassword" 
-            class="input-field peer"
-            :class="{ 'error-border': confirmPasswordError && confirmPasswordTouched }"
-            v-model="confirmPassword"
-            @blur="validateConfirmPassword"
-            placeholder=" " 
-          />
-          <label 
-            for="confirmPassword" 
-            class="floating-label"
-            :class="{ 'error-label': confirmPasswordError && confirmPasswordTouched }"
-          >비밀번호 확인</label>
+          <input :type="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" class="input-field peer"
+            :class="{ 'error-border': confirmPasswordError && confirmPasswordTouched }" v-model="confirmPassword"
+            @blur="validateConfirmPassword" placeholder=" " />
+          <label for="confirmPassword" class="floating-label"
+            :class="{ 'error-label': confirmPasswordError && confirmPasswordTouched }">비밀번호 확인</label>
           <div v-if="confirmPassword.length > 0" class="password-toggle" @click="toggleConfirmPassword">
-            <img 
+            <img
               :src="showConfirmPassword ? require('../assets/images/eye_hide.png') : require('../assets/images/eye_show.png')"
-              :alt="showConfirmPassword ? '비밀번호 숨기기' : '비밀번호 표시'"
-              class="eye-icon"
-            />
+              :alt="showConfirmPassword ? '비밀번호 숨기기' : '비밀번호 표시'" class="eye-icon" />
           </div>
           <span v-if="confirmPasswordError && confirmPasswordTouched" class="error-message">비밀번호가 일치하지 않습니다</span>
         </div>
@@ -138,29 +83,29 @@ export default {
       phone: '',
       password: '',
       confirmPassword: '',
-      
+
       emailError: false,
       phoneError: false,
       passwordError: false,
       confirmPasswordError: false,
-      
+
       emailTouched: false,
       phoneTouched: false,
       passwordTouched: false,
       confirmPasswordTouched: false,
-      
+
       showPassword: false,
       showConfirmPassword: false
     }
   },
   computed: {
     isFormValid() {
-      return this.lastName && 
-             this.firstName && 
-             this.email && !this.emailError && 
-             this.phone && !this.phoneError && 
-             this.password && !this.passwordError && 
-             this.confirmPassword && !this.confirmPasswordError;
+      return this.lastName &&
+        this.firstName &&
+        this.email && !this.emailError &&
+        this.phone && !this.phoneError &&
+        this.password && !this.passwordError &&
+        this.confirmPassword && !this.confirmPasswordError;
     }
   },
   methods: {
@@ -192,7 +137,7 @@ export default {
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(this.password);
       const hasMinLength = this.password.length >= 8;
       this.passwordError = !(hasSpecialChar && hasMinLength);
-      
+
       // 비밀번호가 변경되면 비밀번호 확인도 재검증
       if (this.confirmPasswordTouched) {
         this.validateConfirmPassword();
@@ -309,7 +254,7 @@ input[type="text"] {
 
 .password-toggle {
   position: absolute;
-  right: 15px; 
+  right: 15px;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
@@ -362,13 +307,13 @@ input[type="text"] {
   color: #FF6B6B;
 }
 
-.input-field:not(:placeholder-shown) ~ .floating-label,
-.input-field:focus ~ .floating-label {
+.input-field:not(:placeholder-shown)~.floating-label,
+.input-field:focus~.floating-label {
   transform: translateY(-180%) scale(0.85);
 }
 
 /* 포커스일 때만 파란색으로 변경 */
-.input-field:focus ~ .floating-label {
+.input-field:focus~.floating-label {
   color: #A8C5DA;
 }
 
@@ -390,7 +335,7 @@ input[type="text"] {
 }
 
 /* 에러 상태일 때는 focus 상태에서도 빨간색 유지 */
-.error-border:focus ~ .floating-label {
+.error-border:focus~.floating-label {
   color: #FF6B6B;
 }
 

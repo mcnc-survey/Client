@@ -6,7 +6,7 @@
       <div v-for="survey in sortedSurveys" :key="survey.id" class="survey-item">
         <div class="survey-info">
           <p class="survey-title" @click="goToSurveyStats(survey.id)">{{ survey.title }}</p>
-          <span :class="['status', survey.statusClass]">{{ survey.statusText }}</span>
+          <span :class="['status', getStatusClass(survey.status)]">{{ survey.status }}</span>
         </div>
         <div class="survey-actions">
           <div class="management-buttons">
@@ -15,19 +15,21 @@
             <button class="icon-button" @click="editSurvey(survey.id)"><i class="icon icon-edit"></i></button>
             <button class="icon-button" @click="deleteSurvey(survey.id)"><i class="icon icon-delete"></i></button>
           </div>
-          <span class="last-updated">최근 수정일: {{ survey.lastUpdated }}</span>
+          <span class="last-updated">최근 수정일: {{ survey.modified_at }}</span>
         </div>
       </div>
     </div>
-
     <button class="create-survey-button" @click="createSurvey()">새로운 설문조사 만들기</button>
   </div>
 </template>
 
+
 <script>
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
-import Swal from "sweetalert2";
+import Swal from "sweetalert2"; // // sweetalert2
+import { toast } from "vue3-toastify"; // toastify
+import "vue3-toastify/dist/index.css"; // toastify 스타일 추가
 import surveyData from "@/data/surveyData";
 import '@/assets/css/CustomAlert.css';
 
@@ -37,22 +39,40 @@ const statusOrder = {
   마감됨: 3,
 };
 
+// 토스트 메시지 옵션 객체
+const toastOptions = {
+  position: toast.POSITION.TOP_CENTER,
+  autoClose: 1000,
+};
+
 export default {
   name: "SurveyManagement",
   setup() {
     const router = useRouter();
     const surveys = ref(surveyData);
 
-    const sortedSurveys = computed(() =>
-      surveys.value.slice().sort((a, b) => {
-        const statusComparison =
-          statusOrder[a.statusText] - statusOrder[b.statusText];
+    // 설문조사를 상태 및 최신 수정일 순으로 정렬
+    const sortedSurveys = computed(() => {
+      return surveys.value.slice().sort((a, b) => {
+        const statusComparison = statusOrder[a.status] - statusOrder[b.status];
         if (statusComparison === 0) {
-          return new Date(b.lastUpdated) - new Date(a.lastUpdated);
+          return new Date(b.modified_at) - new Date(a.modified_at); // 최신순 정렬
         }
-        return statusComparison;
-      })
-    );
+        return statusComparison; // 상태 순서에 따른 정렬
+      });
+    });
+
+    // 상태에 따른 클래스 매핑 함수
+    const getStatusClass = (status) => {
+      switch (status) {
+        case "진행중":
+          return "in-progress";
+        case "중단됨":
+          return "stopped";
+        case "마감됨":
+          return "completed";
+      }
+    };
 
     const goToSurveyStats = (surveyId) => {
       router.push({ name: "SurveyStats", params: { id: surveyId } });
@@ -63,7 +83,15 @@ export default {
     };
 
     const handleLink = (surveyId) => {
-      console.log("Copy link for survey:", surveyId);
+      const link = `https://example.com/survey/${surveyId}`; // 임시 링크
+      navigator.clipboard
+        .writeText(link)
+        .then(() => {
+          toast.success("링크가 복사되었습니다!", toastOptions);
+        })
+        .catch(() => {
+          toast.error("링크 복사에 실패했습니다.", toastOptions);
+        });
     };
 
     const editSurvey = (surveyId) => {
@@ -96,12 +124,16 @@ export default {
     };
 
     const createSurvey = () => {
-      router.push({ name: "SurveyCreate" });
+      router.push({ name: "SurveyCreate" }).catch((error) => {
+        console.error("SurveyCreate 페이지로 이동 실패:", error);
+        toast.error("설문조사 생성 페이지로 이동에 실패했습니다.", toastOptions);
+      });
     };
 
     return {
       surveys,
       sortedSurveys,
+      getStatusClass,
       goToSurveyStats,
       handlePreview,
       handleLink,
