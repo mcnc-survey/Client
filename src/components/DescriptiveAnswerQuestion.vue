@@ -1,105 +1,60 @@
-<!-- components/questions/LongAnswerQuestion.vue -->
 <template>
   <div class="question">
     <!-- 질문 제목 -->
     <div class="question-header">
       <div class="question-title-wrapper">
-        <textarea
-          v-model="questionData.title"
-          class="question-title"
-          placeholder="질문"
-          rows="1"
-          @input="adjustHeight"
-        ></textarea>
+        <div class="input-wrapper">
+          <textarea
+            v-model="questionData.title"
+            class="question-title"
+            placeholder="질문"
+            rows="1"
+            @input="adjustHeight"
+            @focus="titleFocused = true"
+            @blur="titleFocused = false"
+          ></textarea>
+          <div class="underline" :class="{ focused: titleFocused }"></div>
+        </div>
       </div>
       <div class="question-actions">
-        <label class="required-toggle">
-          <input 
-            type="checkbox"
-            v-model="questionData.required"
-            @change="updateQuestion"
-          >
-          필수
-        </label>
-        <button @click="$emit('delete')" class="delete-btn">
-          <img src="@/assets/images/descriptive_answer.png" alt="삭제" />
-        </button>
-      </div>
-    </div>
-
-    <!-- 답변 설정 영역 -->
-    <div class="answer-settings">
-      <!-- 글자 수 제한 설정 -->
-      <div class="limit-settings">
-        <label class="limit-toggle">
-          <input 
-            type="checkbox"
-            v-model="questionData.hasLimit"
-            @change="updateQuestion"
-          >
-          글자 수 제한
-        </label>
-        
-        <div class="limit-inputs" v-if="questionData.hasLimit">
-          <div class="option-group">
-            <label>최소 글자 수:</label>
-            <input 
-              type="number" 
-              v-model.number="questionData.minLength"
-              min="0"
-              :max="questionData.maxLength"
-              @change="updateQuestion"
-            >
-          </div>
-          <div class="option-group">
-            <label>최대 글자 수:</label>
-            <input 
-              type="number" 
-              v-model.number="questionData.maxLength"
-              :min="questionData.minLength"
-              @change="updateQuestion"
-            >
-          </div>
+        <!-- 옵션 컨테이너 -->
+        <div class="options-container">
+          <label class="action-item required-toggle">
+            <span class="toggle-label">필수</span>
+            <div class="toggle-switch">
+              <input 
+                type="checkbox"
+                v-model="questionData.required"
+                @change="updateQuestion"
+              >
+              <span class="slider"></span>
+            </div>
+          </label>
+          <button @click="copyQuestion" class="action-item copy-btn">
+            <img src="@/assets/images/copy_question.png" alt="복사" />
+          </button>
+          <button @click="$emit('delete')" class="action-item delete-btn">
+            <img src="@/assets/images/delete_question.png" alt="삭제" />
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- 미리보기 영역 -->
+    <!-- 답변 입력창 미리보기 -->
     <div class="answer-preview">
-      <div class="preview-label">답변 입력창 미리보기:</div>
-      <div class="preview-input">
-        <textarea 
-          readonly 
-          placeholder="장문형 텍스트를 입력하세요."
-          rows="4"
-        ></textarea>
-        <div class="length-counter" v-if="questionData.hasLimit">
-          <span>0</span>
-          <template v-if="questionData.minLength && questionData.maxLength">
-            / {{ questionData.minLength }}-{{ questionData.maxLength }}
-          </template>
-          <template v-else-if="questionData.maxLength">
-            / {{ questionData.maxLength }}
-          </template>
-          <span>자</span>
-        </div>
-        <div class="length-guide" v-if="questionData.hasLimit">
-          <template v-if="questionData.minLength && questionData.maxLength">
-            {{ questionData.minLength }}자 이상 {{ questionData.maxLength }}자 이하로 입력해주세요.
-          </template>
-          <template v-else-if="questionData.maxLength">
-            {{ questionData.maxLength }}자 이하로 입력해주세요.
-          </template>
-          <template v-else-if="questionData.minLength">
-            {{ questionData.minLength }}자 이상 입력해주세요.
-          </template>
-        </div>
-      </div>
+      <textarea 
+        readonly 
+        placeholder="참여자의 답변 입력란 (최대 2000자)"
+        class="preview-input"
+        rows="4"
+      ></textarea>
     </div>
   </div>
 </template>
 
 <script>
+import { cloneDeep } from 'lodash';
+
 export default {
   name: 'LongAnswerQuestion',
   
@@ -112,32 +67,11 @@ export default {
 
   data() {
     return {
-      questionData: {
+      titleFocused: false,
+      questionData: cloneDeep({
         ...this.question,
-        hasLimit: this.question.hasLimit || false,
-        minLength: this.question.minLength || null,
-        maxLength: this.question.maxLength || null
-      }
-    }
-  },
-
-  watch: {
-    'questionData.hasLimit'(newValue) {
-      if (!newValue) {
-        this.questionData.minLength = null;
-        this.questionData.maxLength = null;
-        this.updateQuestion();
-      }
-    },
-    'questionData.minLength'(newValue) {
-      if (this.questionData.maxLength && newValue > this.questionData.maxLength) {
-        this.questionData.minLength = this.questionData.maxLength;
-      }
-    },
-    'questionData.maxLength'(newValue) {
-      if (this.questionData.minLength && newValue < this.questionData.minLength) {
-        this.questionData.maxLength = this.questionData.minLength;
-      }
+        type: 'long'
+      })
     }
   },
 
@@ -146,10 +80,34 @@ export default {
       const textarea = e.target;
       textarea.style.height = 'auto';
       textarea.style.height = `${textarea.scrollHeight}px`;
+      this.updateQuestion();
+    },
+
+    copyQuestion() {
+      // lodash의 cloneDeep을 사용한 깊은 복사
+      const copiedQuestion = cloneDeep(this.questionData);
+      
+      // 새로운 ID 할당
+      copiedQuestion.id = Date.now();
+
+      this.$emit('copy', copiedQuestion);
     },
 
     updateQuestion() {
-      this.$emit('update', {...this.questionData});
+      const updatedQuestion = cloneDeep(this.questionData);
+      this.$emit('update', updatedQuestion);
+    }
+  },
+
+  watch: {
+    question: {
+      handler(newQuestion) {
+        this.questionData = cloneDeep({
+          ...newQuestion,
+          type: 'long'
+        });
+      },
+      deep: true
     }
   }
 }
@@ -172,145 +130,155 @@ export default {
   margin-right: 20px;
 }
 
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 .question-title {
   width: 100%;
   border: none;
   outline: none;
   font-size: 16px;
   font-weight: 600;
-  padding: 0;
+  padding-top: 10px;
   resize: none;
   font-family: Pretendard;
   background: transparent;
 }
 
+.underline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: transparent;
+  transition: 0.2s ease;
+}
+
+.input-wrapper:not(:focus-within):hover .underline {
+  background: rgba(191, 208, 224, 0.4);
+}
+
+.underline.focused {
+  background: #bfd0e0;
+  height: 1px;
+}
+
 .question-actions {
   display: flex;
   align-items: center;
-  gap: 15px;
+}
+
+.options-container {
+  display: flex;
+  align-items: center;
+  background: #F7F9FB;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: #666;
+  border-radius: 4px;
+}
+
+.action-item:hover {
+  background: #E8EEF3;
+}
+
+.action-item img {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 .required-toggle {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  font-size: 14px;
-  color: #666;
-  cursor: pointer;
+  gap: 2px;
+  padding: 4px 8px;
 }
 
-.delete-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
+.toggle-label {
+  font-size: 10px;
+  color: #000;
+  font-weight: bold;
 }
 
-.delete-btn img {
-  width: 18px;
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
   height: 18px;
 }
 
-/* 답변 설정 영역 */
-.answer-settings {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #F7F9FB;
-  border-radius: 8px;
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-.limit-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.limit-toggle {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 14px;
-  color: #666;
+.slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #FFFFFF;
+  transition: .4s;
+  border-radius: 18px;
+  border: 1.5px solid #E8EEF3;
   cursor: pointer;
 }
 
-.limit-inputs {
-  display: flex;
-  gap: 20px;
-  padding-left: 20px;
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #E8EEF3;
+  transition: .4s;
+  border-radius: 50%;
 }
 
-.option-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #666;
+.toggle-switch input:checked + .slider {
+  background-color: #FFFFFF;
+  border-color: #000;
 }
 
-.option-group input {
-  width: 80px;
-  padding: 4px 8px;
-  border: 1px solid #BFD0E0;
-  border-radius: 4px;
-  outline: none;
-  font-size: 14px;
+.toggle-switch input:checked + .slider:before {
+  transform: translateX(13px);
+  background-color: #000;
 }
 
-/* 미리보기 영역 */
 .answer-preview {
   margin-top: 20px;
 }
 
-.preview-label {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 8px;
-}
-
 .preview-input {
-  position: relative;
-  max-width: 600px;
-}
-
-.preview-input textarea {
   width: 100%;
-  padding: 12px;
+  max-width: 400px;
+  padding: 8px 12px;
   border: 1px solid #BFD0E0;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 14px;
   font-family: Pretendard;
   background-color: #F7F9FB;
-  resize: vertical;
-  min-height: 100px;
-}
-
-.length-counter {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  font-size: 12px;
-  color: #666;
-  background-color: rgba(247, 249, 251, 0.8);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.length-guide {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #666;
-}
-
-/* 입력 필드 비활성화 스타일 */
-textarea[readonly] {
-  opacity: 0.7;
   cursor: default;
-}
-
-/* 체크박스 커스텀 스타일 */
-input[type="checkbox"] {
-  margin: 0;
-  vertical-align: middle;
+  color: #666;
+  outline: none;
+  resize: none;
 }
 </style>

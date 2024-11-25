@@ -1,11 +1,17 @@
 <template>
   <div class="survey-create">
-    <h2>설문조사 생성</h2>
+    <div class="header">
+      <h2>설문조사 생성</h2>
+      <div class="header-buttons">
+        <button class="preview-btn" @click="openPreview">미리보기</button>
+        <button class="save-btn" @click="validateAndSave">저장</button>
+      </div>
+    </div>
     <div class="create-container" ref="createContainer">
       <div class="content-area">
         <!-- 메인 설문 영역 -->
         <div class="survey-container">
-          <div class="title-container">
+          <div class="title-container" @click="selectTitleContainer" :class="{ error: showTitleError }">
             <!-- 설문 제목 입력 -->
             <div class="input-wrapper">
               <textarea
@@ -45,6 +51,9 @@
                 {{ formattedPeriod }}
               </div>
             </div>
+            <div v-if="showTitleError" class="error-message">
+              설문 제목을 입력해주세요.
+            </div>
           </div>
 
           <!-- 질문 컨테이너들 -->
@@ -58,7 +67,7 @@
                 ref="questionContainer"
                 class="question-container"
                 @click="selectQuestion(index)"
-                :class="{ selected: selectedQuestionIndex === index }"
+                :class="{ selected: selectedQuestionIndex === index, error: questionErrors[index] }"
               >
                 <component
                   :is="getQuestionComponent(question.type)"
@@ -67,16 +76,18 @@
                   @delete="deleteQuestion(index)"
                   @copy="copyQuestion(index)"
                 />
+                <div v-if="questionErrors[index]" class="error-message">
+                  질문과 옵션을 모두 입력해주세요.
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <!-- 사이드 영역 -->
-        <div class="side-container">
+        <div class="side-container" :style="{ transform: `translateY(${sideTabTop}px)` }">
           <QuestionTypeTab
             :selected-question-index="selectedQuestionIndex"
-            :side-tab-top="sideTabTop"
             @change-type="changeQuestionType"
             @add-question="addNewQuestion"
           />
@@ -204,7 +215,7 @@
           <div class="date-input">
             <div
               class="input-with-icon"
-              :class="{ error: showError && !modalEndDate }"
+              :class="{ error: (showError && !modalEndDate) || endTimeError }"
             >
               <img
                 src="@/assets/images/set_date.png"
@@ -232,7 +243,7 @@
           <div class="time-input">
             <div
               class="input-with-icon"
-              :class="{ error: showError && !endTime }"
+              :class="{ error: (showError && !endTime) || endTimeError }"
             >
               <img
                 src="@/assets/images/set_time.png"
@@ -301,6 +312,12 @@
                 <button class="confirm-btn" @click="confirmTime">확인</button>
               </div>
             </div>
+            <div
+              v-if="endTimeError"
+              class="end-time-error"
+            >
+              종료 시간은 현재보다 이전으로 설정할 수<br>없습니다
+            </div>
           </div>
           <div
             v-if="showError && (!modalEndDate || !endTime)"
@@ -324,7 +341,9 @@
 </template>
 
 <script>
+import { useRouter } from 'vue-router';
 import { ref, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { debounce } from 'lodash';
 import { DatePicker } from "v-calendar";
 import "v-calendar/style.css";
 import QuestionTypeTab from "@/components/QuestionTypeTab.vue";
@@ -346,6 +365,7 @@ export default {
   },
 
   setup() {
+    const router = useRouter();
     // Refs for template elements
     const createContainer = ref(null);
     const questionContainer = ref([]);
@@ -355,6 +375,8 @@ export default {
     const description = ref("");
     const titleFocused = ref(false);
     const descFocused = ref(false);
+    const showTitleError = ref(false);
+    const questionErrors = ref({});
 
     // Period modal state
     const showPeriodModal = ref(false);
@@ -373,7 +395,9 @@ export default {
     const modalEndDate = ref("");
     const showError = ref(false);
     const dateOrderError = ref(false);
+    const endTimeError = ref(false);
 
+    const isTitleContainerSelected  = ref(false);
     // Calendar data
     const selectedStartDate = ref(null);
     const selectedEndDate = ref(null);
@@ -418,27 +442,56 @@ export default {
     });
 
     // Methods
+    const updateSideTabPosition = () => {
+      if (selectedQuestionIndex.value !== null && 
+          questionContainer.value[selectedQuestionIndex.value]) {
+        const selectedElement = questionContainer.value[selectedQuestionIndex.value];
+        const containerRect = createContainer.value.getBoundingClientRect();
+        const titleContainer = document.querySelector('.title-container');
+        const rect = selectedElement.getBoundingClientRect();
+        // title-container의 시작 위치를 최소값으로 설정
+        const minTop = titleContainer.getBoundingClientRect().top - containerRect.top;
+        // create-container의 끝에서 사이드탭의 높이만큼 뺀 위치를 최대값으로 설정
+        const maxTop = containerRect.height - 300; // 300은 사이드탭의 대략적인 높이
+        // 현재 선택된 질문의 상대적 위치 계산
+        const relativeTop = rect.top - containerRect.top;
+        // 범위 내로 제한
+        const constrainedTop = Math.max(minTop, Math.min(relativeTop, maxTop));
+        sideTabTop.value = constrainedTop;
+      }
+    };
+
+    const debouncedUpdatePosition = debounce(updateSideTabPosition, 100);
+
     const adjustHeight = (e) => {
       const textarea = e.target;
       textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
-    const selectQuestion = (index) => {
-      selectedQuestionIndex.value = index;
-      updateSideTabPosition();
+    const selectTitleContainer = () => {
+      selectedQuestionIndex.value = null;
+      isTitleContainerSelected.value = true;
+      
+      const titleContainer = document.querySelector('.title-container');
+      if (titleContainer && createContainer.value) {
+        const containerRect = createContainer.value.getBoundingClientRect();
+        const rect = titleContainer.getBoundingClientRect();
+        sideTabTop.value = rect.top - containerRect.top;
+      }
     };
 
-    const updateSideTabPosition = () => {
-      if (
-        selectedQuestionIndex.value !== null &&
-        questionContainer.value[selectedQuestionIndex.value]
-      ) {
-        const selectedElement =
-          questionContainer.value[selectedQuestionIndex.value];
-        const rect = selectedElement.getBoundingClientRect();
-        const containerRect = createContainer.value.getBoundingClientRect();
-        sideTabTop.value = rect.top - containerRect.top;
+    const selectQuestion = (index) => {
+      selectedQuestionIndex.value = index;
+      isTitleContainerSelected.value = false;
+      
+      if (questionContainer.value[index]) {
+        const element = questionContainer.value[index];
+        element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        setTimeout(() => {
+          updateSideTabPosition();
+        }, 300);
       }
     };
 
@@ -459,10 +512,9 @@ export default {
         required: false,
       };
 
-      const insertIndex =
-        selectedQuestionIndex.value !== null
-          ? selectedQuestionIndex.value + 1
-          : questions.value.length;
+      const insertIndex = selectedQuestionIndex.value !== null
+        ? selectedQuestionIndex.value + 1
+        : 0;  // 제목 컨테이너가 선택된 경우 맨 앞에 추가
 
       questions.value.splice(insertIndex, 0, newQuestion);
       nextTick(() => {
@@ -470,11 +522,10 @@ export default {
       });
     };
 
-    // setup() 함수 안에 메서드 추가
     const copyQuestion = (index) => {
       const copiedQuestion = {
         ...questions.value[index],
-        id: Date.now(), // 새로운 ID 부여
+        id: Date.now(),
       };
       questions.value.splice(index + 1, 0, copiedQuestion);
       nextTick(() => {
@@ -488,11 +539,10 @@ export default {
 
     const deleteQuestion = (index) => {
       questions.value.splice(index, 1);
-      if (selectedQuestionIndex.value === index) {
-        selectedQuestionIndex.value = Math.min(
-          index,
-          questions.value.length - 1
-        );
+      if (questions.value.length === 0) {
+        addNewQuestion();
+      } else if (selectedQuestionIndex.value === index) {
+        selectedQuestionIndex.value = Math.min(index, questions.value.length - 1);
         updateSideTabPosition();
       }
     };
@@ -515,11 +565,13 @@ export default {
       selectedStartDate.value = startDate.value ? tempStartDate.value : null;
       selectedEndDate.value = endDate.value ? tempEndDate.value : null;
       showPeriodModal.value = true;
+      validateEndTime();
     };
 
     const closePeriodModal = () => {
       showError.value = false;
       dateOrderError.value = false;
+      endTimeError.value = false;
       showPeriodModal.value = false;
       showStartCalendar.value = false;
       showEndCalendar.value = false;
@@ -537,6 +589,16 @@ export default {
       }
     };
 
+    const validateEndTime = () => {
+      if (!modalEndDate.value || !endTime.value) return;
+      
+      const endDateTime = getDateTime(modalEndDate.value, endTime.value);
+      const now = new Date();
+      
+      endTimeError.value = endDateTime < now;
+      return endDateTime >= now;
+    };
+
     const confirmPeriod = () => {
       showError.value =
         !modalStartDate.value ||
@@ -545,6 +607,11 @@ export default {
         !endTime.value;
 
       if (showError.value) return;
+
+      // 종료 시간 검증
+      if (!validateEndTime()) {
+        return;
+      }
 
       const startDateTime = getDateTime(modalStartDate.value, startTime.value);
       const endDateTime = getDateTime(modalEndDate.value, endTime.value);
@@ -676,35 +743,16 @@ export default {
     const scrollToSelected = () => {
       const timeColumns = document.querySelectorAll(".time-column");
 
-      const ampmColumn = timeColumns[0];
-      const selectedAmPm = ampmColumn.querySelector(".selected");
-      if (selectedAmPm) {
-        const scrollPosition =
-          selectedAmPm.offsetTop -
-          ampmColumn.offsetHeight / 2 +
-          selectedAmPm.offsetHeight / 2;
-        ampmColumn.scrollTop = scrollPosition;
-      }
-
-      const hourColumn = timeColumns[1];
-      const selectedHour = hourColumn.querySelector(".selected");
-      if (selectedHour) {
-        const scrollPosition =
-          selectedHour.offsetTop -
-          hourColumn.offsetHeight / 2 +
-          selectedHour.offsetHeight / 2;
-        hourColumn.scrollTop = scrollPosition;
-      }
-
-      const minuteColumn = timeColumns[2];
-      const selectedMinute = minuteColumn.querySelector(".selected");
-      if (selectedMinute) {
-        const scrollPosition =
-          selectedMinute.offsetTop -
-          minuteColumn.offsetHeight / 2 +
-          selectedMinute.offsetHeight / 2;
-        minuteColumn.scrollTop = scrollPosition;
-      }
+      timeColumns.forEach((column, index) => {
+        const selectedItem = column.querySelector(".selected");
+        if (selectedItem) {
+          const scrollPosition =
+            selectedItem.offsetTop -
+            column.offsetHeight / 2 +
+            selectedItem.offsetHeight / 2;
+          column.scrollTop = scrollPosition;
+        }
+      });
     };
 
     const getDateTime = (dateStr, timeStr) => {
@@ -713,24 +761,109 @@ export default {
       return new Date(year, month - 1, day, hours, minutes);
     };
 
+    const openPreview = () => {
+      // 현재 작성 중인 설문 데이터
+      const previewData = {
+        title: title.value,
+        description: description.value,
+        startDate: startDate.value,
+        endDate: endDate.value,
+        startTime: startTime.value,
+        endTime: endTime.value,
+        questions: questions.value
+      };
+
+      // 데이터를 sessionStorage에 임시 저장
+      sessionStorage.setItem('surveyPreviewData', JSON.stringify(previewData));
+      
+      // 새 탭에서 미리보기 페이지 열기
+      const route = router.resolve({ name: 'SurveyPreview' });
+      window.open(route.href, '_blank');
+    };
+
+    // 저장 버튼 클릭 시 실행될 함수
+    const validateAndSave = () => {
+      let isValid = true;
+      
+      // 제목 검증
+      showTitleError.value = !title.value.trim();
+      if (showTitleError.value) {
+        isValid = false;
+      }
+
+      // 질문 검증
+      questionErrors.value = {};
+      questions.value.forEach((question, index) => {
+        let hasError = false;
+        
+        // 질문 제목이 비어있는지 확인
+        if (!question.title.trim()) {
+          hasError = true;
+        }
+
+        // 질문 유형별 옵션 검증
+        if (question.type === 'single' || question.type === 'multiple') {
+          // 객관식/체크박스 질문의 경우
+          if (!question.options || question.options.length === 0 || 
+              question.options.some(opt => !opt.text.trim())) {
+            hasError = true;
+          }
+        } else if (question.type === 'grid') {
+          // 그리드 질문의 경우
+          if (!question.rows || question.rows.length === 0 || 
+              question.rows.some(row => !row.text.trim()) ||
+              !question.columns || question.columns.length === 0 ||
+              question.columns.some(col => !col.text.trim())) {
+            hasError = true;
+          }
+        }
+        // short와 long 타입은 추가 옵션이 필요 없으므로 제목만 검증
+
+        if (hasError) {
+          questionErrors.value[index] = true;
+          isValid = false;
+        }
+      });
+
+      if (!isValid) {
+        // 첫 번째 에러가 있는 요소로 스크롤
+        if (showTitleError.value) {
+          document.querySelector('.title-container').scrollIntoView({ behavior: 'smooth' });
+        } else {
+          const firstErrorIndex = Object.keys(questionErrors.value)[0];
+          questionContainer.value[firstErrorIndex]?.scrollIntoView({ behavior: 'smooth' });
+        }
+        return;
+      }
+
+      // 모든 검증이 통과되면 저장 처리
+      saveSurvey();
+    };
+
+    // 저장 처리 함수
+    const saveSurvey = () => {
+      router.push({ name: "SurveyCompletion" }).catch((error) => {
+        console.error("SurveyCompletion 페이지로 이동 실패:", error);
+      });
+    };
+
     // Lifecycle hooks
     onMounted(() => {
       nextTick(() => {
         updateSideTabPosition();
-        window.addEventListener("resize", updateSideTabPosition);
+        window.addEventListener("resize", debouncedUpdatePosition);
+        window.addEventListener("scroll", debouncedUpdatePosition); // 스크롤 이벤트 추가
       });
     });
 
     onBeforeUnmount(() => {
-      window.removeEventListener("resize", updateSideTabPosition);
+      window.removeEventListener("resize", debouncedUpdatePosition);
+      window.removeEventListener("scroll", debouncedUpdatePosition); // 스크롤 이벤트 제거
     });
 
     return {
-      // Template refs
       createContainer,
       questionContainer,
-
-      // State
       title,
       description,
       titleFocused,
@@ -751,24 +884,20 @@ export default {
       modalEndDate,
       showError,
       dateOrderError,
+      endTimeError,
       selectedStartDate,
       selectedEndDate,
       selectedQuestionIndex,
       sideTabTop,
       questions,
-
-      // Constants
       hours,
       minutes,
       locale,
-
-      // Computed
       formattedPeriod,
-
-      // Methods
       adjustHeight,
       selectQuestion,
-      updateSideTabPosition,
+      isTitleContainerSelected,
+      selectTitleContainer,
       changeQuestionType,
       addNewQuestion,
       copyQuestion,
@@ -792,6 +921,10 @@ export default {
       confirmTime,
       scrollToSelected,
       getDateTime,
+      showTitleError,
+      questionErrors,
+      openPreview,
+      validateAndSave,
     };
   },
 };
@@ -805,15 +938,50 @@ export default {
   padding: 10px 20px 20px;
 }
 
-h2 {
-  font-size: 1.25em;
-  padding-left: 10px;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+  padding: 0 10px;
+}
+
+.header h2 {
+  font-size: 1.25em;
   font-weight: 700;
+  margin: 0; /* 기존 margin-bottom 제거 */
+  padding: 0; /* 기존 padding-left 제거 */
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.preview-btn,
+.save-btn {
+  padding: 8px 20px;
+  border-radius: 28.42px;
+  border: none;
+  font-family: Pretendard;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.preview-btn {
+  background: #EFEFEF;
+  color: #000;
+}
+
+.save-btn {
+  background: #BFD0E0;
+  color: #000;
 }
 
 .create-container {
-  width: 96%;
+  width: 95%;
   min-height: 100%;
   background-color: #f7f9fb;
   border-radius: 30px;
@@ -824,6 +992,7 @@ h2 {
   display: flex;
   justify-content: center;
   min-height: 100%;
+  position: relative;
 }
 
 .survey-container {
@@ -831,13 +1000,17 @@ h2 {
   height: 100%;
   min-height: 100vh;
   display: block;
+  margin-right: 100px; /* side-container의 너비만큼 여백 추가 */
 }
 
 .side-container {
-  width: 120px; /* 사이드탭의 너비 */
-  position: sticky; /* 내부 QuestionTypeTab의 기준점 */
+  width: 120px;
+  position: absolute;
+  right: 11%;
   top: 20px;
   height: fit-content;
+  transition: transform 0.3s ease;
+  z-index: 100;
 }
 
 .title-container {
@@ -856,6 +1029,11 @@ h2 {
   border-radius: 23.38px;
   margin-top: 15px;
   padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.question-container.selected {
+  box-shadow: 0 0 0 2px #bfd0e0;
 }
 
 .input-wrapper {
@@ -1182,11 +1360,26 @@ textarea {
   border: 1px solid #ff6b6b;
 }
 
-.error-message {
+.end-time-error {
   color: #ff6b6b;
   font-size: 12px;
   margin-top: 4px;
   padding-left: 5px;
+}
+
+.error-message {
+  color: #ff6b6b;
+  font-size: 12px;
+  margin-top: 10px;
+  padding-left: 5px;
+}
+
+.title-container.error {
+  box-shadow: 0 0 0 2px #ff6b6b;
+}
+
+.question-container.error {
+  box-shadow: 0 0 0 2px #ff6b6b;
 }
 
 .date-order-error {

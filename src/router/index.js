@@ -5,6 +5,7 @@ import SurveyManagement from "../views/SurveyManagement.vue";
 import SurveyEdit from "../views/SurveyEdit.vue";
 import SurveyStats from "../views/SurveyStats.vue";
 import SurveyCreate from "../views/SurveyCreate.vue";
+import SurveyPreview from "../views/SurveyPreview.vue"
 import SurveyCompletion from "../views/SurveyCompletion.vue";
 import Calendar from "../views/Calendar.vue";
 import DeletedItems from "../views/DeletedItems.vue";
@@ -46,6 +47,11 @@ const routes = [
         path: "create",
         component: SurveyCreate,
         name: "SurveyCreate",
+      },
+      {
+        path: "preview",
+        component: SurveyPreview,
+        name: "SurveyPreview"
       },
       {
         path: "complete",
