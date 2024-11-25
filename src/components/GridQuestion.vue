@@ -1,138 +1,118 @@
-<!-- components/questions/GridQuestion.vue -->
 <template>
   <div class="question">
     <!-- 질문 제목 -->
     <div class="question-header">
       <div class="question-title-wrapper">
-        <textarea
-          v-model="questionData.title"
-          class="question-title"
-          placeholder="질문"
-          rows="1"
-          @input="adjustHeight"
-        ></textarea>
+        <div class="input-wrapper">
+          <textarea
+            v-model="questionData.title"
+            class="question-title"
+            placeholder="질문"
+            rows="1"
+            @input="adjustHeight"
+            @focus="titleFocused = true"
+            @blur="titleFocused = false"
+          ></textarea>
+          <div class="underline" :class="{ focused: titleFocused }"></div>
+        </div>
       </div>
       <div class="question-actions">
-        <label class="required-toggle">
-          <input 
-            type="checkbox"
-            v-model="questionData.required"
-            @change="updateQuestion"
-          >
-          필수
-        </label>
-        <button @click="$emit('delete')" class="delete-btn">
-          <img src="@/assets/images/grid_choice.png" alt="삭제" />
-        </button>
+        <!-- 옵션 컨테이너 -->
+        <div class="options-container">
+          <label class="action-item required-toggle">
+            <span class="toggle-label">필수</span>
+            <div class="toggle-switch">
+              <input 
+                type="checkbox"
+                v-model="questionData.required"
+                @change="updateQuestion"
+              >
+              <span class="slider"></span>
+            </div>
+          </label>
+          <button @click="copyQuestion" class="action-item copy-btn">
+            <img src="@/assets/images/copy_question.png" alt="복사" />
+          </button>
+          <button @click="$emit('delete')" class="action-item delete-btn">
+            <img src="@/assets/images/delete_question.png" alt="삭제" />
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- 표 구성 영역 -->
-    <div class="grid-builder">
-      <!-- 행/열 선택 유형 -->
-      <div class="select-type">
-        <div class="type-selector">
-          <label>
-            <input 
-              type="radio" 
-              v-model="questionData.selectionType"
-              value="single"
-              @change="updateQuestion"
+    <!-- 행/열 섹션 -->
+    <div class="grid-section">
+      <!-- 행 옵션 목록 -->
+      <div class="grid-column">
+        <div class="section-title">행</div>
+        <div class="options-list">
+          <div 
+            v-for="(row, index) in questionData.rows" 
+            :key="row.id"
+            class="option-item"
+          >
+            <div class="radio-circle"></div>
+            <input
+              type="text"
+              v-model="row.text"
+              placeholder="행 입력"
+              @input="updateQuestion"
             >
-            행마다 하나씩 선택
-          </label>
-          <label>
-            <input 
-              type="radio" 
-              v-model="questionData.selectionType"
-              value="multiple"
-              @change="updateQuestion"
+            <button 
+              @click="removeRow(index)"
+              class="remove-option"
+              v-if="questionData.rows.length > 1"
             >
-            행마다 여러 개 선택
-          </label>
+              <img src="@/assets/images/delete_option.png" alt="행 삭제" />
+            </button>
+          </div>
+        </div>
+        <div class="add-buttons">
+          <button @click="addRow" class="add-option">
+            <img src="@/assets/images/add_question.png" alt="행 추가" />
+            <span>행 추가</span>
+          </button>
         </div>
       </div>
 
-      <!-- 표 미리보기 -->
-      <div class="grid-preview" v-if="questionData.rows.length && questionData.columns.length">
-        <table>
-          <thead>
-            <tr>
-              <th></th>
-              <th 
-                v-for="(column, index) in questionData.columns" 
-                :key="'col-'+index"
-                class="column-header"
-              >
-                <div class="header-content">
-                  <input
-                    type="text"
-                    v-model="column.text"
-                    placeholder="열 제목"
-                    @input="updateQuestion"
-                  >
-                  <button 
-                    @click="removeColumn(index)"
-                    class="remove-btn"
-                    v-if="questionData.columns.length > 1"
-                  >
-                    <img src="@/assets/images/grid_choice.png" alt="열 삭제" />
-                  </button>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(row, rowIndex) in questionData.rows" :key="'row-'+rowIndex">
-              <td class="row-header">
-                <div class="header-content">
-                  <input
-                    type="text"
-                    v-model="row.text"
-                    placeholder="행 제목"
-                    @input="updateQuestion"
-                  >
-                  <button 
-                    @click="removeRow(rowIndex)"
-                    class="remove-btn"
-                    v-if="questionData.rows.length > 1"
-                  >
-                    <img src="@/assets/images/grid_choice.png" alt="행 삭제" />
-                  </button>
-                </div>
-              </td>
-              <td 
-                v-for="(column, colIndex) in questionData.columns" 
-                :key="'cell-'+rowIndex+'-'+colIndex"
-                class="grid-cell"
-              >
-                <div 
-                  :class="['selection-indicator', 
-                    questionData.selectionType === 'single' ? 'radio' : 'checkbox'
-                  ]"
-                ></div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- 행/열 추가 버튼 -->
-      <div class="grid-actions">
-        <button @click="addRow" class="add-btn">
-          <img src="@/assets/images/grid_choice.png" alt="행 추가" />
-          <span>행 추가</span>
-        </button>
-        <button @click="addColumn" class="add-btn">
-          <img src="@/assets/images/grid_choice.png" alt="열 추가" />
-          <span>열 추가</span>
-        </button>
+      <!-- 열 옵션 목록 -->
+      <div class="grid-column">
+        <div class="section-title">열</div>
+        <div class="options-list">
+          <div 
+            v-for="(column, index) in questionData.columns" 
+            :key="column.id"
+            class="option-item"
+          >
+            <input
+              type="text"
+              v-model="column.text"
+              placeholder="열 입력"
+              @input="updateQuestion"
+            >
+            <button 
+              @click="removeColumn(index)"
+              class="remove-option"
+              v-if="questionData.columns.length > 1"
+            >
+              <img src="@/assets/images/delete_option.png" alt="열 삭제" />
+            </button>
+          </div>
+        </div>
+        <div class="add-buttons">
+          <button @click="addColumn" class="add-option">
+            <img src="@/assets/images/add_question.png" alt="열 추가" />
+            <span>열 추가</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { cloneDeep } from 'lodash';
+
 export default {
   name: 'GridQuestion',
   
@@ -145,16 +125,18 @@ export default {
 
   data() {
     return {
-      questionData: {
+      titleFocused: false,
+      questionData: cloneDeep({
         ...this.question,
         rows: this.question.rows || [
-          { id: Date.now(), text: '' }
+          { id: Date.now(), text: '' },
+          { id: Date.now() + 1, text: '' }
         ],
         columns: this.question.columns || [
-          { id: Date.now(), text: '' }
-        ],
-        selectionType: this.question.selectionType || 'single'
-      }
+          { id: Date.now() + 2, text: '' },
+          { id: Date.now() + 3, text: '' }
+        ]
+      })
     }
   },
 
@@ -163,6 +145,7 @@ export default {
       const textarea = e.target;
       textarea.style.height = 'auto';
       textarea.style.height = `${textarea.scrollHeight}px`;
+      this.updateQuestion();
     },
 
     addRow() {
@@ -182,17 +165,60 @@ export default {
     },
 
     removeRow(index) {
-      this.questionData.rows.splice(index, 1);
-      this.updateQuestion();
+      if (this.questionData.rows.length > 1) {
+        this.questionData.rows.splice(index, 1);
+        this.updateQuestion();
+      }
     },
 
     removeColumn(index) {
-      this.questionData.columns.splice(index, 1);
-      this.updateQuestion();
+      if (this.questionData.columns.length > 1) {
+        this.questionData.columns.splice(index, 1);
+        this.updateQuestion();
+      }
+    },
+
+    copyQuestion() {
+      const copiedQuestion = cloneDeep(this.questionData);
+      
+      // 새로운 ID 할당
+      copiedQuestion.id = Date.now();
+      
+      // rows와 columns에 새로운 ID 부여
+      copiedQuestion.rows = copiedQuestion.rows.map(row => ({
+        ...row,
+        id: Date.now() + Math.random()
+      }));
+      copiedQuestion.columns = copiedQuestion.columns.map(column => ({
+        ...column,
+        id: Date.now() + Math.random()
+      }));
+
+      this.$emit('copy', copiedQuestion);
     },
 
     updateQuestion() {
-      this.$emit('update', {...this.questionData});
+      const updatedQuestion = cloneDeep(this.questionData);
+      this.$emit('update', updatedQuestion);
+    }
+  },
+
+  watch: {
+    question: {
+      handler(newQuestion) {
+        this.questionData = cloneDeep({
+          ...newQuestion,
+          rows: newQuestion.rows || [
+            { id: Date.now(), text: '' },
+            { id: Date.now() + 1, text: '' }
+          ],
+          columns: newQuestion.columns || [
+            { id: Date.now() + 2, text: '' },
+            { id: Date.now() + 3, text: '' }
+          ]
+        });
+      },
+      deep: true
     }
   }
 }
@@ -215,146 +241,208 @@ export default {
   margin-right: 20px;
 }
 
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 .question-title {
   width: 100%;
   border: none;
   outline: none;
   font-size: 16px;
   font-weight: 600;
-  padding: 0;
+  padding-top: 10px;
   resize: none;
   font-family: Pretendard;
   background: transparent;
 }
 
+.underline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: transparent;
+  transition: 0.2s ease;
+}
+
+.input-wrapper:not(:focus-within):hover .underline {
+  background: rgba(191, 208, 224, 0.4);
+}
+
+.underline.focused {
+  background: #bfd0e0;
+  height: 1px;
+}
+
 .question-actions {
   display: flex;
   align-items: center;
-  gap: 15px;
+}
+
+.options-container {
+  display: flex;
+  align-items: center;
+  background: #F7F9FB;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: #666;
+  border-radius: 4px;
+}
+
+.action-item:hover {
+  background: #E8EEF3;
+}
+
+.action-item img {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 .required-toggle {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  font-size: 14px;
-  color: #666;
-  cursor: pointer;
+  gap: 2px;
+  padding: 4px 8px;
 }
 
-.delete-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
+.toggle-label {
+  font-size: 10px;
+  color: #000;
+  font-weight: bold;
 }
 
-.delete-btn img {
-  width: 18px;
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
   height: 18px;
 }
 
-/* 표 관련 스타일 */
-.grid-builder {
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #FFFFFF;
+  transition: .4s;
+  border-radius: 18px;
+  border: 1.5px solid #E8EEF3;
+  cursor: pointer;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #E8EEF3;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .slider {
+  background-color: #FFFFFF;
+  border-color: #000;
+}
+
+.toggle-switch input:checked + .slider:before {
+  transform: translateX(13px);
+  background-color: #000;
+}
+
+.grid-section {
+  display: flex;
+  gap: 40px;
   margin-top: 20px;
 }
 
-.select-type {
-  margin-bottom: 20px;
-}
-
-.type-selector {
-  display: flex;
-  gap: 20px;
-}
-
-.type-selector label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #666;
-  cursor: pointer;
-}
-
-.grid-preview {
-  margin-bottom: 20px;
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #F7F9FB;
-  border-radius: 8px;
-}
-
-th, td {
-  padding: 12px;
-  border: 1px solid #E5E5E5;
-}
-
-.column-header, .row-header {
-  background-color: #F7F9FB;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.header-content input {
+.grid-column {
   flex: 1;
-  border: none;
-  outline: none;
-  padding: 4px;
+  min-width: 0;
+}
+
+.section-title {
   font-size: 14px;
-  background: transparent;
-  font-family: Pretendard;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 10px;
 }
 
-.remove-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 2px;
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
 }
 
-.remove-btn img {
-  width: 14px;
-  height: 14px;
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.grid-cell {
-  text-align: center;
-}
-
-.selection-indicator {
-  margin: 0 auto;
-}
-
-.selection-indicator.radio {
+.radio-circle {
   width: 20px;
   height: 20px;
   border: 2px solid #BFD0E0;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.selection-indicator.checkbox {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #BFD0E0;
-  border-radius: 4px;
+.option-item input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 8px;
+  font-size: 14px;
+  background: #F7F9FB;
+  border-radius: 8px;
+  font-family: Pretendard;
 }
 
-.grid-actions {
+.remove-option {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.remove-option img {
+  width: 16px;
+  height: 16px;
+}
+
+.add-buttons {
   display: flex;
-  gap: 20px;
-  margin-top: 15px;
+  align-items: center;
+  gap: 12px;
 }
 
-.add-btn {
+.add-option {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -366,7 +454,11 @@ th, td {
   padding: 5px;
 }
 
-.add-btn img {
+.add-option:hover {
+  color: #333;
+}
+
+.add-option img {
   width: 16px;
   height: 16px;
 }

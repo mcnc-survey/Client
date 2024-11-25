@@ -1,29 +1,42 @@
-<!-- components/questions/MultipleChoiceQuestion.vue -->
 <template>
   <div class="question">
     <!-- 질문 제목 -->
     <div class="question-header">
       <div class="question-title-wrapper">
-        <textarea
-          v-model="questionData.title"
-          class="question-title"
-          placeholder="질문"
-          rows="1"
-          @input="adjustHeight"
-        ></textarea>
+        <div class="input-wrapper">
+          <textarea
+            v-model="questionData.title"
+            class="question-title"
+            placeholder="질문"
+            rows="1"
+            @input="adjustHeight"
+            @focus="titleFocused = true"
+            @blur="titleFocused = false"
+          ></textarea>
+          <div class="underline" :class="{ focused: titleFocused }"></div>
+        </div>
       </div>
       <div class="question-actions">
-        <label class="required-toggle">
-          <input 
-            type="checkbox"
-            v-model="questionData.required"
-            @change="updateQuestion"
-          >
-          필수
-        </label>
-        <button @click="$emit('delete')" class="delete-btn">
-          <img src="@/assets/images/single_multiple_choice.png" alt="삭제" />
-        </button>
+        <!-- 옵션 컨테이너 -->
+        <div class="options-container">
+          <label class="action-item required-toggle">
+            <span class="toggle-label">필수</span>
+            <div class="toggle-switch">
+              <input 
+                type="checkbox"
+                v-model="questionData.required"
+                @change="updateQuestion"
+              >
+              <span class="slider"></span>
+            </div>
+          </label>
+          <button @click="copyQuestion" class="action-item copy-btn">
+            <img src="@/assets/images/copy_question.png" alt="복사" />
+          </button>
+          <button @click="$emit('delete')" class="action-item delete-btn">
+            <img src="@/assets/images/delete_question.png" alt="삭제" />
+          </button>
+        </div>
       </div>
     </div>
 
@@ -31,7 +44,7 @@
     <div class="options-list">
       <div 
         v-for="(option, index) in questionData.options" 
-        :key="index"
+        :key="option.id"
         class="option-item"
       >
         <div class="checkbox-square"></div>
@@ -40,52 +53,36 @@
           v-model="option.text"
           placeholder="옵션"
           @input="updateQuestion"
+          :readonly="option.isOther"
+          :class="{ 'other-option': option.isOther }"
         >
         <button 
           @click="removeOption(index)"
           class="remove-option"
           v-if="questionData.options.length > 1"
         >
-          <img src="@/assets/images/single_multiple_choice.png" alt="옵션 삭제" />
+          <img src="@/assets/images/delete_option.png" alt="옵션 삭제" />
         </button>
       </div>
     </div>
 
-    <!-- 옵션 추가 버튼 -->
-    <div class="button-group">
+    <!-- 옵션 추가 버튼들 -->
+    <div class="add-buttons">
       <button @click="addOption" class="add-option">
-        <img src="@/assets/images/single_multiple_choice.png" alt="옵션 추가" />
+        <img src="@/assets/images/add_question.png" alt="옵션 추가" />
         <span>옵션 추가</span>
       </button>
-      
-      <!-- 최소/최대 선택 수 설정 -->
-      <div class="selection-limits">
-        <div class="limit-input">
-          <span>최소 선택:</span>
-          <input 
-            type="number" 
-            v-model.number="questionData.minSelect"
-            min="0"
-            :max="questionData.options.length"
-            @input="updateQuestion"
-          >
-        </div>
-        <div class="limit-input">
-          <span>최대 선택:</span>
-          <input 
-            type="number" 
-            v-model.number="questionData.maxSelect"
-            :min="questionData.minSelect || 1"
-            :max="questionData.options.length"
-            @input="updateQuestion"
-          >
-        </div>
-      </div>
+      <button @click="addOtherOption" class="add-option" v-if="!hasOtherOption">
+        <img src="@/assets/images/add_question.png" alt="기타 추가" />
+        <span>기타 추가</span>
+      </button>
     </div>
   </div>
 </template>
 
 <script>
+import { cloneDeep } from 'lodash';
+
 export default {
   name: 'MultipleChoiceQuestion',
   
@@ -98,29 +95,20 @@ export default {
 
   data() {
     return {
-      questionData: {
+      titleFocused: false,
+      questionData: cloneDeep({
         ...this.question,
         options: this.question.options || [
-          { id: Date.now(), text: '' }
-        ],
-        minSelect: this.question.minSelect || 0,
-        maxSelect: this.question.maxSelect || null
-      }
+          { id: Date.now(), text: '' },
+          { id: Date.now() + 1, text: '' }
+        ]
+      })
     }
   },
 
-  watch: {
-    'questionData.minSelect'(newValue) {
-      // 최소 선택 수가 최대 선택 수보다 크면 최대 선택 수를 조정
-      if (this.questionData.maxSelect && newValue > this.questionData.maxSelect) {
-        this.questionData.maxSelect = newValue;
-      }
-    },
-    'questionData.maxSelect'(newValue) {
-      // 최대 선택 수가 최소 선택 수보다 작으면 최소 선택 수를 조정
-      if (newValue && newValue < this.questionData.minSelect) {
-        this.questionData.minSelect = newValue;
-      }
+  computed: {
+    hasOtherOption() {
+      return this.questionData.options.some(option => option.isOther);
     }
   },
 
@@ -129,32 +117,81 @@ export default {
       const textarea = e.target;
       textarea.style.height = 'auto';
       textarea.style.height = `${textarea.scrollHeight}px`;
+      this.updateQuestion();
     },
 
     addOption() {
-      this.questionData.options.push({
+      const otherOptionIndex = this.questionData.options.findIndex(
+        option => option.isOther
+      );
+      
+      const newOption = {
         id: Date.now(),
         text: ''
-      });
+      };
+
+      if (otherOptionIndex !== -1) {
+        // 기타 옵션이 있으면 그 앞에 삽입
+        this.questionData.options.splice(otherOptionIndex, 0, newOption);
+      } else {
+        // 기타 옵션이 없으면 마지막에 추가
+        this.questionData.options.push(newOption);
+      }
+      
       this.updateQuestion();
+    },
+
+    addOtherOption() {
+      if (!this.hasOtherOption) {
+        this.questionData.options.push({
+          id: Date.now(),
+          text: '기타...',
+          isOther: true,
+          isReadOnly: true
+        });
+        this.updateQuestion();
+      }
     },
 
     removeOption(index) {
       this.questionData.options.splice(index, 1);
-      
-      // 옵션이 삭제될 때 최소/최대 선택 수 조정
-      if (this.questionData.maxSelect > this.questionData.options.length) {
-        this.questionData.maxSelect = this.questionData.options.length;
-      }
-      if (this.questionData.minSelect > this.questionData.options.length) {
-        this.questionData.minSelect = this.questionData.options.length;
-      }
-      
       this.updateQuestion();
     },
 
+    copyQuestion() {
+      // lodash의 cloneDeep을 사용한 깊은 복사
+      const copiedQuestion = cloneDeep(this.questionData);
+      
+      // 새로운 ID 할당
+      copiedQuestion.id = Date.now();
+      
+      // 옵션들의 ID도 새로 생성
+      copiedQuestion.options = copiedQuestion.options.map(option => ({
+        ...option,
+        id: Date.now() + Math.random()
+      }));
+
+      this.$emit('copy', copiedQuestion);
+    },
+
     updateQuestion() {
-      this.$emit('update', {...this.questionData});
+      const updatedQuestion = cloneDeep(this.questionData);
+      this.$emit('update', updatedQuestion);
+    }
+  },
+
+  watch: {
+    question: {
+      handler(newQuestion) {
+        this.questionData = cloneDeep({
+          ...newQuestion,
+          options: newQuestion.options || [
+            { id: Date.now(), text: '' },
+            { id: Date.now() + 1, text: '' }
+          ]
+        });
+      },
+      deep: true
     }
   }
 }
@@ -177,43 +214,137 @@ export default {
   margin-right: 20px;
 }
 
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 .question-title {
   width: 100%;
   border: none;
   outline: none;
   font-size: 16px;
   font-weight: 600;
-  padding: 0;
+  padding-top: 10px;
   resize: none;
   font-family: Pretendard;
   background: transparent;
 }
 
+.underline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: transparent;
+  transition: 0.2s ease;
+}
+
+.input-wrapper:not(:focus-within):hover .underline {
+  background: rgba(191, 208, 224, 0.4);
+}
+
+.underline.focused {
+  background: #bfd0e0;
+  height: 1px;
+}
+
 .question-actions {
   display: flex;
   align-items: center;
-  gap: 15px;
+}
+
+.options-container {
+  display: flex;
+  align-items: center;
+  background: #F7F9FB;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: #666;
+  border-radius: 4px;
+}
+
+.action-item:hover {
+  background: #E8EEF3;
+}
+
+.action-item img {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 .required-toggle {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  font-size: 14px;
-  color: #666;
-  cursor: pointer;
+  gap: 2px;
+  padding: 4px 8px;
 }
 
-.delete-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
+.toggle-label {
+  font-size: 10px;
+  color: #000;
+  font-weight: bold;
 }
 
-.delete-btn img {
-  width: 18px;
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
   height: 18px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #FFFFFF;
+  transition: .4s;
+  border-radius: 18px;
+  border: 1.5px solid #E8EEF3;
+  cursor: pointer;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #E8EEF3;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .slider {
+  background-color: #FFFFFF;
+  border-color: #000;
+}
+
+.toggle-switch input:checked + .slider:before {
+  transform: translateX(13px);
+  background-color: #000;
 }
 
 .options-list {
@@ -248,6 +379,11 @@ export default {
   font-family: Pretendard;
 }
 
+.option-item input.other-option {
+  color: #666;
+  background: #F0F0F0;
+}
+
 .remove-option {
   background: none;
   border: none;
@@ -260,11 +396,10 @@ export default {
   height: 16px;
 }
 
-.button-group {
+.add-buttons {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-top: 15px;
+  gap: 12px;
 }
 
 .add-option {
@@ -279,36 +414,12 @@ export default {
   padding: 5px;
 }
 
+.add-option:hover {
+  color: #333;
+}
+
 .add-option img {
   width: 16px;
   height: 16px;
-}
-
-.selection-limits {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.limit-input {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #666;
-}
-
-.limit-input input {
-  width: 60px;
-  padding: 4px 8px;
-  border: 1px solid #BFD0E0;
-  border-radius: 4px;
-  font-size: 14px;
-  outline: none;
-}
-
-.limit-input input::-webkit-inner-spin-button, 
-.limit-input input::-webkit-outer-spin-button { 
-  opacity: 1;
 }
 </style>
