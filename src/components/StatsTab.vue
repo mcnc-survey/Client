@@ -4,40 +4,38 @@
         <div class="info-cards-container">
             <div class="info-card respondent-card">
                 <h3>응답자 수</h3>
-                <p>65명</p>
+                <p>{{ surveySummary.respondentCount }}명</p>
             </div>
             <div class="info-card remaining-time-card">
                 <h3>설문 종료까지</h3>
-                <p>2일 14시간</p>
+                <p>{{ remainingTime }}</p>
             </div>
             <div class="info-card last-modified-card">
                 <h3>최근 수정일</h3>
-                <p>2024-11-19</p>
+                <p>{{ surveySummary.lastModifiedDate }}</p>
             </div>
-            <div class="action-buttons-container">
-                <button class="action-button download-excel" @click="downloadExcel">
-                    <img src="../assets/images/excel.svg" class="excel-icon">
-                    응답 데이터 엑셀로 다운로드
+            <div class="share-buttons-container">
+                <button class="share-button download-excel" @click="downloadExcel">
+                    <img src="../assets/images/excel.svg" class="excel-icon">응답 데이터 엑셀로 다운로드
                 </button>
-                <button class="action-button send-email" @click="sendEmail">
-                    <img src="../assets/images/gmail.svg" class="gmail-icon">
-                    응답 데이터 메일로 공유하기
+                <button class="share-button send-email" @click="sendEmail">
+                    <img src="../assets/images/gmail.svg" class="gmail-icon">응답 데이터 메일로 공유하기
                 </button>
             </div>
         </div>
 
         <!-- 문항별 통계 -->
         <div class="questions-stats-container">
-            <QuestionStats v-for="question in surveyQuestions" :key="question.id" :question="question.question"
-                :labels="question.labels" :data="question.data" :total-responses="question.totalResponses" />
+            <QuestionStats v-for="(question, id) in surveyResults" :key="id" :question="question.questionTitle"
+                :response-type="question.responseType" :options="question.options || []"
+                :responses="question.responses || []" />
         </div>
     </div>
 </template>
 
 <script>
-import surveyQuestions from "@/data/surveyResult";
-import QuestionStats from "../components/QuestionsStats.vue";
-
+import surveyData from "@/data/surveyResult";  // 임시 데이터
+import QuestionStats from "../components/QuestionsStats.vue";  // 문항 통계 컴포넌트
 
 export default {
     name: "StatsTab",
@@ -46,8 +44,22 @@ export default {
     },
     data() {
         return {
-            surveyQuestions,
+            surveySummary: surveyData.body.surveySummary,  // body 추가
+            surveyResults: surveyData.body.surveyResults,  // body 추가
         };
+    },
+    computed: {
+        remainingTime() {
+            const now = new Date();
+            const endDate = new Date(this.surveySummary.endDate);
+            const diff = endDate - now;
+
+            if (diff <= 0) return "종료됨";
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            return `${days}일 ${hours}시간`;
+        },
     },
     methods: {
         downloadExcel() {
@@ -88,6 +100,7 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    max-width: 200px;
 }
 
 .info-card h3 {
@@ -97,7 +110,7 @@ export default {
 
 .info-card p {
     margin: 0 24px;
-    font-size: 26px;
+    font-size: 24px;
     font-weight: bold;
 }
 
@@ -113,15 +126,14 @@ export default {
     background-color: #D3E2EC;
 }
 
-/* 버튼 스타일 */
-.action-buttons-container {
+.share-buttons-container {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    width: 25%;
+    width: 28%;
 }
 
-.action-button {
+.share-button {
     font-family: Pretendard;
     display: flex;
     align-items: center;
@@ -134,11 +146,11 @@ export default {
     border-radius: 12.5px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 16px;
     text-align: center;
 }
 
-.action-button img {
+.share-button img {
     width: 24px;
     height: 24px;
 }

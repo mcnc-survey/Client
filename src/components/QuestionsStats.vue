@@ -3,7 +3,7 @@
         <div class="question-header">
             <div class="title-section">
                 <h4 class="question-title">{{ question }}</h4>
-                <div class="chart-toggle">
+                <div v-if="responseType === 'single' || responseType === 'multiple'" class="chart-toggle">
                     <button class="toggle-btn" :class="{ active: chartType === 'doughnut' }"
                         @click="handleChartTypeChange('doughnut')" :disabled="isChanging">
                         <span class="toggle-icon doughnut">◯</span>
@@ -14,123 +14,204 @@
                     </button>
                 </div>
             </div>
-            <span class="total-responses">총 응답수: {{ totalResponses }}명</span>
+            <span class="total-responses">
+                총 응답수: {{ totalResponses }}명
+            </span>
         </div>
 
         <div class="stats-content">
-            <div class="chart-container">
-                <div v-show="chartType === 'doughnut'" class="chart-wrapper">
-                    <canvas ref="doughnutCanvas"></canvas>
+            <!-- 객관식 질문 (단일/다중 선택) -->
+            <template v-if="responseType === 'single' || responseType === 'multiple'">
+                <div class="chart-container">
+                    <div v-show="chartType === 'doughnut'" class="chart-wrapper">
+                        <canvas ref="doughnutCanvas"></canvas>
+                    </div>
+                    <div v-show="chartType === 'bar'" class="chart-wrapper">
+                        <canvas ref="barCanvas"></canvas>
+                    </div>
                 </div>
-                <div v-show="chartType === 'bar'" class="chart-wrapper">
-                    <canvas ref="barCanvas"></canvas>
-                </div>
-            </div>
 
-            <div class="stats-details">
-                <div v-for="(value, index) in data" :key="index" class="stat-item">
-                    <div class="stat-label">
-                        <span class="color-dot" :style="{ backgroundColor: chartColors[index] }"></span>
-                        <span>{{ labels[index] }}</span>
-                    </div>
-                    <div class="stat-values">
-                        <span class="stat-count">{{ value }}명</span>
-                        <span class="stat-percentage">({{ calculatePercentage(value) }}%)</span>
+                <div class="stats-details">
+                    <div v-for="(option, index) in options" :key="option.id" class="stat-item">
+                        <div class="stat-label">
+                            <span class="color-dot" :style="{ backgroundColor: chartColors[index] }"></span>
+                            <span>{{ option.text }}</span>
+                        </div>
+                        <div class="stat-values">
+                            <span class="stat-count">{{ option.count }}명</span>
+                            <span class="stat-percentage">({{ calculatePercentage(option.count) }}%)</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </template>
+
+            <!-- 주관식 질문 -->
+            <template v-else-if="responseType === 'open'">
+                <div class="subjective-responses">
+                    <div v-for="(response, index) in responses" :key="index" class="response-item">
+                        <span class="response-number">{{ index + 1 }}</span>
+                        <p class="response-text">{{ response }}</p>
+                    </div>
+                </div>
+            </template>
         </div>
     </div>
 </template>
 
 <script>
-import {
-    Chart,
-    DoughnutController,
-    BarController,
-    ArcElement,
-    BarElement,
-    CategoryScale,
-    LinearScale,
-    Tooltip,
-} from "chart.js";
+import { Chart, DoughnutController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip } from 'chart.js';
 
 Chart.register(DoughnutController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip);
 
 export default {
-    name: "QuestionStats",
+    name: 'QuestionStats',
     props: {
         question: {
             type: String,
             required: true,
         },
-        labels: {
-            type: Array,
+        responseType: {
+            type: String,
             required: true,
+            validator: value => ['single', 'multiple', 'open'].includes(value),
         },
-        data: {
+        options: {
             type: Array,
-            required: true,
+            default: () => [],
+        },
+        responses: {
+            type: Array,
+            default: () => [],
         },
     },
     data() {
         return {
-            chartType: "doughnut", // 기본 차트 유형
+            chartType: 'doughnut',
             isChanging: false,
-            chartColors: ["#95A4FC", "#BAEDBD", "#FFFDB5", "#B1E3FF", "#F9E2AF"],
-            doughnutChart: null, // 도넛 차트 인스턴스
-            barChart: null, // 바 차트 인스턴스
+            chartColors: ['#95A4FC', '#BAEDBD', '#FFFDB5', '#B1E3FF', '#F9E2AF'],
+            doughnutChart: null,
+            barChart: null,
         };
     },
     computed: {
-        // 총 응답 수 계산
         totalResponses() {
-            return this.data.reduce((sum, value) => sum + value, 0);
+            if (this.responseType === 'open') {
+                return this.responses.length;
+            }
+            return this.options.reduce((sum, option) => sum + option.count, 0);
         },
-        // 그래프 타입에 따른 데이터를 생성
         chartData() {
-            const labels = [...this.labels];
-            const data = [...this.data];
-            const colors = [...this.chartColors];
+            const labels = this.options.map(option => option.text);
+            const data = this.options.map(option => option.count);
+            const colors = this.chartColors.slice(0, labels.length);
 
-            // 도넛 그래프에서는 데이터와 라벨을 역순으로
-            if (this.chartType === "doughnut") {
+            if (this.chartType === 'doughnut') {
                 return {
                     labels: labels.reverse(),
-                    datasets: [
-                        {
-                            data: data.reverse(),
-                            backgroundColor: colors.slice(0, labels.length).reverse(),
-                        },
-                    ],
+                    datasets: [{
+                        data: data.reverse(),
+                        backgroundColor: colors.reverse(),
+                    }],
                 };
             }
 
-            // 바 그래프에서는 원래 순서 유지
             return {
                 labels,
-                datasets: [
-                    {
-                        data,
-                        backgroundColor: colors.slice(0, labels.length),
-                    },
-                ],
+                datasets: [{
+                    data,
+                    backgroundColor: colors,
+                }],
             };
         },
     },
     mounted() {
-        this.$nextTick(() => {
-            this.initializeCharts();
-            this.updateCharts();  // DOM이 준비된 후 차트 초기화
-        });
+        if (this.responseType === 'single' || this.responseType === 'multiple') {
+            this.$nextTick(() => {
+                this.initializeCharts();
+            });
+        }
     },
     beforeUnmount() {
         this.destroyCharts();
     },
     methods: {
-        // 응답 데이터를 퍼센트로 계산
         calculatePercentage(value) {
             return ((value / this.totalResponses) * 100).toFixed(1);
+        },
+        async handleChartTypeChange(newType) {
+            if (this.isChanging || this.chartType === newType) return;
+
+            this.isChanging = true;
+            this.chartType = newType;
+
+            await this.$nextTick();
+            this.updateCharts();
+
+            setTimeout(() => {
+                this.isChanging = false;
+            }, 300);
+        },
+        getChartConfig(type) {
+            const baseConfig = {
+                type,
+                data: this.chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            displayColors: false,
+                            callbacks: {
+                                label: (context) => {
+                                    const index = this.chartType === 'doughnut' ?
+                                        this.options.length - 1 - context.dataIndex :
+                                        context.dataIndex;
+                                    const option = this.options[index];
+                                    const percentage = this.calculatePercentage(option.count);
+                                    return `${option.text}: ${option.count}명 (${percentage}%)`;
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+
+            if (type === 'doughnut') {
+                baseConfig.options.cutout = '88%';
+                baseConfig.data.datasets[0].borderWidth = 28;
+                baseConfig.data.datasets[0].hoverBorderWidth = 30; // 호버 시 두께 고정
+                baseConfig.data.datasets[0].borderRadius = 30;
+                baseConfig.data.datasets[0].borderColor = baseConfig.data.datasets[0].backgroundColor;
+            } else {
+                baseConfig.options.scales = {
+                    y: { grid: { display: false } },
+                    x: { grid: { display: false }, beginAtZero: true },
+                };
+                baseConfig.data.datasets[0].borderRadius = 15;
+                baseConfig.data.datasets[0].borderWidth = 0;
+            }
+
+            return baseConfig;
+        },
+        initializeCharts() {
+            this.destroyCharts();
+
+            const doughnutCtx = this.$refs.doughnutCanvas?.getContext('2d');
+            const barCtx = this.$refs.barCanvas?.getContext('2d');
+
+            if (doughnutCtx) {
+                this.doughnutChart = new Chart(doughnutCtx, this.getChartConfig('doughnut'));
+            }
+            if (barCtx) {
+                this.barChart = new Chart(barCtx, this.getChartConfig('bar'));
+            }
+        },
+        updateCharts() {
+            this.initializeCharts();
         },
         destroyCharts() {
             if (this.doughnutChart) {
@@ -142,100 +223,13 @@ export default {
                 this.barChart = null;
             }
         },
-        // 차트 유형 변경 (도넛, 바)
-        async handleChartTypeChange(newType) {
-            if (this.isChanging || this.chartType === newType) return;
-
-            this.isChanging = true;
-            this.chartType = newType;
-
-            await this.$nextTick(); // DOM 업데이트 후 실행
-            this.updateCharts();
-
-            setTimeout(() => {
-                this.isChanging = false;
-            }, 300);
-        },
-        // 차트 설정 반환
-        getChartConfig(type) {
-            const baseConfig = {
-                type,
-                data: this.chartData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: {
-                        duration: 300, // 기본 애니메이션 시간
-                    },
-                    plugins: {
-                        legend: {
-                            display: false,
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            displayColors: false,
-                            callbacks: {
-                                label: (context) => {
-                                    const value = this.data[context.dataIndex];
-                                    const percentage = this.calculatePercentage(value);
-                                    return `${value}명 (${percentage}%)`;
-                                },
-                            },
-                        },
-                    },
-                },
-            };
-
-            if (type === "doughnut") { // 도넛 그래프 설정
-                baseConfig.data.datasets[0].borderWidth = 30;
-                baseConfig.data.datasets[0].hoverBorderWidth = 30; // 호버 시 두께 고정
-                baseConfig.data.datasets[0].borderRadius = 30;
-                baseConfig.data.datasets[0].borderColor = baseConfig.data.datasets[0].backgroundColor;
-                baseConfig.options.cutout = "90%";
-            } else { // 바 그래프 설정
-                baseConfig.data.datasets[0].borderWidth = 0;
-                baseConfig.data.datasets[0].borderRadius = 15;
-                baseConfig.options.scales = {
-                    y: {
-                        grid: { display: false },
-                    },
-                    x: {
-                        grid: { display: false },
-                        beginAtZero: true,
-                    },
-                };
-            }
-
-            return baseConfig;
-        },
-        initializeCharts() {
-            const doughnutCtx = this.$refs.doughnutCanvas?.getContext("2d");
-            const barCtx = this.$refs.barCanvas?.getContext("2d");
-
-            if (doughnutCtx) {
-                this.doughnutChart = new Chart(doughnutCtx, this.getChartConfig("doughnut"));
-                // 추가: borderWidth 확인
-                this.doughnutChart.data.datasets[0].borderWidth = 30;
-            }
-            if (barCtx) {
-                this.barChart = new Chart(barCtx, this.getChartConfig("bar"));
-                // 추가: borderWidth 확인
-                this.barChart.data.datasets[0].borderWidth = 0;
-            }
-        }
-        ,
-        // 차트를 업데이트
-        updateCharts() {
-            this.destroyCharts(); // 기존 차트 파괴
-            this.initializeCharts(); // 새 차트 초기화
-        },
     },
     watch: {
-        data: {
+        options: {
             handler() {
-                // 데이터 변경 시 차트 업데이트
-                this.updateCharts();
+                if (this.responseType === 'single' || this.responseType === 'multiple') {
+                    this.updateCharts();
+                }
             },
             deep: true,
         },
@@ -245,7 +239,7 @@ export default {
 
 <style scoped>
 .question-stats {
-    padding: 30px;
+    padding: 35px 15px 35px 35px;
     border-radius: 16px;
     background-color: #F7F9FB;
 }
@@ -273,9 +267,11 @@ export default {
     font-size: 16px;
     font-weight: bold;
     color: #666;
-    padding: 4px 8px 0 0;
+    padding-top: 4px;
+    margin-right: 30px;
 }
 
+/* 토글 버튼 */
 .chart-toggle {
     display: flex;
     gap: 4px;
@@ -288,7 +284,7 @@ export default {
 .toggle-btn {
     border: none;
     background: transparent;
-    padding: 8px;
+    padding: 6px;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -356,16 +352,18 @@ export default {
     display: flex;
     justify-content: start;
     align-items: center;
-    padding: 14px 16px;
+    padding: 15px 16px;
     background-color: #fff;
     border-radius: 8px;
+    margin-right: 20px;
 }
 
 .stat-label {
     display: flex;
-    align-items: center;
-    gap: 8px;
     width: 290px;
+    align-items: center;
+    gap: 16px;
+    font-size: 18px;
 }
 
 .stat-values {
@@ -387,5 +385,62 @@ export default {
 .stat-percentage {
     color: #666;
     font-size: 14px;
+}
+
+/* 주관식 응답 */
+.subjective-responses {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 15px;
+}
+
+/* 스크롤바 스타일링 */
+.subjective-responses::-webkit-scrollbar {
+    width: 8px;
+}
+
+.subjective-responses::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.subjective-responses::-webkit-scrollbar-thumb {
+    background: #E8ECF0;
+    border-radius: 4px;
+}
+
+.subjective-responses::-webkit-scrollbar-thumb:hover {
+    background: #d1d5d9;
+}
+
+.response-item {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    align-items: flex-start;
+}
+
+.response-number {
+    background-color: #E8ECF0;
+    color: #666;
+    width: 26px;
+    height: 26px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+}
+
+.response-text {
+    margin: 0;
+    font-size: 18px;
+    padding-top: 2px;
 }
 </style>

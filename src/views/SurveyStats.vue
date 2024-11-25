@@ -123,11 +123,11 @@ export default {
 }
 
 .menu-dropdown button {
-  padding: 10px 15px;
+  padding: 10px 20px;
   border: none;
-  background: none;
   text-align: left;
   cursor: pointer;
+  font-family: Pretendard;
   font-size: 14px;
 }
 
