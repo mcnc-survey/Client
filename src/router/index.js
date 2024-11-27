@@ -60,6 +60,7 @@ const routes = [
       {
         path: "recycle",
         component: DeletedItems,
+        name: "DeletedItems",
       },
     ],
   },

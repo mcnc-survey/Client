@@ -5,17 +5,17 @@
     <div class="survey-list">
       <div v-for="survey in sortedSurveys" :key="survey.id" class="survey-item">
         <div class="survey-info">
-          <p class="survey-title" @click="goToSurveyStats(survey.id)">{{ survey.title }}</p>
-          <span :class="['status', getStatusClass(survey.status)]">{{ survey.status }}</span>
+          <p class="survey-info-title" @click="goToSurveyStats(survey.id)">{{ survey.title }}</p>
+          <span :class="['status', getStatusClass(survey.status)]">{{ statusDisplay(survey.status) }}</span>
         </div>
         <div class="survey-actions">
           <div class="management-buttons">
-            <button class="icon-button" @click="handlePreview(survey.id)"><i class="icon icon-preview"></i></button>
+            <button class="icon-button" @click="exportSurvey(survey.id)"><i class="icon icon-export"></i></button>
             <button class="icon-button" @click="handleLink(survey.id)"><i class="icon icon-link"></i></button>
             <button class="icon-button" @click="editSurvey(survey.id)"><i class="icon icon-edit"></i></button>
             <button class="icon-button" @click="deleteSurvey(survey.id)"><i class="icon icon-delete"></i></button>
           </div>
-          <span class="last-updated">최근 수정일: {{ survey.modified_at }}</span>
+          <span class="last-updated">최근 수정일: {{ formatDate(survey.modified_at) }}</span>
         </div>
       </div>
     </div>
@@ -23,26 +23,19 @@
   </div>
 </template>
 
-
 <script>
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
-import Swal from "sweetalert2"; // // sweetalert2
-import { toast } from "vue3-toastify"; // toastify
-import "vue3-toastify/dist/index.css"; // toastify 스타일 추가
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 import surveyData from "@/data/surveyData";
-import '@/assets/css/CustomAlert.css';
+import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "@/utils/swalUtils";
 
 const statusOrder = {
-  진행중: 1,
-  중단됨: 2,
-  마감됨: 3,
-};
-
-// 토스트 메시지 옵션 객체
-const toastOptions = {
-  position: toast.POSITION.TOP_CENTER,
-  autoClose: 1000,
+  ON: 1,
+  WAIT: 2,
+  END: 3,
+  DELETE: 4,
 };
 
 export default {
@@ -51,26 +44,37 @@ export default {
     const router = useRouter();
     const surveys = ref(surveyData);
 
-    // 설문조사를 상태 및 최신 수정일 순으로 정렬
     const sortedSurveys = computed(() => {
-      return surveys.value.slice().sort((a, b) => {
-        const statusComparison = statusOrder[a.status] - statusOrder[b.status];
-        if (statusComparison === 0) {
-          return new Date(b.modified_at) - new Date(a.modified_at); // 최신순 정렬
-        }
-        return statusComparison; // 상태 순서에 따른 정렬
-      });
+      return surveys.value
+        .filter((survey) => survey.status !== "DELETE")
+        .sort((a, b) => {
+          const statusComparison = statusOrder[a.status] - statusOrder[b.status];
+          if (statusComparison === 0) {
+            return new Date(b.modified_at) - new Date(a.modified_at);
+          }
+          return statusComparison;
+        });
     });
 
-    // 상태에 따른 클래스 매핑 함수
+    const formatDate = (dateString) => {
+      return new Date(dateString).toISOString().split('T')[0];
+    };
+
     const getStatusClass = (status) => {
       switch (status) {
-        case "진행중":
-          return "in-progress";
-        case "중단됨":
-          return "stopped";
-        case "마감됨":
-          return "completed";
+        case "ON": return "in-progress";
+        case "WAIT": return "stopped";
+        case "END": return "completed";
+        case "DELETE": return "deleted";
+      }
+    };
+
+    const statusDisplay = (status) => {
+      switch (status) {
+        case "ON": return "진행중";
+        case "WAIT": return "대기중";
+        case "END": return "마감됨";
+        case "DELETE": return "삭제됨";
       }
     };
 
@@ -78,19 +82,25 @@ export default {
       router.push({ name: "SurveyStats", params: { id: surveyId } });
     };
 
-    const handlePreview = (surveyId) => {
-      console.log("Preview survey:", surveyId);
+    const exportSurvey = (surveyId) => {
+      console.log("Exporting survey:", surveyId);
     };
 
     const handleLink = (surveyId) => {
-      const link = `https://example.com/survey/${surveyId}`; // 임시 링크
+      const link = `https://example.com/survey/${surveyId}`;
       navigator.clipboard
         .writeText(link)
         .then(() => {
-          toast.success("링크가 복사되었습니다!", toastOptions);
+          toast.success("링크가 복사되었습니다!", {
+            position: toast.POSITION.TOP_CENTER,
+            autoClose: 2000,
+          });
         })
         .catch(() => {
-          toast.error("링크 복사에 실패했습니다.", toastOptions);
+          toast.error("링크 복사에 실패했습니다.", {
+            position: toast.POSITION.TOP_CENTER,
+            autoClose: 2000,
+          });
         });
     };
 
@@ -99,26 +109,23 @@ export default {
     };
 
     const deleteSurvey = (surveyId) => {
-      Swal.fire({
-        html: `
-          <div class="custom-alert-content">
-            <p>설문을 삭제하면 모든 응답 데이터도 함께 삭제됩니다.</p>
-            <p>계속하시겠습니까?</p>
-            <small>* 삭제된 항목은 휴지통에 저장됩니다.</small>
-          </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: "삭제",
-        cancelButtonText: "취소",
-        customClass: {
-          popup: "custom-swal-popup",
-          confirmButton: "custom-confirm-button",
-          cancelButton: "custom-cancel-button",
-        },
-        buttonsStyling: false,
-      }).then((result) => {
-        if (result.isConfirmed) {
-          surveys.value = surveys.value.filter((survey) => survey.id !== surveyId);
+      showConfirmAlert({
+        html: '설문을 삭제하면 모든 응답 데이터도 함께 삭제됩니다.',
+        subMessage: '* 삭제된 항목은 휴지통에 저장됩니다.',
+        onConfirm: () => {
+          try {
+            const surveyIndex = surveys.value.findIndex((survey) => survey.id === surveyId);
+            if (surveyIndex !== -1) {
+              surveys.value[surveyIndex].status = "DELETE";
+            }
+
+            // 성공 알림
+            showSuccessAlert('삭제 완료', '설문조사가 휴지통으로 이동되었습니다.');
+          } catch (error) {
+            // 실패 알림
+            showErrorAlert('삭제 실패', '설문조사 삭제 중 오류가 발생했습니다.');
+            console.error('삭제 중 오류:', error);
+          }
         }
       });
     };
@@ -126,16 +133,21 @@ export default {
     const createSurvey = () => {
       router.push({ name: "SurveyCreate" }).catch((error) => {
         console.error("SurveyCreate 페이지로 이동 실패:", error);
-        toast.error("설문조사 생성 페이지로 이동에 실패했습니다.", toastOptions);
+        toast.error("설문조사 생성 페이지로 이동에 실패했습니다.", {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000,
+        });
       });
     };
 
     return {
       surveys,
       sortedSurveys,
+      formatDate,
       getStatusClass,
+      statusDisplay,
       goToSurveyStats,
-      handlePreview,
+      exportSurvey,
       handleLink,
       editSurvey,
       deleteSurvey,
@@ -160,23 +172,23 @@ h2 {
 }
 
 .survey-item {
-  height: 95px;
   background-color: #f7f9fb;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 44px;
+  padding: 0 34px 0 44px;
   border-radius: 16px;
   margin-bottom: 13px;
 }
 
 .survey-info {
+  height: 95px;
   display: flex;
   align-items: center;
   gap: 20px;
 }
 
-.survey-title {
+.survey-info-title {
   font-size: 1.625em;
   font-weight: bold;
   cursor: pointer;
@@ -204,16 +216,18 @@ h2 {
 .survey-actions {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-end;
+  margin-top: 10px;
   gap: 15px;
 }
 
 .management-buttons {
   display: flex;
-  gap: 8px;
+  gap: 15px;
 }
 
 .icon-button {
+  padding: 0;
   background: none;
   border: none;
   cursor: pointer;
@@ -223,29 +237,33 @@ h2 {
 }
 
 .icon {
-  width: 20px;
-  height: 20px;
+  width: 21px;
+  height: 21px;
   background-size: contain;
   background-repeat: no-repeat;
 }
 
-.icon-preview {
-  background-image: url("@/assets/images/icon-preview.png");
+.icon-export {
+  width: 22px;
+  height: 18px;
+  margin-top: 2px;
+  background-image: url("@/assets/images/icon-export.svg");
 }
 
 .icon-link {
-  background-image: url("@/assets/images/icon-link.png");
+  background-image: url("@/assets/images/icon-link.svg");
 }
 
 .icon-edit {
-  background-image: url("@/assets/images/icon-edit.png");
+  background-image: url("@/assets/images/icon-edit.svg");
 }
 
 .icon-delete {
-  background-image: url("@/assets/images/icon-delete.png");
+  background-image: url("@/assets/images/icon-delete.svg");
 }
 
 .last-updated {
+  text-align: end;
   color: #757575;
   font-size: 0.875em;
   margin-left: 4px;
