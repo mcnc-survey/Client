@@ -14,7 +14,12 @@ export default {
 /* 모바일 전용 스타일 */
 .mobile-layout {
   padding: 20px;
-  font-size: 1rem;
-  background-color: #f9f9f9;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f7f9fb;
+  /*
+  height: calc(100vh - 40px); 
+  width: calc(100vw - 40px); 
+  */
 }
 </style>
