@@ -268,7 +268,7 @@ export default {
 }
 
 .preview-input {
-  width: 100%;
+  width: 90%;
   max-width: 400px;
   padding: 8px 12px;
   border: 1px solid #BFD0E0;
