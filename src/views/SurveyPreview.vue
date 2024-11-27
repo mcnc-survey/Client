@@ -88,7 +88,7 @@
             <div v-else-if="question.type === 'short'" class="text-answer">
                 <input
                     type="text"
-                    placeholder="답변을 입력하세요"
+                    placeholder="답변을 입력하세요 (최대 100자)"
                     class="short-answer-input"
                     maxlength="100"
                     @input="checkInputLength($event, 100)"
@@ -98,7 +98,7 @@
             <!-- 주관식 긴 답변 -->
             <div v-else-if="question.type === 'long'" class="text-answer">
                 <textarea
-                    placeholder="답변을 입력하세요"
+                    placeholder="답변을 입력하세요 (최대 2000자)"
                     class="long-answer-input"
                     maxlength="2000"
                     @input="checkInputLength($event, 2000)"

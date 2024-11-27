@@ -88,6 +88,7 @@
         <div class="side-container" :style="{ transform: `translateY(${sideTabTop}px)` }">
           <QuestionTypeTab
             :selected-question-index="selectedQuestionIndex"
+            :is-title-selected="isTitleContainerSelected"
             @change-type="changeQuestionType"
             @add-question="addNewQuestion"
           />
@@ -501,6 +502,10 @@ export default {
           ...questions.value[selectedQuestionIndex.value],
           type: newType,
         };
+        // 질문 유형이 바뀔 때도 사이드탭 위치 업데이트
+        nextTick(() => {
+          updateSideTabPosition();
+        });
       }
     };
 
@@ -1001,12 +1006,13 @@ export default {
   min-height: 100vh;
   display: block;
   margin-right: 100px; /* side-container의 너비만큼 여백 추가 */
+  position: relative;
 }
 
 .side-container {
   width: 120px;
   position: absolute;
-  right: 11%;
+  left: 75%;
   top: 20px;
   height: fit-content;
   transition: transform 0.3s ease;
