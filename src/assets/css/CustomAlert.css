@@ -5,6 +5,15 @@
   background-color: #fff;
   border-radius: 11px;
   padding: 40px 0 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 수평 정렬 */
+  justify-content: center; /* 수직 정렬 */
+}
+
+.custom-alert-content {
+  text-align: center; /* 텍스트를 중앙 정렬 */
 }
 
 /* 팝업 내 텍스트 스타일 */
@@ -27,6 +36,7 @@
 /* 버튼 스타일 */
 .custom-confirm-button,
 .custom-cancel-button {
+  margin: 0;
   font-family: Pretendard;
   font-size: 1.125rem;
   font-weight: bold;
@@ -34,6 +44,7 @@
   height: 40px;
   border-radius: 24px;
   border: none;
+  margin-top: -20px;
   margin-bottom: 35px;
 }
 
