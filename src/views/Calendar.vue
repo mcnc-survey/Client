@@ -1,7 +1,8 @@
 <template>
-  <!-- <div id="calendar-wrapper"> -->
-  <div>
-    <FullCalendar :options="calendarOptions" />
+  <div id="calendar-wrapper">
+    <div>
+      <FullCalendar :options="calendarOptions" />
+    </div>
   </div>
 </template>
 
@@ -18,18 +19,23 @@ export default {
     return {
       calendarOptions: {
         plugins: [dayGridPlugin, timeGridPlugin],
-        initialView: "dayGridMonth", // 기본 뷰 (달력)
-
-        locale: "ko", // 한국어 로케일 사용
+        initialView: "dayGridMonth",
+        locale: "ko",
+        height: "auto", // 캘린더 높이를 자동으로 조정
+        expandRows: false, // 행 높이 확장 비활성화
+        contentHeight: 850, // 캘린더 내부 최대 높이
         headerToolbar: {
           left: "title",
           center: "",
           right: "today prev,next",
         },
-        events: [], // 초기값은 빈 배열로 설정
-        eventColor: "#4caf50", // 기본 이벤트 색상
-        eventTextColor: "#ffffff", // 기본 텍스트 색상
-        eventClick: this.handleEventClick, // 이벤트 클릭 시 호출할 메소드
+        events: [], // 목데이터 사용
+        eventColor: "#4caf50",
+        eventTextColor: "#ffffff",
+        eventClick: this.handleEventClick,
+
+        // dayMaxEventRows: true, // 셀 높이 제한을 설정
+        // moreLinkContent: "... 더보기", // "더 보기" 버튼 커스터마이즈
       },
     };
   },
@@ -56,6 +62,18 @@ export default {
           start_date: "2024-11-18",
           end_date: "2024-11-25",
         },
+        {
+          id: 4,
+          title: "설문 4",
+          start_date: "2024-11-13",
+          end_date: "2024-11-25",
+        },
+        {
+          id: 5,
+          title: "설문 5",
+          start_date: "2024-11-23",
+          end_date: "2024-12-01",
+        },
       ];
 
       // 캘린더 이벤트 형식으로 변환
@@ -70,7 +88,7 @@ export default {
 
     // 이벤트 색상을 번갈아가며 다르게 설정
     getEventColor(index) {
-      const colors = ["#4caf50", "#ff9800", "#2196f3", "#9c27b0", "#ff5722"];
+      const colors = ["#FFFAC3", "#FEE4CB", "#E9D0E5", "#D1E2F4", "#D9C6BA", "F9C8CB", "#CCE6BF"];
       return colors[index % colors.length]; // 배열에서 순서대로 색상 사용
     },
 
@@ -91,51 +109,96 @@ export default {
 /* 전체 캘린더 감싸는 박스 */
 #calendar-wrapper {
   max-width: 900px;
-  margin: 20px auto;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #f9f9f9;
+  padding: 0 24px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
+
+/* FullCalendar의 내부 스크롤을 허용 */
+.fc-daygrid-body {
+  max-height: 650px !important;
+  height: 700px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+}
+
+/* 날짜 셀 높이를 강제로 고정 */
+.fc-daygrid-day-frame {
+  min-height: 100px !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
 
 /* FullCalendar 기본 스타일 수정 */
 .fc {
-  font-family: "Arial", sans-serif;
+  font-family: Pretendard;
   color: #333;
 }
 
 /* 캘린더 헤더 스타일 */
-.fc-toolbar {
-  margin-bottom: 10px;
-}
-.fc-toolbar-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #4caf50;
-}
-.fc-button {
-  background-color: #4caf50;
-  border: none;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-.fc-button:hover {
-  background-color: #388e3c;
-}
-.fc-button:disabled {
-  background-color: #a5d6a7;
+.fc .fc-toolbar.fc-header-toolbar {
+  padding: 10px 14px 10px 24px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 16.6px;
+  background: #DFE7EF;
+  border-radius: 16px;
 }
 
-/* 날짜 셀 스타일 */
-.fc-daygrid-day {
-  border: 1px solid #e0e0e0;
+.fc .fc-toolbar-title {
+  font-size: 1.1rem;
+  font-weight: bold;
 }
+
+.fc .fc-button {
+  border: none;
+  background-color: transparent;
+  color: #000;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+/* 달력 넘기는 버튼 포커스 및 클릭 시 테두리 제거 */
+.fc .fc-button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* today 버튼 */
+.fc .fc-button:disabled,
+.fc .fc-button:not(:disabled) {
+  background-color: white;
+  color: #000;
+  font-weight: bold;
+  border-radius: 6px;
+  padding: 5px 18px;
+}
+
+.fc .fc-button:disabled {
+  font-weight: bold;
+  background-color: #F7F9FC;
+}
+
+.fc-direction-ltr .fc-button-group>.fc-button:not(:first-child),
+.fc-direction-ltr .fc-button-group>.fc-button:not(:last-child) {
+  padding: 5px;
+  background-color: transparent;
+}
+
+/* 날짜 셀 높이를 고정 */
+.fc-daygrid-day-frame {
+  min-height: 90px !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.fc-daygrid-day {
+  height: auto !important;
+}
+
 .fc-daygrid-day-number {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: bold;
   color: #555;
 }
@@ -148,7 +211,26 @@ export default {
 /* 이벤트 스타일 */
 .fc-event {
   border: none;
-  border-radius: 4px;
-  padding: 2px 4px;
+  border-radius: 8px;
+  padding: 4px 12px;
+  margin-bottom: 5px;
+}
+
+/* 이벤트 컨테이너 */
+.fc-daygrid-day-events {
+  max-height: none;
+  overflow: visible;
+}
+
+.fc-sticky {
+  color: #000;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: #DFE7EF;
+}
+
+.fc-day-sun a {
+  color: red;
 }
 </style>
