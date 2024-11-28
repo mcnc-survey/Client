@@ -44,8 +44,8 @@ export default {
     },
     data() {
         return {
-            surveySummary: surveyData.body.surveySummary,  // body 추가
-            surveyResults: surveyData.body.surveyResults,  // body 추가
+            surveySummary: surveyData.body.surveySummary,
+            surveyResults: surveyData.body.surveyResults,
         };
     },
     computed: {
