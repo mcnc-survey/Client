@@ -1,5 +1,5 @@
 <template>
-  <div id="calendar-wrapper">
+  <div class="calendar-wrapper">
     <div>
       <FullCalendar :options="calendarOptions" />
     </div>
@@ -21,9 +21,10 @@ export default {
         plugins: [dayGridPlugin, timeGridPlugin],
         initialView: "dayGridMonth",
         locale: "ko",
+        width: '100%', // 100%로 변경
+        maxWidth: '980px', // 최대 너비 명시
         height: "auto", // 캘린더 높이를 자동으로 조정
         expandRows: false, // 행 높이 확장 비활성화
-        contentHeight: 850, // 캘린더 내부 최대 높이
         headerToolbar: {
           left: "title",
           center: "",
@@ -107,33 +108,35 @@ export default {
 
 <style>
 /* 전체 캘린더 감싸는 박스 */
-#calendar-wrapper {
-  max-width: 900px;
+.calendar-wrapper {
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
   padding: 0 24px;
   box-sizing: border-box;
   overflow: hidden;
 }
 
+/* FullCalendar 기본 스타일 수정 */
+.fc {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
 /* FullCalendar의 내부 스크롤을 허용 */
 .fc-daygrid-body {
-  max-height: 650px !important;
-  height: 700px !important;
+  max-height: 550px !important;
+  height: 550px !important;
   overflow-y: auto !important;
   overflow-x: hidden;
 }
 
 /* 날짜 셀 높이를 강제로 고정 */
 .fc-daygrid-day-frame {
-  min-height: 100px !important;
+  min-height: 90px !important;
   height: auto !important;
   overflow: visible !important;
-}
-
-
-/* FullCalendar 기본 스타일 수정 */
-.fc {
-  font-family: Pretendard;
-  color: #333;
 }
 
 /* 캘린더 헤더 스타일 */
@@ -232,5 +235,10 @@ export default {
 
 .fc-day-sun a {
   color: red;
+}
+
+/* 스크롤바 스타일링 */
+.fc-daygrid-body::-webkit-scrollbar {
+  display: none;
 }
 </style>
