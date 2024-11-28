@@ -5,9 +5,9 @@ import SurveyManagement from "../views/SurveyManagement.vue";
 import SurveyEdit from "../views/SurveyEdit.vue";
 import SurveyStats from "../views/SurveyStats.vue";
 import SurveyCreate from "../views/SurveyCreate.vue";
-import SurveyPreview from "../views/SurveyPreview.vue"
+import SurveyPreview from "../views/SurveyPreview.vue";
 import SurveyCompletion from "../views/SurveyCompletion.vue";
-import Calendar from "../views/Calendar.vue";
+import SurveyCalendar from "../views/SurveyCalendar.vue";
 import DeletedItems from "../views/DeletedItems.vue";
 import ParticipantInfo from "../mobile/ParticipantInfo.vue";
 import SurveyParticipation from "../mobile/SurveyParticipation.vue";
@@ -51,7 +51,7 @@ const routes = [
       {
         path: "preview",
         component: SurveyPreview,
-        name: "SurveyPreview"
+        name: "SurveyPreview",
       },
       {
         path: "complete",
@@ -60,7 +60,7 @@ const routes = [
       },
       {
         path: "calendar",
-        component: Calendar,
+        component: SurveyCalendar,
       },
 
       {
