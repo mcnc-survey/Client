@@ -409,12 +409,12 @@ export default {
 }
 
 .subjective-responses::-webkit-scrollbar-thumb {
-    background: #E8ECF0;
+    background: #E8EAEC;
     border-radius: 4px;
 }
 
 .subjective-responses::-webkit-scrollbar-thumb:hover {
-    background: #d1d5d9;
+    background: #D1D5D9;
 }
 
 .response-item {
