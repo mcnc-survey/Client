@@ -11,7 +11,7 @@
       <div class="content-area">
         <!-- 메인 설문 영역 -->
         <div class="survey-container">
-          <div class="title-container" @click="selectTitleContainer" :class="{ error: showTitleError }">
+          <div class="title-container" @click="selectTitleContainer" :class="{ error: showTitleError, selected: isTitleContainerSelected }">
             <!-- 설문 제목 입력 -->
             <div class="input-wrapper">
               <textarea
@@ -342,8 +342,8 @@
 </template>
 
 <script>
-import { useRouter } from 'vue-router';
-import { ref, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { useRouter, onBeforeRouteLeave } from 'vue-router';
+import { ref, computed, nextTick, onMounted, onBeforeUnmount, watch } from "vue";
 import { debounce } from 'lodash';
 import { DatePicker } from "v-calendar";
 import "v-calendar/style.css";
@@ -353,6 +353,7 @@ import MultipleChoiceQuestion from "@/components/MultipleChoiceQuestion.vue";
 import GridQuestion from "@/components/GridQuestion.vue";
 import ShortAnswerQuestion from "@/components/ShortAnswerQuestion.vue";
 import LongAnswerQuestion from "@/components/DescriptiveAnswerQuestion.vue";
+import { showConfirmAlert } from '@/utils/swalUtils';
 
 export default {
   components: {
@@ -367,6 +368,7 @@ export default {
 
   setup() {
     const router = useRouter();
+    const hasUnsavedChanges = ref(false);
     // Refs for template elements
     const createContainer = ref(null);
     const questionContainer = ref([]);
@@ -492,7 +494,7 @@ export default {
         
         setTimeout(() => {
           updateSideTabPosition();
-        }, 300);
+        }, 0);
       }
     };
 
@@ -543,12 +545,18 @@ export default {
     };
 
     const deleteQuestion = (index) => {
+      const newIndex = index > 0 ? index - 1 : 0; // 항상 위쪽 질문 선택
+      
       questions.value.splice(index, 1);
+      
       if (questions.value.length === 0) {
         addNewQuestion();
-      } else if (selectedQuestionIndex.value === index) {
-        selectedQuestionIndex.value = Math.min(index, questions.value.length - 1);
-        updateSideTabPosition();
+      } else {
+        setTimeout(() => {
+          nextTick(() => {
+            selectQuestion(newIndex);
+          });
+        }, 0);
       }
     };
 
@@ -847,9 +855,37 @@ export default {
 
     // 저장 처리 함수
     const saveSurvey = () => {
+      hasUnsavedChanges.value = false;
       router.push({ name: "SurveyCompletion" }).catch((error) => {
         console.error("SurveyCompletion 페이지로 이동 실패:", error);
       });
+    };
+
+    onBeforeRouteLeave((to, from, next) => {
+      if (!hasUnsavedChanges.value) {
+        next();
+        return;
+      }
+
+      showConfirmAlert({
+        html: '정말로 나가시겠습니까?',
+        subMessage: '* 작성 중인 내용이 저장되지 않습니다.',
+        confirmText: '나가기',
+        cancelText: '취소',
+        onConfirm: () => {
+          next();
+        },
+        onCancel: () => {
+          next(false);
+        }
+      });
+    });
+
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges.value) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
     };
 
     // Lifecycle hooks
@@ -858,12 +894,26 @@ export default {
         updateSideTabPosition();
         window.addEventListener("resize", debouncedUpdatePosition);
         window.addEventListener("scroll", debouncedUpdatePosition); // 스크롤 이벤트 추가
+        window.addEventListener('beforeunload', handleBeforeUnload);
+      });
+
+      watch([title, description], () => {
+        hasUnsavedChanges.value = true;
+      });
+
+      watch(questions, () => {
+        hasUnsavedChanges.value = true;
+      }, { deep: true });
+
+      watch([startDate, endDate, startTime, endTime], () => {
+        hasUnsavedChanges.value = true;
       });
     });
 
     onBeforeUnmount(() => {
       window.removeEventListener("resize", debouncedUpdatePosition);
       window.removeEventListener("scroll", debouncedUpdatePosition); // 스크롤 이벤트 제거
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     });
 
     return {
@@ -930,6 +980,7 @@ export default {
       questionErrors,
       openPreview,
       validateAndSave,
+      hasUnsavedChanges
     };
   },
 };
@@ -940,7 +991,7 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 10px 20px 20px;
+  padding: 0 20px 20px;
 }
 
 .header {
@@ -948,7 +999,11 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding: 0 10px;
+  padding: 10px 10px 0 4px;
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .header h2 {
@@ -961,6 +1016,7 @@ export default {
 .header-buttons {
   display: flex;
   gap: 10px;
+  padding-bottom: 5px;
 }
 
 .preview-btn,
@@ -991,6 +1047,7 @@ export default {
   background-color: #f7f9fb;
   border-radius: 30px;
   padding: 20px;
+  margin: 0 auto;
 }
 
 .content-area {
@@ -1039,6 +1096,10 @@ export default {
 }
 
 .question-container.selected {
+  box-shadow: 0 0 0 2px #bfd0e0;
+}
+
+.title-container.selected {
   box-shadow: 0 0 0 2px #bfd0e0;
 }
 
