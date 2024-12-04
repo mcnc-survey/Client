@@ -1,15 +1,24 @@
 <template>
   <nav v-if="isSidebarOpen" class="sidebar">
     <div class="user-info">
-      <img src="@/assets/images/icon-user.png" alt="User Image" class="user-image" />
+      <img
+        src="@/assets/images/icon-user.png"
+        alt="User Image"
+        class="user-image"
+      />
       <h>홍길동</h>
     </div>
     <br />
     <!-- 즐겨찾기 헤더 -->
-    <div class="favorites-header" :class="{
-      active: isFavoritesActive,
-      hover: isFavoritesHovered,
-    }" @mouseenter="isFavoritesHovered = true" @mouseleave="isFavoritesHovered = false">
+    <div
+      class="favorites-header"
+      :class="{
+        active: isFavoritesActive,
+        hover: isFavoritesHovered,
+      }"
+      @mouseenter="isFavoritesHovered = true"
+      @mouseleave="isFavoritesHovered = false"
+    >
       <button @click="toggleFavoritesList" class="toggle-btn">
         {{ isFavoritesOpen ? "▽" : "▶" }}
       </button>
@@ -18,9 +27,13 @@
     <!-- 즐겨찾기 목록 -->
     <transition name="fade">
       <ul v-if="isFavoritesOpen" class="favorites-list">
-        <li v-for="(item, index) in favorites" :key="index" :class="{
-          active: isActiveRoute(item.route),
-        }">
+        <li
+          v-for="(item, index) in favorites"
+          :key="index"
+          :class="{
+            active: isActiveRoute(item.route),
+          }"
+        >
           <router-link :to="item.route">{{ item.label }}</router-link>
         </li>
       </ul>
@@ -71,14 +84,23 @@ export default {
 
 <style scoped>
 .sidebar {
-  width: 15%;
+  width: 20%;
   background-color: #f4f4f4;
   padding: 20px;
+  transition: transform 0.3s ease;
+  transform: translateX(0);
 }
 
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
 .user-info {
   display: flex;
   align-items: center;
+}
+
+.user-info h {
+  color: #000;
 }
 
 .user-image {

@@ -6,26 +6,46 @@
       <div v-for="survey in sortedSurveys" :key="survey.id" class="survey-item">
         <div class="survey-info">
           <button class="bookmark-button" @click="toggleBookmark(survey.id)">
-            <img :src="survey.isBookmarked
-              ? require('@/assets/images/bookmark.svg')
-              : require('@/assets/images/non-bookmark.svg')
-              " alt="북마크" class="bookmark-icon">
+            <img
+              :src="
+                survey.isBookmarked
+                  ? require('@/assets/images/bookmark.svg')
+                  : require('@/assets/images/non-bookmark.svg')
+              "
+              alt="북마크"
+              class="bookmark-icon"
+            />
           </button>
-          <p class="survey-info-title" @click="goToSurveyStats(survey.id)">{{ survey.title }}</p>
-          <span :class="['status', getStatusClass(survey.status)]">{{ statusDisplay(survey.status) }}</span>
+          <p class="survey-info-title" @click="goToSurveyStats(survey.id)">
+            {{ survey.title }}
+          </p>
+          <span :class="['status', getStatusClass(survey.status)]">{{
+            statusDisplay(survey.status)
+          }}</span>
         </div>
         <div class="survey-actions">
           <div class="management-buttons">
-            <button class="icon-button" @click="exportSurvey(survey.id)"><i class="icon icon-export"></i></button>
-            <button class="icon-button" @click="handleLink(survey.id)"><i class="icon icon-link"></i></button>
-            <button class="icon-button" @click="editSurvey(survey.id)"><i class="icon icon-edit"></i></button>
-            <button class="icon-button" @click="deleteSurvey(survey.id)"><i class="icon icon-delete"></i></button>
+            <button class="icon-button" @click="exportSurvey(survey.id)">
+              <i class="icon icon-export"></i>
+            </button>
+            <button class="icon-button" @click="handleLink(survey.id)">
+              <i class="icon icon-link"></i>
+            </button>
+            <button class="icon-button" @click="editSurvey(survey.id)">
+              <i class="icon icon-edit"></i>
+            </button>
+            <button class="icon-button" @click="deleteSurvey(survey.id)">
+              <i class="icon icon-delete"></i>
+            </button>
           </div>
-          <span class="last-updated">최근 수정일: {{ formatDate(survey.modified_at) }}</span>
+          <span class="last-updated"
+            >최근 수정일: {{ formatDate(survey.modified_at) }}</span
+          >
         </div>
       </div>
     </div>
-    <button class="create-survey-button" @click="createSurvey()">새로운 설문조사 만들기</button>
+    <!-- Floating 버튼 -->
+    <button class="floating-button" @click="createSurvey">+</button>
   </div>
 </template>
 
@@ -35,7 +55,11 @@ import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import surveyData from "@/data/surveyData";
-import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "@/utils/swalUtils";
+import {
+  showSuccessAlert,
+  showErrorAlert,
+  showConfirmAlert,
+} from "@/utils/swalUtils";
 
 const statusOrder = {
   ON: 1,
@@ -48,10 +72,12 @@ export default {
   name: "SurveyManagement",
   setup() {
     const router = useRouter();
-    const surveys = ref(surveyData.map(survey => ({
-      ...survey,
-      isBookmarked: survey.isBookmarked || false
-    })));
+    const surveys = ref(
+      surveyData.map((survey) => ({
+        ...survey,
+        isBookmarked: survey.isBookmarked || false,
+      }))
+    );
 
     const sortedSurveys = computed(() => {
       return surveys.value
@@ -61,7 +87,8 @@ export default {
             return b.isBookmarked - a.isBookmarked;
           }
 
-          const statusComparison = statusOrder[a.status] - statusOrder[b.status];
+          const statusComparison =
+            statusOrder[a.status] - statusOrder[b.status];
           if (statusComparison === 0) {
             return new Date(b.modified_at) - new Date(a.modified_at);
           }
@@ -70,7 +97,7 @@ export default {
     });
 
     const toggleBookmark = (surveyId) => {
-      const survey = surveys.value.find(s => s.id === surveyId);
+      const survey = surveys.value.find((s) => s.id === surveyId);
       if (survey) {
         survey.isBookmarked = !survey.isBookmarked;
 
@@ -89,24 +116,32 @@ export default {
     };
 
     const formatDate = (dateString) => {
-      return new Date(dateString).toISOString().split('T')[0];
+      return new Date(dateString).toISOString().split("T")[0];
     };
 
     const getStatusClass = (status) => {
       switch (status) {
-        case "ON": return "in-progress";
-        case "WAIT": return "stopped";
-        case "END": return "completed";
-        case "DELETE": return "deleted";
+        case "ON":
+          return "in-progress";
+        case "WAIT":
+          return "stopped";
+        case "END":
+          return "completed";
+        case "DELETE":
+          return "deleted";
       }
     };
 
     const statusDisplay = (status) => {
       switch (status) {
-        case "ON": return "진행중";
-        case "WAIT": return "대기중";
-        case "END": return "마감됨";
-        case "DELETE": return "삭제됨";
+        case "ON":
+          return "진행중";
+        case "WAIT":
+          return "대기중";
+        case "END":
+          return "마감됨";
+        case "DELETE":
+          return "삭제됨";
       }
     };
 
@@ -142,23 +177,31 @@ export default {
 
     const deleteSurvey = (surveyId) => {
       showConfirmAlert({
-        html: '설문을 삭제하면 모든 응답 데이터도 함께 삭제됩니다.',
-        subMessage: '* 삭제된 항목은 휴지통에 저장됩니다.',
+        html: "설문을 삭제하면 모든 응답 데이터도 함께 삭제됩니다.",
+        subMessage: "* 삭제된 항목은 휴지통에 저장됩니다.",
         onConfirm: () => {
           try {
-            const surveyIndex = surveys.value.findIndex((survey) => survey.id === surveyId);
+            const surveyIndex = surveys.value.findIndex(
+              (survey) => survey.id === surveyId
+            );
             if (surveyIndex !== -1) {
               surveys.value[surveyIndex].status = "DELETE";
             }
 
             // 성공 알림
-            showSuccessAlert('삭제 완료', '설문조사가 휴지통으로 이동되었습니다.');
+            showSuccessAlert(
+              "삭제 완료",
+              "설문조사가 휴지통으로 이동되었습니다."
+            );
           } catch (error) {
             // 실패 알림
-            showErrorAlert('삭제 실패', '설문조사 삭제 중 오류가 발생했습니다.');
-            console.error('삭제 중 오류:', error);
+            showErrorAlert(
+              "삭제 실패",
+              "설문조사 삭제 중 오류가 발생했습니다."
+            );
+            console.error("삭제 중 오류:", error);
           }
-        }
+        },
       });
     };
 
@@ -200,7 +243,6 @@ export default {
 }
 
 .survey-list {
-  overflow-y: auto;
   height: 100%;
   padding-right: 8px;
 }
@@ -216,14 +258,13 @@ export default {
 }
 
 .survey-list::-webkit-scrollbar-thumb {
-  background: #E8EAEC;
+  background: #e8eaec;
   border-radius: 4px;
 }
 
 .survey-list::-webkit-scrollbar-thumb:hover {
-  background: #D1D5D9;
+  background: #d1d5d9;
 }
-
 
 h2 {
   font-size: 1.25rem;
@@ -356,5 +397,35 @@ h2 {
   border-radius: 20px;
   border: none;
   font-size: 1.5em;
+}
+
+.floating-button {
+  position: sticky;
+  bottom: 20px;
+  left: calc(50% - 28px);
+  margin-right: auto;
+  width: 56px;
+  height: 56px;
+  background-color: #4285f4;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.floating-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.floating-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 </style>
