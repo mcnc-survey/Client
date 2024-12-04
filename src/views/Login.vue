@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="login-container">
     <div class="left-bg">
       <div class="login-layout">
         <h2>로그인</h2>
@@ -167,7 +167,7 @@ export default {
 </script>
 
 <style scoped>
-.container {
+.login-container {
   display: flex;
   width: 100%;
   height: 100vh;
@@ -358,7 +358,7 @@ input[type="text"] {
   cursor: pointer;
   text-decoration: none;
   font-weight: bold;
-  height: 20px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
