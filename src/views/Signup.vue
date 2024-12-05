@@ -46,7 +46,7 @@
               :src="showPassword ? require('../assets/images/eye_hide.png') : require('../assets/images/eye_show.png')"
               :alt="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'" class="eye-icon" />
           </div>
-          <span v-if="passwordError && passwordTouched" class="error-message">영문과 특수문자를 포함하여 8자리 이상으로 입력해주세요</span>
+          <span v-if="passwordError && passwordTouched" class="error-message">비밀번호는 영문, 숫자, 특수문자를 포함한 8자 이상입니다.</span>
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': confirmPasswordError && confirmPasswordTouched }">
