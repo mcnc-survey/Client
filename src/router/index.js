@@ -15,6 +15,8 @@ import SurveyParticipation from "../mobile/SurveyParticipation.vue";
 import MobileLayout from "../layouts/MobileLayout.vue";
 import WebLayout from "../layouts/WebLayout.vue";
 
+import Redirection from "../views/Redirection.vue";
+
 const routes = [
   {
     path: "/signup",
@@ -66,7 +68,11 @@ const routes = [
       {
         path: "recycle",
         component: DeletedItems,
-        name: "DeletedItems",
+      },
+
+      {
+        path: "redirection",
+        component: Redirection,
       },
     ],
   },

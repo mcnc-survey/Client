@@ -103,6 +103,7 @@
               src="../assets/images/login_kakao.png"
               alt="kakao"
               class="social-icon"
+              @click="kakaoLogin"
             />
             <img
               src="../assets/images/login_naver.svg"
@@ -137,6 +138,15 @@ export default {
     };
   },
   methods: {
+    kakaoLogin() {
+      if (!Kakao.isInitialized()) {
+        Kakao.init("1c80aa33f3afae7ebc8f67d9990651f4");
+      }
+
+      Kakao.Auth.authorize({
+        redirectUri: "http://localhost:10001/web/redirection", // 리다이렉트 URI
+      });
+    },
     validateEmail() {
       if (this.email.length === 0) {
         this.emailError = false;
@@ -157,7 +167,7 @@ export default {
       this.passwordError = !(hasSpecialChar && hasMinLength);
     },
     doLogin() {
-      this.$router.push("/web/management");
+      this.$router.push("/web/redirection");
     },
     togglePassword() {
       this.showPassword = !this.showPassword;
