@@ -15,8 +15,9 @@
             class="input-field peer"
             :class="{ 'error-border': emailError && emailTouched }"
             v-model="email"
-            @blur="validateEmail"
+            @input="validateEmail"
             placeholder=" "
+            ref="emailInput"
             required
           />
           <label
@@ -41,8 +42,9 @@
             class="input-field peer"
             :class="{ 'error-border': passwordError && passwordTouched }"
             v-model="password"
-            @blur="validatePassword"
+            @input="validatePassword"
             placeholder=" "
+            ref="passwordInput"
             required
           />
           <label
@@ -72,7 +74,7 @@
         </div>
 
         <div class="login-options">
-          <button class="login-button" @click="doLogin">
+          <button class="login-button" @click="handleLogin">
             로그인
             <img
               src="../assets/images/login_button.svg"
@@ -154,10 +156,41 @@ export default {
       this.passwordTouched = true;
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(this.password);
       const hasMinLength = this.password.length >= 8;
-      this.passwordError = !(hasSpecialChar && hasMinLength);
+      const hasLetter = /[A-Za-z]/.test(this.password);  // 영문 포함
+      const hasNumber = /[0-9]/.test(this.password);     // 숫자 포함
+      this.passwordError = !(hasSpecialChar && hasMinLength && hasLetter && hasNumber);
     },
-    doLogin() {
-      this.$router.push("/web/management");
+    handleLogin() {
+      // 이메일과 비밀번호가 모두 비어있는 경우
+      if (!this.email && !this.password) {
+        this.$refs.emailInput.focus();
+        this.emailTouched = true;
+        this.passwordTouched = true;
+        return;
+      }
+      
+      // 이메일만 비어있는 경우
+      if (!this.email) {
+        this.$refs.emailInput.focus();
+        this.emailTouched = true;
+        return;
+      }
+      
+      // 비밀번호만 비어있는 경우
+      if (!this.password) {
+        this.$refs.passwordInput.focus();
+        this.passwordTouched = true;
+        return;
+      }
+
+      // 유효성 검사를 다시 실행
+      this.validateEmail();
+      this.validatePassword();
+
+      // 유효성 검사를 통과한 경우에만 다음 페이지로 이동
+      if (!this.emailError && !this.passwordError) {
+        this.$router.push("/web/management");
+      }
     },
     togglePassword() {
       this.showPassword = !this.showPassword;
@@ -337,7 +370,7 @@ input[type="text"] {
   color: #b3b3b3;
   cursor: pointer;
   font-weight: bold;
-  margin-left: 20px;
+  margin-left: 10px;
 }
 
 .create-account-container {

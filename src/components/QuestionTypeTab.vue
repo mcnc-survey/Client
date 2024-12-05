@@ -21,14 +21,6 @@
       <div 
         class="tab-item" 
         :class="{ 'disabled': isTitleSelected }"
-        @click="!isTitleSelected && $emit('change-type', 'grid')"
-      >
-        <img src="@/assets/images/grid_choice.png" alt="표 만들기" />
-        <span>표형</span>
-      </div>
-      <div 
-        class="tab-item" 
-        :class="{ 'disabled': isTitleSelected }"
         @click="!isTitleSelected && $emit('change-type', 'short')"
       >
         <img src="@/assets/images/short_answer.png" alt="단답형" />
@@ -90,7 +82,7 @@ export default {
   border-radius: 15px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   padding: 10px;
-  width: 100%;
+  width: 140px;
 }
 
 .tab-items {
@@ -105,6 +97,7 @@ export default {
   padding: 8px 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 100%;
 }
 
 /* disabled 상태 스타일 추가 */
@@ -116,21 +109,24 @@ export default {
 /* disabled 상태에서는 hover 효과 제거 */
 .tab-item:not(.disabled):hover {
   background: #F7F9FB;
+  border-radius: 8px;
 }
 
 .tab-item img {
   width: 16px;
   height: 16px;
+  min-width: 16px; /* 이미지가 찌그러지지 않도록 최소 너비 설정 */
 }
 
 .tab-item span {
   font-size: 14px;
   color: #666;
+  white-space: nowrap; /* 텍스트가 한 줄로 유지되도록 설정 */
 }
 
 .add-question {
   margin-top: 5px;
   padding-top: 13px;
-  border-top: 1px solid #eee;  /* 항상 동일한 border 적용 */
+  border-top: 1px solid #eee;
 }
 </style>

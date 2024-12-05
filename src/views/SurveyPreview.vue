@@ -278,12 +278,14 @@ export default {
   font-size: 25px;
   font-weight: 700;
   margin-bottom: 15px;
+  white-space: pre-wrap;
 }
 
 .survey-description {
   font-size: 16px;
   margin-bottom: 20px;
   color: #666;
+  white-space: pre-wrap;
 }
 
 .survey-period {
@@ -320,6 +322,9 @@ export default {
 .question-title {
   font-weight: 600;
   flex: 1;
+  white-space: pre-wrap;
+  word-break: break-all; /* 자동 줄바꿈 */
+  word-wrap: break-word;
 }
 
 .required-mark {

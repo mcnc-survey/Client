@@ -545,7 +545,6 @@ export default {
     const typeMap = {
       'single': 'SINGLE_CHOICE',
       'multiple': 'MULTIPLE_CHOICE',
-      'grid': 'GRID',
       'short': 'SHORT_ANSWER',
       'long': 'DESCRIPTIVE_ANSWER'
     };
@@ -604,7 +603,6 @@ export default {
      const types = {
        single: "SingleChoiceQuestion",
        multiple: "MultipleChoiceQuestion",
-       grid: "GridQuestion",
        short: "ShortAnswerQuestion",
        long: "LongAnswerQuestion",
      };
@@ -816,12 +814,6 @@ export default {
             question.options.some(opt => !opt.text.trim())) {
           hasError = true;
         }
-      } else if (question.type === 'grid') {
-        if (!question.rows?.length || !question.columns?.length ||
-            question.rows.some(row => !row.text.trim()) ||
-            question.columns.some(col => !col.text.trim())) {
-          hasError = true;
-        }
       }
 
       if (hasError) {
@@ -993,7 +985,7 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 0 20px 20px;
+  padding: 0 10px 10px;
 }
 
 .header {
@@ -1044,7 +1036,7 @@ export default {
 }
 
 .create-container {
-  width: 95%;
+  width: 100%;
   min-height: 100%;
   background-color: #f7f9fb;
   border-radius: 30px;
@@ -1070,7 +1062,7 @@ export default {
 .side-container {
   width: 120px;
   position: absolute;
-  left: 75%;
+  left: 73%;
   top: 20px;
   height: fit-content;
   transition: transform 0.3s ease;
@@ -1078,7 +1070,7 @@ export default {
 }
 
 .title-container {
-  width: 90%;
+  width: 95%;
   min-height: 20%;
   background-color: #ffffff;
   border-radius: 23.38px;
@@ -1087,7 +1079,7 @@ export default {
 }
 
 .question-container {
-  width: 90%;
+  width: 95%;
   min-height: 20%;
   background-color: #ffffff;
   border-radius: 23.38px;
@@ -1193,8 +1185,7 @@ textarea {
   background: white;
   border-radius: 20px;
   padding: 15px 20px 20px 20px;
-  width: 90%;
-  max-width: 250px;
+  width: 300px;
 }
 
 .modal-content h3 {

@@ -5,6 +5,7 @@
       <div class="question-title-wrapper">
         <div class="input-wrapper">
           <textarea
+            ref="titleTextarea"
             v-model="questionData.title"
             class="question-title"
             placeholder="질문"
@@ -54,6 +55,7 @@
 
 <script>
 import { cloneDeep } from 'lodash';
+import { nextTick } from 'vue';
 
 export default {
   name: 'ShortAnswerQuestion',
@@ -77,10 +79,18 @@ export default {
 
   methods: {
     adjustHeight(e) {
-      const textarea = e.target;
-      textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
-      this.updateQuestion();
+      const textarea = e?.target || this.$refs.titleTextarea;
+      if (textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = `${textarea.scrollHeight}px`;
+        if (e) this.updateQuestion();
+      }
+    },
+
+    updateAllTextareas() {
+      nextTick(() => {
+        this.adjustHeight();
+      });
     },
 
     copyQuestion() {
@@ -104,11 +114,28 @@ export default {
       handler(newQuestion) {
         this.questionData = cloneDeep({
           ...newQuestion,
-          type: 'short'
+          options: newQuestion.options || [
+            { id: Date.now(), text: '' },
+            { id: Date.now() + 1, text: '' }
+          ]
         });
+        this.updateAllTextareas();
       },
       deep: true
+    },
+    'questionData.title': {
+      handler() {
+        this.updateAllTextareas();
+      }
     }
+  },
+
+  mounted() {
+    this.updateAllTextareas();
+  },
+
+  updated() {
+    this.updateAllTextareas();
   }
 }
 </script>
@@ -145,6 +172,11 @@ export default {
   resize: none;
   font-family: Pretendard;
   background: transparent;
+  overflow-y: hidden; /* 세로 스크롤바 제거 */
+  min-height: 24px; /* 기본 최소 높이 설정 */
+  line-height: 1.5; /* 줄 간격 설정 */
+  display: block; /* block 요소로 설정 */
+  box-sizing: border-box; /* 패딩을 포함한 크기 계산 */
 }
 
 .underline {

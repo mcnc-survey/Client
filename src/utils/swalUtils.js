@@ -92,3 +92,47 @@ export const showConfirmAlert = (options) => {
     }
   });
 };
+
+// 확인 버튼 클릭시 페이지 이동하는 알림 표시 함수
+export const showNavigateAlert = (options) => {
+  const defaultOptions = {
+    title: "알림",
+    html: null,
+    confirmText: "확인",
+    subMessage: "",
+    onConfirm: () => {},
+  };
+
+  const mergedOptions = { ...defaultOptions, ...options };
+
+  return Swal.fire({
+    html: `
+      <div class="custom-alert-content">
+        <p>${mergedOptions.html || mergedOptions.title}</p>
+        ${
+          mergedOptions.subMessage
+            ? `<small>${mergedOptions.subMessage}</small>`
+            : ""
+        }
+      </div>
+    `,
+    showConfirmButton: true,
+    confirmButtonText: mergedOptions.confirmText,
+    customClass: {
+      popup: "custom-swal-popup",
+      confirmButton: "custom-confirm-button",
+      content: "custom-alert-content",
+    },
+    buttonsStyling: false,
+    didOpen: () => {
+      const confirmButton = Swal.getConfirmButton();
+      if (confirmButton) {
+        confirmButton.style.margin = "0 0 35px 0";
+      }
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      mergedOptions.onConfirm();
+    }
+  });
+};

@@ -11,34 +11,34 @@
 
         <div class="name-container">
           <div class="form-field relative">
-            <input type="text" id="lastName" class="input-field peer" v-model="lastName" placeholder=" " />
+            <input type="text" id="lastName" class="input-field peer" v-model="lastName" placeholder=" " ref="lastNameInput" />
             <label for="lastName" class="floating-label">성</label>
           </div>
           <div class="form-field relative">
-            <input type="text" id="firstName" class="input-field peer" v-model="firstName" placeholder=" " />
+            <input type="text" id="firstName" class="input-field peer" v-model="firstName" placeholder=" " ref="firstNameInput" />
             <label for="firstName" class="floating-label">이름</label>
           </div>
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': emailError && emailTouched }">
           <input type="email" id="email" class="input-field peer"
-            :class="{ 'error-border': emailError && emailTouched }" v-model="email" @blur="validateEmail"
-            placeholder=" " />
+            :class="{ 'error-border': emailError && emailTouched }" v-model="email" @input="validateEmail"
+            placeholder=" " ref="emailInput" />
           <label for="email" class="floating-label" :class="{ 'error-label': emailError && emailTouched }">이메일</label>
           <span v-if="emailError && emailTouched" class="error-message">잘못된 이메일 형식입니다</span>
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': phoneError && phoneTouched }">
           <input type="tel" id="phone" class="input-field peer" :class="{ 'error-border': phoneError && phoneTouched }"
-            v-model="phone" @blur="validatePhone" placeholder=" " />
+            v-model="phone" @input="validatePhone" placeholder=" " ref="phoneInput" />
           <label for="phone" class="floating-label" :class="{ 'error-label': phoneError && phoneTouched }">전화번호</label>
           <span v-if="phoneError && phoneTouched" class="error-message">올바른 전화번호 형식이 아닙니다</span>
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': passwordError && passwordTouched }">
           <input :type="showPassword ? 'text' : 'password'" id="password" class="input-field peer"
-            :class="{ 'error-border': passwordError && passwordTouched }" v-model="password" @blur="validatePassword"
-            placeholder=" " />
+            :class="{ 'error-border': passwordError && passwordTouched }" v-model="password" @input="validatePassword"
+            placeholder=" " ref="passwordInput" />
           <label for="password" class="floating-label"
             :class="{ 'error-label': passwordError && passwordTouched }">비밀번호</label>
           <div v-if="password.length > 0" class="password-toggle" @click="togglePassword">
@@ -52,7 +52,7 @@
         <div class="form-field relative" :class="{ 'has-error': confirmPasswordError && confirmPasswordTouched }">
           <input :type="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" class="input-field peer"
             :class="{ 'error-border': confirmPasswordError && confirmPasswordTouched }" v-model="confirmPassword"
-            @blur="validateConfirmPassword" placeholder=" " />
+            @input="validateConfirmPassword" placeholder=" " ref="confirmPasswordInput" />
           <label for="confirmPassword" class="floating-label"
             :class="{ 'error-label': confirmPasswordError && confirmPasswordTouched }">비밀번호 확인</label>
           <div v-if="confirmPassword.length > 0" class="password-toggle" @click="toggleConfirmPassword">
@@ -73,6 +73,8 @@
 </template>
 
 <script>
+import { showNavigateAlert } from '@/utils/swalUtils';
+
 export default {
   name: 'SignupPage',
   data() {
@@ -136,7 +138,9 @@ export default {
       this.passwordTouched = true;
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(this.password);
       const hasMinLength = this.password.length >= 8;
-      this.passwordError = !(hasSpecialChar && hasMinLength);
+      const hasLetter = /[A-Za-z]/.test(this.password);  // 영문 포함
+      const hasNumber = /[0-9]/.test(this.password);     // 숫자 포함
+      this.passwordError = !(hasSpecialChar && hasMinLength && hasLetter && hasNumber);
 
       // 비밀번호가 변경되면 비밀번호 확인도 재검증
       if (this.confirmPasswordTouched) {
@@ -152,14 +156,71 @@ export default {
       this.confirmPasswordError = this.password !== this.confirmPassword;
     },
     doSignup() {
-      // TODO: 회원가입 API 호출
-      console.log('회원가입 시도', {
-        lastName: this.lastName,
-        firstName: this.firstName,
-        email: this.email,
-        phone: this.phone,
-        password: this.password
-      });
+      // 성, 이름 체크
+      if (!this.lastName || !this.firstName) {
+        if (!this.lastName) {
+          this.$refs.lastNameInput.focus();
+          return;
+        }
+        if (!this.firstName) {
+          this.$refs.firstNameInput.focus();
+          return;
+        }
+      }
+
+      // 이메일 체크
+      if (!this.email) {
+        this.$refs.emailInput.focus();
+        this.emailTouched = true;
+        return;
+      }
+
+      // 전화번호 체크
+      if (!this.phone) {
+        this.$refs.phoneInput.focus();
+        this.phoneTouched = true;
+        return;
+      }
+
+      // 비밀번호 체크
+      if (!this.password) {
+        this.$refs.passwordInput.focus();
+        this.passwordTouched = true;
+        return;
+      }
+
+      // 비밀번호 확인 체크
+      if (!this.confirmPassword) {
+        this.$refs.confirmPasswordInput.focus();
+        this.confirmPasswordTouched = true;
+        return;
+      }
+
+      // 모든 필드의 유효성 검사 실행
+      this.validateEmail();
+      this.validatePhone();
+      this.validatePassword();
+      this.validateConfirmPassword();
+
+      // 모든 유효성 검사 통과 확인
+      if (this.isFormValid) {
+        showNavigateAlert({
+          html: "회원가입 완료",
+          subMessage: "가입이 성공적으로 완료되었습니다.",
+          confirmText: "로그인",
+          onConfirm: () => {
+            this.$router.push("/");
+          }
+        });
+        // TODO: 회원가입 API 호출
+        console.log('회원가입 시도', {
+          lastName: this.lastName,
+          firstName: this.firstName,
+          email: this.email,
+          phone: this.phone,
+          password: this.password
+        });
+      }
     },
     togglePassword() {
       this.showPassword = !this.showPassword;
