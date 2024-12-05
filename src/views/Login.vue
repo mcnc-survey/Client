@@ -82,7 +82,7 @@
               class="button-icon"
             />
           </button>
-          <span class="forgot-password">Forgot your password?</span>
+          <span class="forgot-password" @click="gotoFindPw">Forgot your password?</span>
         </div>
 
         <div class="create-account-container">
@@ -194,6 +194,9 @@ export default {
     },
     togglePassword() {
       this.showPassword = !this.showPassword;
+    },
+    gotoFindPw() {
+      this.$router.push("/help/identify");
     },
   },
 };

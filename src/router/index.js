@@ -11,6 +11,10 @@ import SurveyCalendar from "../views/SurveyCalendar.vue";
 import DeletedItems from "../views/DeletedItems.vue";
 import ParticipantInfo from "../mobile/ParticipantInfo.vue";
 import SurveyParticipation from "../mobile/SurveyParticipation.vue";
+import FindPwIdentify from "@/views/FindPwIdentify.vue";
+import FindPwVerify from "@/views/FindPwVerify.vue";
+import FindPwReset from "@/views/FindPwReset.vue";
+import FindPwComplete from "@/views/FindPwComplete.vue";
 
 import MobileLayout from "../layouts/MobileLayout.vue";
 import WebLayout from "../layouts/WebLayout.vue";
@@ -23,6 +27,22 @@ const routes = [
   {
     path: "/",
     component: Login,
+  },
+  {
+    path: "/help/identify",
+    component: FindPwIdentify,
+  },
+  {
+    path: "/help/verify",
+    component: FindPwVerify,
+  },
+  {
+    path: "/help/reset",
+    component: FindPwReset,
+  },
+  {
+    path: "/help/complete",
+    component: FindPwComplete,
   },
   {
     path: "/web",
