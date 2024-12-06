@@ -42,8 +42,9 @@
 </template>
 
 <script>
-import { ref } from "vue";
-import surveyData from "@/data/surveyData";
+import { ref, onMounted } from "vue";
+import axios from "axios";
+import { toast } from "vue3-toastify";
 import {
   showSuccessAlert,
   showErrorAlert,
@@ -53,11 +54,37 @@ import {
 export default {
   name: "DeletedItems",
   setup() {
-    const deletedSurveys = ref(
-      surveyData.filter((survey) => survey.status === "DELETE")
-    ); // status로 삭제 항목 필터링
-    const selectedSurveys = ref([]); // 선택된 항목 ID 리스트
+    const deletedSurveys = ref([]); // 삭제된 설문조사
+    const selectedSurveys = ref([]); // 선택된 설문조사 ID 리스트
     const isAllSelected = ref(false); // 전체 선택 상태
+
+    // 삭제된 설문조사 데이터 가져오기
+    const fetchSurveys = async () => {
+      try {
+        const response = await axios.get(
+          "http://218.55.79.81:9000/surveys/delete"
+        );
+
+        if (response.data.resultCode === "200") {
+          deletedSurveys.value = response.data.body; // 상태가 'DELETE'인 설문조사 목록
+        } else {
+          throw new Error(
+            response.data.message || "데이터를 가져오지 못했습니다."
+          );
+        }
+      } catch (error) {
+        console.error("설문조사 데이터 가져오기 실패:", error);
+        toast.error("설문조사 데이터를 불러오는데 실패했습니다.", {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000,
+        });
+      }
+    };
+
+    // 컴포넌트 마운트 시 데이터 가져오기
+    onMounted(() => {
+      fetchSurveys();
+    });
 
     // 전체 선택/선택 해제 토글
     const toggleSelectAll = () => {
@@ -80,22 +107,24 @@ export default {
     };
 
     // 복구 로직
-    const recoverItems = () => {
+    const recoverItems = async () => {
       try {
-        selectedSurveys.value.forEach((surveyId) => {
-          const survey = surveyData.find((item) => item.id === surveyId);
-          if (survey) {
-            survey.status = "ON"; // 복구 상태 변경
-          }
-        });
-
-        // deletedSurveys 갱신
-        deletedSurveys.value = surveyData.filter(
-          (survey) => survey.status === "DELETE"
+        // 복구할 설문조사들에 대해 POST 요청을 보냄
+        await Promise.all(
+          selectedSurveys.value.map((surveyId) =>
+            axios.post(
+              `http://218.55.79.81:9000/surveys/survey-id/${surveyId}/restore`
+            )
+          )
         );
 
-        selectedSurveys.value = [];
-        isAllSelected.value = false;
+        // 복구된 항목은 삭제된 항목 리스트에서 제외
+        deletedSurveys.value = deletedSurveys.value.filter(
+          (survey) => !selectedSurveys.value.includes(survey.id)
+        );
+
+        selectedSurveys.value = []; // 선택 초기화
+        isAllSelected.value = false; // 전체 선택 해제
 
         // 성공 알림
         showSuccessAlert(
@@ -109,31 +138,33 @@ export default {
       }
     };
 
-    // 삭제 로직
-    const deleteItems = () => {
+    // 완전 삭제 로직 (반복 요청 시 물리적 삭제)
+    const deleteItems = async () => {
       showConfirmAlert({
         html: "설문을 삭제하면 모든 응답 데이터도 함께 삭제됩니다.",
         subMessage: "* 삭제 후에는 복구할 수 없습니다.",
-        onConfirm: () => {
+        onConfirm: async () => {
           try {
-            // 선택된 항목들을 surveyData에서 완전 삭제
-            selectedSurveys.value.forEach((surveyId) => {
-              const index = surveyData.findIndex(
-                (survey) => survey.id === surveyId
-              );
-              if (index !== -1) {
-                surveyData.splice(index, 1);
-              }
-            });
+            // 선택된 설문조사 ID 리스트에서 하나씩 처리
+            for (const surveyId of selectedSurveys.value) {
+              console.log(`Deleting survey with ID: ${surveyId}`); // 콘솔에 surveyId 출력
 
-            // deletedSurveys 갱신
-            deletedSurveys.value = surveyData.filter(
-              (survey) => survey.status === "DELETE"
+              // DELETE 요청 보내기
+              await axios.delete(
+                `http://218.55.79.81:9000/surveys/survey-id/${surveyId}`
+              );
+
+              // 각 요청 사이에 1초 지연을 추가 (서버 과부하 방지)
+              await new Promise((resolve) => setTimeout(resolve, 1000)); // 1초 지연
+            }
+
+            // 삭제된 설문조사 항목을 리스트에서 제외
+            deletedSurveys.value = deletedSurveys.value.filter(
+              (survey) => !selectedSurveys.value.includes(survey.id)
             );
 
-            // 선택 초기화
-            selectedSurveys.value = [];
-            isAllSelected.value = false;
+            selectedSurveys.value = []; // 선택 초기화
+            isAllSelected.value = false; // 전체 선택 해제
 
             // 성공 알림
             showSuccessAlert(
@@ -154,6 +185,7 @@ export default {
 
     return {
       surveys: deletedSurveys,
+      fetchSurveys,
       selectedSurveys,
       isAllSelected,
       toggleSelectAll,
@@ -166,6 +198,7 @@ export default {
 </script>
 
 <style scoped>
+/* 스타일 내용은 그대로 유지 */
 .survey-deletedItems {
   display: flex;
   flex-direction: column;

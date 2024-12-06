@@ -59,7 +59,7 @@ const routes = [
         name: "SurveyEdit",
       },
       {
-        path: "stats/",
+        path: "stats/:id",
         component: SurveyStats,
         name: "SurveyStats",
       },
