@@ -6,17 +6,31 @@
         <button class="action-btn" @click="toggleSelectAll">
           {{ isAllSelected ? "선택 해제" : "전체 선택" }}
         </button>
-        <button class="action-btn recover-btn" @click="recoverItems">복구하기</button>
-        <button class="action-btn delete-btn" @click="deleteItems">삭제하기</button>
+        <button class="action-btn recover-btn" @click="recoverItems">
+          복구하기
+        </button>
+        <button class="action-btn delete-btn" @click="deleteItems">
+          삭제하기
+        </button>
       </div>
     </div>
 
     <!-- 항목 리스트 -->
     <div class="deleted-list">
-      <div v-for="survey in surveys" :key="survey.id" class="deleted-item"
-        :class="{ selected: selectedSurveys.includes(survey.id) }" @click="toggleSelection(survey.id)">
+      <div
+        v-for="survey in surveys"
+        :key="survey.id"
+        class="deleted-item"
+        :class="{ selected: selectedSurveys.includes(survey.id) }"
+        @click="toggleSelection(survey.id)"
+      >
         <label class="custom-checkbox">
-          <input type="checkbox" v-model="selectedSurveys" :value="survey.id" class="checkbox-input" />
+          <input
+            type="checkbox"
+            v-model="selectedSurveys"
+            :value="survey.id"
+            class="checkbox-input"
+          />
           <span class="checkbox-image"></span>
         </label>
 
@@ -30,12 +44,18 @@
 <script>
 import { ref } from "vue";
 import surveyData from "@/data/surveyData";
-import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "@/utils/swalUtils";
+import {
+  showSuccessAlert,
+  showErrorAlert,
+  showConfirmAlert,
+} from "@/utils/swalUtils";
 
 export default {
   name: "DeletedItems",
   setup() {
-    const deletedSurveys = ref(surveyData.filter((survey) => survey.status === "DELETE")); // status로 삭제 항목 필터링
+    const deletedSurveys = ref(
+      surveyData.filter((survey) => survey.status === "DELETE")
+    ); // status로 삭제 항목 필터링
     const selectedSurveys = ref([]); // 선택된 항목 ID 리스트
     const isAllSelected = ref(false); // 전체 선택 상태
 
@@ -70,51 +90,65 @@ export default {
         });
 
         // deletedSurveys 갱신
-        deletedSurveys.value = surveyData.filter((survey) => survey.status === "DELETE");
+        deletedSurveys.value = surveyData.filter(
+          (survey) => survey.status === "DELETE"
+        );
 
         selectedSurveys.value = [];
         isAllSelected.value = false;
 
         // 성공 알림
-        showSuccessAlert('복구 완료', '선택된 설문조사가 성공적으로 복구되었습니다.');
+        showSuccessAlert(
+          "복구 완료",
+          "선택된 설문조사가 성공적으로 복구되었습니다."
+        );
       } catch (error) {
         // 실패 알림
-        showErrorAlert('복구 실패', '설문조사 복구 중 오류가 발생했습니다.');
-        console.error('복구 중 오류:', error);
+        showErrorAlert("복구 실패", "설문조사 복구 중 오류가 발생했습니다.");
+        console.error("복구 중 오류:", error);
       }
     };
 
     // 삭제 로직
     const deleteItems = () => {
-
       showConfirmAlert({
-        html: '설문을 삭제하면 모든 응답 데이터도 함께 삭제됩니다.',
-        subMessage: '* 삭제 후에는 복구할 수 없습니다.',
+        html: "설문을 삭제하면 모든 응답 데이터도 함께 삭제됩니다.",
+        subMessage: "* 삭제 후에는 복구할 수 없습니다.",
         onConfirm: () => {
           try {
             // 선택된 항목들을 surveyData에서 완전 삭제
             selectedSurveys.value.forEach((surveyId) => {
-              const index = surveyData.findIndex((survey) => survey.id === surveyId);
+              const index = surveyData.findIndex(
+                (survey) => survey.id === surveyId
+              );
               if (index !== -1) {
                 surveyData.splice(index, 1);
               }
             });
 
             // deletedSurveys 갱신
-            deletedSurveys.value = surveyData.filter((survey) => survey.status === "DELETE");
+            deletedSurveys.value = surveyData.filter(
+              (survey) => survey.status === "DELETE"
+            );
 
             // 선택 초기화
             selectedSurveys.value = [];
             isAllSelected.value = false;
 
             // 성공 알림
-            showSuccessAlert('삭제 완료', '선택된 설문조사가 성공적으로 삭제되었습니다.');
+            showSuccessAlert(
+              "삭제 완료",
+              "선택된 설문조사가 성공적으로 삭제되었습니다."
+            );
           } catch (error) {
             // 실패 알림
-            showErrorAlert('삭제 실패', '설문조사 삭제 중 오류가 발생했습니다.');
-            console.error('삭제 중 오류:', error);
+            showErrorAlert(
+              "삭제 실패",
+              "설문조사 삭제 중 오류가 발생했습니다."
+            );
+            console.error("삭제 중 오류:", error);
           }
-        }
+        },
       });
     };
 
@@ -143,6 +177,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
 
 h2 {
@@ -167,7 +202,7 @@ h2 {
 }
 
 .delete-btn {
-  color: #ED5454;
+  color: #ed5454;
 }
 
 .deleted-list {
@@ -210,7 +245,7 @@ h2 {
 .checkbox-image {
   width: 23px;
   height: 23px;
-  background-image: url('@/assets/images/unchecked.png');
+  background-image: url("@/assets/images/unchecked.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -218,7 +253,7 @@ h2 {
   transition: background-image 0.3s ease;
 }
 
-.checkbox-input:checked+.checkbox-image {
-  background-image: url('@/assets/images/checked.png');
+.checkbox-input:checked + .checkbox-image {
+  background-image: url("@/assets/images/checked.png");
 }
 </style>

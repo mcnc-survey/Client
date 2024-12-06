@@ -1,7 +1,9 @@
 <template>
   <div class="survey-management">
-    <h2>설문조사 목록</h2>
-
+    <div class="header">
+      <h2>설문조사 목록</h2>
+      <button class="create-btn" @click="createSurvey">생성하기</button>
+    </div>
     <div class="survey-list">
       <div v-for="survey in sortedSurveys" :key="survey.id" class="survey-item">
         <div class="survey-info">
@@ -38,14 +40,12 @@
               <i class="icon icon-delete"></i>
             </button>
           </div>
-          <span class="last-updated"
-            >최근 수정일: {{ formatDate(survey.modified_at) }}</span
-          >
+          <span class="last-updated">
+            최근 수정일: {{ formatDate(survey.modified_at) }}
+          </span>
         </div>
       </div>
     </div>
-    <!-- Floating 버튼 -->
-    <button class="floating-button" @click="createSurvey">+</button>
   </div>
 </template>
 
@@ -235,15 +235,41 @@ export default {
 
 <style scoped>
 .survey-management {
-  display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px);
   padding: 0 16px 0 24px;
+  height: calc(100vh - 60px);
   position: relative;
 }
 
+/* 기존 header 스타일 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.header h2 {
+  margin-bottom: 0;
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 0px;
+}
+
+/* 기존 action-btn 스타일 */
+.create-btn {
+  font-size: 0.975rem;
+  padding-bottom: 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-family: Pretendard;
+  font-weight: bold;
+}
+
 .survey-list {
-  height: 100%;
+  overflow-y: auto;
+  height: calc(100% - 100px);
   padding-right: 8px;
 }
 
@@ -387,45 +413,8 @@ h2 {
   letter-spacing: 0.5px;
 }
 
-.create-survey-button {
-  font-family: Pretendard;
-  font-weight: bold;
-  width: 100%;
-  height: 3.25em;
-  padding: 20px;
-  background-color: #dfe7ef;
-  border-radius: 20px;
-  border: none;
-  font-size: 1.5em;
-}
-
-.floating-button {
-  position: sticky;
-  bottom: 20px;
-  left: calc(50% - 28px);
-  margin-right: auto;
-  width: 56px;
-  height: 56px;
-  background-color: #4285f4;
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
-  border: none;
-  border-radius: 50%;
+.create-button {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-}
-
-.floating-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-}
-
-.floating-button:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  gap: 10px;
 }
 </style>
