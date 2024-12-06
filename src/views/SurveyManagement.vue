@@ -6,15 +6,9 @@
       <div v-for="survey in sortedSurveys" :key="survey.id" class="survey-item">
         <div class="survey-info">
           <button class="bookmark-button" @click="toggleBookmark(survey.id)">
-            <img
-              :src="
-                survey.isBookmarked
-                  ? require('@/assets/images/bookmark.svg')
-                  : require('@/assets/images/non-bookmark.svg')
-              "
-              alt="북마크"
-              class="bookmark-icon"
-            />
+            <img :src="survey.islike
+              ? require('@/assets/images/bookmark.svg')
+              : require('@/assets/images/non-bookmark.svg')" alt="북마크" class="bookmark-icon" />
           </button>
           <p class="survey-info-title" @click="goToSurveyStats(survey.id)">
             {{ survey.title }}
@@ -38,9 +32,7 @@
               <i class="icon icon-delete"></i>
             </button>
           </div>
-          <span class="last-updated"
-            >최근 수정일: {{ formatDate(survey.modified_at) }}</span
-          >
+          <span class="last-updated">최근 수정일: {{ formatDate(survey.lastModifiedAt) }}</span>
         </div>
       </div>
     </div>
@@ -50,11 +42,11 @@
 </template>
 
 <script>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import axios from "axios";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
-import surveyData from "@/data/surveyData";
 import {
   showSuccessAlert,
   showErrorAlert,
@@ -65,55 +57,43 @@ const statusOrder = {
   ON: 1,
   WAIT: 2,
   END: 3,
-  DELETE: 4,
 };
 
 export default {
   name: "SurveyManagement",
   setup() {
     const router = useRouter();
-    const surveys = ref(
-      surveyData.map((survey) => ({
-        ...survey,
-        isBookmarked: survey.isBookmarked || false,
-      }))
-    );
+    const surveys = ref([]);
 
-    const sortedSurveys = computed(() => {
-      return surveys.value
-        .filter((survey) => survey.status !== "DELETE")
-        .sort((a, b) => {
-          if (a.isBookmarked !== b.isBookmarked) {
-            return b.isBookmarked - a.isBookmarked;
-          }
+    // 설문조사 데이터 가져오기
+    const fetchSurveys = async () => {
+      try {
+        const response = await axios.get("http://218.55.79.81:9000/surveys");
 
-          const statusComparison =
-            statusOrder[a.status] - statusOrder[b.status];
-          if (statusComparison === 0) {
-            return new Date(b.modified_at) - new Date(a.modified_at);
-          }
-          return statusComparison;
-        });
-    });
-
-    const toggleBookmark = (surveyId) => {
-      const survey = surveys.value.find((s) => s.id === surveyId);
-      if (survey) {
-        survey.isBookmarked = !survey.isBookmarked;
-
-        if (survey.isBookmarked) {
-          toast.success("즐겨찾기에 추가되었습니다.", {
-            position: toast.POSITION.TOP_CENTER,
-            autoClose: 2000,
-          });
+        if (response.data.resultCode === "200") {
+          surveys.value = response.data.body.filter((survey) => survey.status !== "DELETE"); // DELETE 필터링
         } else {
-          toast.info("즐겨찾기에서 제거되었습니다.", {
-            position: toast.POSITION.TOP_CENTER,
-            autoClose: 2000,
-          });
+          throw new Error(response.data.message || "데이터를 가져오지 못했습니다.");
         }
+      } catch (error) {
+        console.error("설문조사 데이터 가져오기 실패:", error);
+        toast.error("설문조사 데이터를 불러오는데 실패했습니다.", {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000,
+        });
       }
     };
+
+    // 정렬된 설문조사 데이터
+    const sortedSurveys = computed(() => {
+      return [...surveys.value].sort((a, b) => {
+        const statusComparison = statusOrder[a.status] - statusOrder[b.status];
+        if (statusComparison === 0) {
+          return new Date(b.lastModifiedAt) - new Date(a.lastModifiedAt);
+        }
+        return statusComparison;
+      });
+    });
 
     const formatDate = (dateString) => {
       return new Date(dateString).toISOString().split("T")[0];
@@ -127,8 +107,33 @@ export default {
           return "stopped";
         case "END":
           return "completed";
-        case "DELETE":
-          return "deleted";
+      }
+    };
+
+    const toggleBookmark = async (surveyId) => {
+      const survey = surveys.value.find((s) => s.id === surveyId);
+      if (survey) {
+        const url = `http://218.55.79.81:9000/surveys/survey-id/${surveyId}/like`;
+
+        try {
+          await axios.get(url);
+          survey.islike = !survey.islike;
+
+          const message = survey.islike
+            ? "즐겨찾기에 추가되었습니다."
+            : "즐겨찾기에서 제거되었습니다.";
+          const toastType = survey.islike ? toast.success : toast.info;
+          toastType(message, {
+            position: toast.POSITION.TOP_CENTER,
+            autoClose: 2000,
+          });
+        } catch (error) {
+          console.error("북마크 토글 실패:", error);
+          toast.error("북마크 상태를 변경하지 못했습니다.", {
+            position: toast.POSITION.TOP_CENTER,
+            autoClose: 2000,
+          });
+        }
       }
     };
 
@@ -140,12 +145,11 @@ export default {
           return "대기중";
         case "END":
           return "마감됨";
-        case "DELETE":
-          return "삭제됨";
       }
     };
 
     const goToSurveyStats = (surveyId) => {
+      console.log("통계 페이지 이동, 설문조사 ID:", surveyId);
       router.push({ name: "SurveyStats", params: { id: surveyId } });
     };
 
@@ -154,21 +158,24 @@ export default {
     };
 
     const handleLink = (surveyId) => {
-      const link = `https://example.com/survey/${surveyId}`;
-      navigator.clipboard
-        .writeText(link)
-        .then(() => {
-          toast.success("링크가 복사되었습니다!", {
-            position: toast.POSITION.TOP_CENTER,
-            autoClose: 2000,
+      const survey = surveys.value.find((s) => s.id === surveyId);
+      if (survey) {
+        const link = survey.surveyLink;
+        navigator.clipboard
+          .writeText(link)
+          .then(() => {
+            toast.success("링크가 복사되었습니다!", {
+              position: toast.POSITION.TOP_CENTER,
+              autoClose: 2000,
+            });
+          })
+          .catch(() => {
+            toast.error("링크 복사에 실패했습니다.", {
+              position: toast.POSITION.TOP_CENTER,
+              autoClose: 2000,
+            });
           });
-        })
-        .catch(() => {
-          toast.error("링크 복사에 실패했습니다.", {
-            position: toast.POSITION.TOP_CENTER,
-            autoClose: 2000,
-          });
-        });
+      }
     };
 
     const editSurvey = (surveyId) => {
@@ -179,26 +186,24 @@ export default {
       showConfirmAlert({
         html: "설문을 삭제하면 모든 응답 데이터도 함께 삭제됩니다.",
         subMessage: "* 삭제된 항목은 휴지통에 저장됩니다.",
-        onConfirm: () => {
+        onConfirm: async () => {
           try {
-            const surveyIndex = surveys.value.findIndex(
-              (survey) => survey.id === surveyId
-            );
-            if (surveyIndex !== -1) {
-              surveys.value[surveyIndex].status = "DELETE";
-            }
+            const response = await axios.delete(`http://218.55.79.81:9000/surveys/survey-id/${surveyId}`);
 
-            // 성공 알림
-            showSuccessAlert(
-              "삭제 완료",
-              "설문조사가 휴지통으로 이동되었습니다."
-            );
+            // 응답의 resultCode가 200이면 성공 처리
+            if (response.data.resultCode === "200" || response.data.message.includes("DELETED")) {
+              // 서버 응답에 "DELETED" 메시지가 포함된 경우에도 성공으로 처리
+              surveys.value = surveys.value.filter((survey) => survey.id !== surveyId);
+
+              // 성공 알림
+              showSuccessAlert("삭제 완료", "설문조사가 삭제되었습니다.");
+            } else {
+              // resultCode가 200이 아닌 경우 실패 처리
+              throw new Error(response.data.message || "삭제 실패");
+            }
           } catch (error) {
             // 실패 알림
-            showErrorAlert(
-              "삭제 실패",
-              "설문조사 삭제 중 오류가 발생했습니다."
-            );
+            showErrorAlert("삭제 실패", "설문조사 삭제 중 오류가 발생했습니다.");
             console.error("삭제 중 오류:", error);
           }
         },
@@ -215,10 +220,16 @@ export default {
       });
     };
 
+    // 컴포넌트 마운트 시 데이터 가져오기
+    onMounted(() => {
+      fetchSurveys();
+    });
+
     return {
       surveys,
       sortedSurveys,
       formatDate,
+      toggleBookmark,
       getStatusClass,
       statusDisplay,
       goToSurveyStats,
@@ -227,7 +238,6 @@ export default {
       editSurvey,
       deleteSurvey,
       createSurvey,
-      toggleBookmark,
     };
   },
 };
