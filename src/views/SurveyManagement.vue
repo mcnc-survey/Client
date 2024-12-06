@@ -76,7 +76,7 @@ export default {
     // 설문조사 데이터 가져오기
     const fetchSurveys = async () => {
       try {
-        const response = await axios.get("http://218.55.79.81:9000/surveys");
+        const response = await axios.get("https://mcnc-survey.store/surveys");
 
         if (response.data.resultCode === "200") {
           surveys.value = response.data.body.filter(
