@@ -8,15 +8,10 @@
       <div v-for="survey in sortedSurveys" :key="survey.id" class="survey-item">
         <div class="survey-info">
           <button class="bookmark-button" @click="toggleBookmark(survey.id)">
-            <img
-              :src="
-                survey.islike
-                  ? require('@/assets/images/bookmark.svg')
-                  : require('@/assets/images/non-bookmark.svg')
-              "
-              alt="북마크"
-              class="bookmark-icon"
-            />
+            <img :src="survey.islike
+                ? require('@/assets/images/bookmark.svg')
+                : require('@/assets/images/non-bookmark.svg')
+              " alt="북마크" class="bookmark-icon" />
           </button>
           <p class="survey-info-title" @click="goToSurveyStats(survey.id)">
             {{ survey.title }}
@@ -81,7 +76,7 @@ export default {
         if (response.data.resultCode === "200") {
           surveys.value = response.data.body.filter(
             (survey) => survey.status !== "DELETE"
-          ); // DELETE 필터링
+          ); 
         } else {
           throw new Error(
             response.data.message || "데이터를 가져오지 못했습니다."
@@ -96,9 +91,13 @@ export default {
       }
     };
 
-    // 정렬된 설문조사 데이터
+    // 설문조사 데이터 정렬
     const sortedSurveys = computed(() => {
       return [...surveys.value].sort((a, b) => {
+        // 즐겨찾기 우선 정렬
+        if (a.islike && !b.islike) return -1; 
+        if (!a.islike && b.islike) return 1;  
+
         const statusComparison = statusOrder[a.status] - statusOrder[b.status];
         if (statusComparison === 0) {
           return new Date(b.lastModifiedAt) - new Date(a.lastModifiedAt);
@@ -106,6 +105,7 @@ export default {
         return statusComparison;
       });
     });
+
 
     const formatDate = (dateString) => {
       return new Date(dateString).toISOString().split("T")[0];
@@ -137,13 +137,16 @@ export default {
           const toastType = survey.islike ? toast.success : toast.info;
           toastType(message, {
             position: toast.POSITION.TOP_CENTER,
-            autoClose: 2000,
+            autoClose: 1000,
+            hideProgressBar: true
+
           });
         } catch (error) {
           console.error("북마크 토글 실패:", error);
           toast.error("북마크 상태를 변경하지 못했습니다.", {
             position: toast.POSITION.TOP_CENTER,
-            autoClose: 2000,
+            autoClose: 1000,
+            hideProgressBar: true
           });
         }
       }
@@ -204,20 +207,11 @@ export default {
               `http://218.55.79.81:9000/surveys/survey-id/${surveyId}`
             );
 
-            // 응답의 resultCode가 200이면 성공 처리
-            if (
-              response.data.resultCode === "200" ||
-              response.data.message.includes("DELETED")
-            ) {
-              // 서버 응답에 "DELETED" 메시지가 포함된 경우에도 성공으로 처리
-              surveys.value = surveys.value.filter(
-                (survey) => survey.id !== surveyId
-              );
+            if (response.data.resultCode === "200" ||  response.data.message.includes("DELETED")) {
+              surveys.value = surveys.value.filter((survey) => survey.id !== surveyId);
 
-              // 성공 알림
               showSuccessAlert("삭제 완료", "설문조사가 삭제되었습니다.");
             } else {
-              // resultCode가 200이 아닌 경우 실패 처리
               throw new Error(response.data.message || "삭제 실패");
             }
           } catch (error) {
@@ -280,6 +274,7 @@ export default {
   align-items: center;
   margin-bottom: 20px;
 }
+
 .header h2 {
   margin-bottom: 0;
   font-size: 1.25rem;
