@@ -6,17 +6,31 @@
         <button class="action-btn" @click="toggleSelectAll">
           {{ isAllSelected ? "선택 해제" : "전체 선택" }}
         </button>
-        <button class="action-btn recover-btn" @click="recoverItems">복구하기</button>
-        <button class="action-btn delete-btn" @click="deleteItems">삭제하기</button>
+        <button class="action-btn recover-btn" @click="recoverItems">
+          복구하기
+        </button>
+        <button class="action-btn delete-btn" @click="deleteItems">
+          삭제하기
+        </button>
       </div>
     </div>
 
     <!-- 항목 리스트 -->
     <div class="deleted-list">
-      <div v-for="survey in surveys" :key="survey.id" class="deleted-item"
-        :class="{ selected: selectedSurveys.includes(survey.id) }" @click="toggleSelection(survey.id)">
+      <div
+        v-for="survey in surveys"
+        :key="survey.id"
+        class="deleted-item"
+        :class="{ selected: selectedSurveys.includes(survey.id) }"
+        @click="toggleSelection(survey.id)"
+      >
         <label class="custom-checkbox">
-          <input type="checkbox" v-model="selectedSurveys" :value="survey.id" class="checkbox-input" />
+          <input
+            type="checkbox"
+            v-model="selectedSurveys"
+            :value="survey.id"
+            class="checkbox-input"
+          />
           <span class="checkbox-image"></span>
         </label>
 
@@ -31,7 +45,11 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import { toast } from "vue3-toastify";
-import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "@/utils/swalUtils";
+import {
+  showSuccessAlert,
+  showErrorAlert,
+  showConfirmAlert,
+} from "@/utils/swalUtils";
 
 export default {
   name: "DeletedItems",
@@ -43,12 +61,16 @@ export default {
     // 삭제된 설문조사 데이터 가져오기
     const fetchSurveys = async () => {
       try {
-        const response = await axios.get("http://218.55.79.81:9000/surveys/delete");
+        const response = await axios.get(
+          "http://218.55.79.81:9000/surveys/delete"
+        );
 
         if (response.data.resultCode === "200") {
           deletedSurveys.value = response.data.body; // 상태가 'DELETE'인 설문조사 목록
         } else {
-          throw new Error(response.data.message || "데이터를 가져오지 못했습니다.");
+          throw new Error(
+            response.data.message || "데이터를 가져오지 못했습니다."
+          );
         }
       } catch (error) {
         console.error("설문조사 데이터 가져오기 실패:", error);
@@ -90,18 +112,25 @@ export default {
         // 복구할 설문조사들에 대해 POST 요청을 보냄
         await Promise.all(
           selectedSurveys.value.map((surveyId) =>
-            axios.post(`http://218.55.79.81:9000/surveys/survey-id/${surveyId}/restore`)
+            axios.post(
+              `http://218.55.79.81:9000/surveys/survey-id/${surveyId}/restore`
+            )
           )
         );
 
         // 복구된 항목은 삭제된 항목 리스트에서 제외
-        deletedSurveys.value = deletedSurveys.value.filter((survey) => !selectedSurveys.value.includes(survey.id));
+        deletedSurveys.value = deletedSurveys.value.filter(
+          (survey) => !selectedSurveys.value.includes(survey.id)
+        );
 
         selectedSurveys.value = []; // 선택 초기화
         isAllSelected.value = false; // 전체 선택 해제
 
         // 성공 알림
-        showSuccessAlert("복구 완료", "선택된 설문조사가 성공적으로 복구되었습니다.");
+        showSuccessAlert(
+          "복구 완료",
+          "선택된 설문조사가 성공적으로 복구되었습니다."
+        );
       } catch (error) {
         // 실패 알림
         showErrorAlert("복구 실패", "설문조사 복구 중 오류가 발생했습니다.");
@@ -121,10 +150,12 @@ export default {
               console.log(`Deleting survey with ID: ${surveyId}`); // 콘솔에 surveyId 출력
 
               // DELETE 요청 보내기
-              await axios.delete(`http://218.55.79.81:9000/surveys/survey-id/${surveyId}`);
+              await axios.delete(
+                `http://218.55.79.81:9000/surveys/survey-id/${surveyId}`
+              );
 
               // 각 요청 사이에 1초 지연을 추가 (서버 과부하 방지)
-              await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 지연
+              await new Promise((resolve) => setTimeout(resolve, 1000)); // 1초 지연
             }
 
             // 삭제된 설문조사 항목을 리스트에서 제외
@@ -136,10 +167,16 @@ export default {
             isAllSelected.value = false; // 전체 선택 해제
 
             // 성공 알림
-            showSuccessAlert("삭제 완료", "선택된 설문조사가 성공적으로 삭제되었습니다.");
+            showSuccessAlert(
+              "삭제 완료",
+              "선택된 설문조사가 성공적으로 삭제되었습니다."
+            );
           } catch (error) {
             // 실패 알림
-            showErrorAlert("삭제 실패", "설문조사 삭제 중 오류가 발생했습니다.");
+            showErrorAlert(
+              "삭제 실패",
+              "설문조사 삭제 중 오류가 발생했습니다."
+            );
             console.error("삭제 중 오류:", error);
           }
         },
@@ -173,6 +210,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
 
 h2 {
@@ -197,7 +235,7 @@ h2 {
 }
 
 .delete-btn {
-  color: #ED5454;
+  color: #ed5454;
 }
 
 .deleted-list {
@@ -240,7 +278,7 @@ h2 {
 .checkbox-image {
   width: 23px;
   height: 23px;
-  background-image: url('@/assets/images/unchecked.png');
+  background-image: url("@/assets/images/unchecked.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -248,7 +286,7 @@ h2 {
   transition: background-image 0.3s ease;
 }
 
-.checkbox-input:checked+.checkbox-image {
-  background-image: url('@/assets/images/checked.png');
+.checkbox-input:checked + .checkbox-image {
+  background-image: url("@/assets/images/checked.png");
 }
 </style>

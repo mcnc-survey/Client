@@ -96,248 +96,15 @@
       </div>
     </div>
 
-    <!-- 설문 기간 모달 -->
-    <div v-if="showPeriodModal" class="period-modal">
-      <div class="modal-content">
-        <h3>설문 기간</h3>
-        <div class="time-group">
-          <p>시작</p>
-          <div class="date-input">
-            <div
-              class="input-with-icon"
-              :class="{ error: showError && !modalStartDate }"
-            >
-              <img
-                src="@/assets/images/set_date.png"
-                alt="날짜"
-                class="input-icon"
-              />
-              <input
-                type="text"
-                v-model="modalStartDate"
-                readonly
-                placeholder="날짜 선택"
-                @click="toggleStartCalendar"
-              />
-            </div>
-            <VDatePicker
-              v-if="showStartCalendar"
-              v-model="selectedStartDate"
-              @click:outside="showStartCalendar = false"
-              mode="single"
-              @update:modelValue="updateStartDate"
-              class="calendar-popup"
-              :locale="locale"
-            />
-          </div>
-          <div class="time-input">
-            <div
-              class="input-with-icon"
-              :class="{ error: showError && !startTime }"
-            >
-              <img
-                src="@/assets/images/set_time.png"
-                alt="시간"
-                class="input-icon"
-              />
-              <input
-                type="text"
-                :value="startTime ? formatDisplayTime(startTime) : ''"
-                readonly
-                placeholder="시간 선택"
-                @click="toggleTimePicker('start')"
-              />
-            </div>
-            <!-- 시작 시간 선택 드롭다운 -->
-            <div
-              v-if="showTimePicker && currentTimeInput === 'start'"
-              class="time-picker-dropdown"
-            >
-              <div class="time-selector">
-                <div class="time-column ampm-column">
-                  <div class="time-scroll">
-                    <div
-                      v-for="ampm in ['AM', 'PM']"
-                      :key="ampm"
-                      class="time-item"
-                      :class="{ selected: selectedAmPm === ampm }"
-                      @click="selectAmPm(ampm)"
-                    >
-                      {{ ampm === "AM" ? "오전" : "오후" }}
-                    </div>
-                  </div>
-                </div>
-                <div class="time-column">
-                  <div class="time-scroll">
-                    <div
-                      v-for="hour in hours"
-                      :key="'h' + hour"
-                      class="time-item"
-                      :class="{ selected: selectedHour === hour }"
-                      @click="selectHour(hour)"
-                    >
-                      {{ hour }}
-                    </div>
-                  </div>
-                </div>
-                <div class="time-divider">:</div>
-                <div class="time-column">
-                  <div class="time-scroll">
-                    <div
-                      v-for="minute in minutes"
-                      :key="'m' + minute"
-                      class="time-item"
-                      :class="{ selected: selectedMinute === minute }"
-                      @click="selectMinute(minute)"
-                    >
-                      {{ minute.toString().padStart(2, "0") }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="button-group">
-                <button class="cancel-btn" @click="closeTimePicker">
-                  취소
-                </button>
-                <button class="confirm-btn" @click="confirmTime">확인</button>
-              </div>
-            </div>
-          </div>
-          <div
-            v-if="showError && (!modalStartDate || !startTime)"
-            class="error-message"
-          >
-            시작 날짜와 시간을 입력해주세요.
-          </div>
-        </div>
-
-        <div class="time-group">
-          <p>종료</p>
-          <div class="date-input">
-            <div
-              class="input-with-icon"
-              :class="{ error: (showError && !modalEndDate) || endTimeError }"
-            >
-              <img
-                src="@/assets/images/set_date.png"
-                alt="날짜"
-                class="input-icon"
-              />
-              <input
-                type="text"
-                v-model="modalEndDate"
-                readonly
-                placeholder="날짜 선택"
-                @click="toggleEndCalendar"
-              />
-            </div>
-            <VDatePicker
-              v-if="showEndCalendar"
-              v-model="selectedEndDate"
-              @click:outside="showEndCalendar = false"
-              mode="single"
-              @update:modelValue="updateEndDate"
-              class="calendar-popup"
-              :locale="locale"
-            />
-          </div>
-          <div class="time-input">
-            <div
-              class="input-with-icon"
-              :class="{ error: (showError && !endTime) || endTimeError }"
-            >
-              <img
-                src="@/assets/images/set_time.png"
-                alt="시간"
-                class="input-icon"
-              />
-              <input
-                type="text"
-                :value="endTime ? formatDisplayTime(endTime) : ''"
-                readonly
-                placeholder="시간 선택"
-                @click="toggleTimePicker('end')"
-              />
-            </div>
-            <!-- 종료 시간 선택 드롭다운 -->
-            <div
-              v-if="showTimePicker && currentTimeInput === 'end'"
-              class="time-picker-dropdown"
-            >
-              <div class="time-selector">
-                <div class="time-column ampm-column">
-                  <div class="time-scroll">
-                    <div
-                      v-for="ampm in ['AM', 'PM']"
-                      :key="ampm"
-                      class="time-item"
-                      :class="{ selected: selectedAmPm === ampm }"
-                      @click="selectAmPm(ampm)"
-                    >
-                      {{ ampm === "AM" ? "오전" : "오후" }}
-                    </div>
-                  </div>
-                </div>
-                <div class="time-column">
-                  <div class="time-scroll">
-                    <div
-                      v-for="hour in hours"
-                      :key="'h' + hour"
-                      class="time-item"
-                      :class="{ selected: selectedHour === hour }"
-                      @click="selectHour(hour)"
-                    >
-                      {{ hour }}
-                    </div>
-                  </div>
-                </div>
-                <div class="time-divider">:</div>
-                <div class="time-column">
-                  <div class="time-scroll">
-                    <div
-                      v-for="minute in minutes"
-                      :key="'m' + minute"
-                      class="time-item"
-                      :class="{ selected: selectedMinute === minute }"
-                      @click="selectMinute(minute)"
-                    >
-                      {{ minute.toString().padStart(2, "0") }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="button-group">
-                <button class="cancel-btn" @click="closeTimePicker">
-                  취소
-                </button>
-                <button class="confirm-btn" @click="confirmTime">확인</button>
-              </div>
-            </div>
-            <div
-              v-if="endTimeError"
-              class="end-time-error"
-            >
-              종료 시간은 현재보다 이전으로 설정할 수<br>없습니다
-            </div>
-          </div>
-          <div
-            v-if="showError && (!modalEndDate || !endTime)"
-            class="error-message"
-          >
-            종료 날짜와 시간을 입력해주세요.
-          </div>
-        </div>
-
-        <div v-if="dateOrderError" class="date-order-error">
-          시작 날짜와 종료 날짜를 다시 확인해주세요.
-        </div>
-
-        <div class="button-group">
-          <button class="cancel-btn" @click="closePeriodModal">취소</button>
-          <button class="confirm-btn" @click="confirmPeriod">확인</button>
-        </div>
-      </div>
-    </div>
+    <!-- 설문 기간 선택 컴포넌트 -->
+    <PeriodModalComponent
+      v-model="showPeriodModal"
+      v-model:startDateTime="startDateTime"
+      v-model:endDateTime="endDateTime"
+      :show-error="showError"
+      @cancel="closePeriodModal"
+      @confirm="confirmPeriod"
+    />
   </div>
 </template>
 
@@ -345,19 +112,18 @@
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { ref, computed, nextTick, onMounted, onBeforeUnmount, watch } from "vue";
 import { debounce } from 'lodash';
-import { DatePicker } from "v-calendar";
-import "v-calendar/style.css";
 import QuestionTypeTab from "@/components/QuestionTypeTab.vue";
 import SingleChoiceQuestion from "@/components/SingleChoiceQuestion.vue";
 import MultipleChoiceQuestion from "@/components/MultipleChoiceQuestion.vue";
 import GridQuestion from "@/components/GridQuestion.vue";
 import ShortAnswerQuestion from "@/components/ShortAnswerQuestion.vue";
 import LongAnswerQuestion from "@/components/DescriptiveAnswerQuestion.vue";
+import PeriodModalComponent from "@/components/PeriodModalComponent.vue";
 import { showConfirmAlert } from '@/utils/swalUtils';
 
 export default {
   components: {
-    VDatePicker: DatePicker,
+    PeriodModalComponent,
     QuestionTypeTab,
     SingleChoiceQuestion,
     MultipleChoiceQuestion,
@@ -383,29 +149,11 @@ export default {
 
     // Period modal state
     const showPeriodModal = ref(false);
-    const startDate = ref("");
-    const startTime = ref("");
-    const endDate = ref("");
-    const endTime = ref("");
-    const showStartCalendar = ref(false);
-    const showEndCalendar = ref(false);
-    const showTimePicker = ref(false);
-    const currentTimeInput = ref(null);
-    const selectedHour = ref(1);
-    const selectedMinute = ref(0);
-    const selectedAmPm = ref("AM");
-    const modalStartDate = ref("");
-    const modalEndDate = ref("");
+    const startDateTime = ref(null);
+    const endDateTime = ref(null);
     const showError = ref(false);
-    const dateOrderError = ref(false);
-    const endTimeError = ref(false);
 
-    const isTitleContainerSelected  = ref(false);
-    // Calendar data
-    const selectedStartDate = ref(null);
-    const selectedEndDate = ref(null);
-    const tempStartDate = ref(null);
-    const tempEndDate = ref(null);
+    const isTitleContainerSelected = ref(false);
 
     // Question data
     const selectedQuestionIndex = ref(0);
@@ -419,32 +167,29 @@ export default {
       },
     ]);
 
-    // Constants
-    const hours = Array.from({ length: 12 }, (_, i) => i + 1);
-    const minutes = [0, 30];
-    const locale = {
-      masks: {
-        title: "YYYY년 M월",
-      },
-      weekdays: "일_월_화_수_목_금_토".split("_"),
-      titleFormat: (date) => {
-        return `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
-      },
-    };
-
     // Computed
     const formattedPeriod = computed(() => {
-      if (!startDate.value && !endDate.value) {
+      if (!startDateTime.value && !endDateTime.value) {
         return "시작 날짜 ~ 종료 날짜";
       }
-      return `${startDate.value} ${
-        startTime.value ? formatDisplayTime(startTime.value) : ""
-      } ~ ${endDate.value} ${
-        endTime.value ? formatDisplayTime(endTime.value) : ""
-      }`.trim();
+      return formatDateTime(startDateTime.value) + " ~ " + formatDateTime(endDateTime.value);
     });
 
     // Methods
+    const formatDateTime = (datetime) => {
+      if (!datetime) return '';
+      const date = new Date(datetime);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hour = date.getHours();
+      const minute = String(date.getMinutes()).padStart(2, '0');
+      const ampm = hour < 12 ? '오전' : '오후';
+      const hour12 = hour % 12 || 12;
+      
+      return `${year}. ${month}. ${day} ${ampm} ${hour12}:${minute}`;
+    };
+
     const updateSideTabPosition = () => {
       if (selectedQuestionIndex.value !== null && 
           questionContainer.value[selectedQuestionIndex.value]) {
@@ -452,13 +197,9 @@ export default {
         const containerRect = createContainer.value.getBoundingClientRect();
         const titleContainer = document.querySelector('.title-container');
         const rect = selectedElement.getBoundingClientRect();
-        // title-container의 시작 위치를 최소값으로 설정
         const minTop = titleContainer.getBoundingClientRect().top - containerRect.top;
-        // create-container의 끝에서 사이드탭의 높이만큼 뺀 위치를 최대값으로 설정
-        const maxTop = containerRect.height - 300; // 300은 사이드탭의 대략적인 높이
-        // 현재 선택된 질문의 상대적 위치 계산
+        const maxTop = containerRect.height - 300;
         const relativeTop = rect.top - containerRect.top;
-        // 범위 내로 제한
         const constrainedTop = Math.max(minTop, Math.min(relativeTop, maxTop));
         sideTabTop.value = constrainedTop;
       }
@@ -504,7 +245,6 @@ export default {
           ...questions.value[selectedQuestionIndex.value],
           type: newType,
         };
-        // 질문 유형이 바뀔 때도 사이드탭 위치 업데이트
         nextTick(() => {
           updateSideTabPosition();
         });
@@ -521,7 +261,7 @@ export default {
 
       const insertIndex = selectedQuestionIndex.value !== null
         ? selectedQuestionIndex.value + 1
-        : 0;  // 제목 컨테이너가 선택된 경우 맨 앞에 추가
+        : 0;
 
       questions.value.splice(insertIndex, 0, newQuestion);
       nextTick(() => {
@@ -545,7 +285,7 @@ export default {
     };
 
     const deleteQuestion = (index) => {
-      const newIndex = index > 0 ? index - 1 : 0; // 항상 위쪽 질문 선택
+      const newIndex = index > 0 ? index - 1 : 0;
       
       questions.value.splice(index, 1);
       
@@ -572,256 +312,57 @@ export default {
 
     // Period related methods
     const openPeriodModal = () => {
-      modalStartDate.value = startDate.value;
-      modalEndDate.value = endDate.value;
-      selectedStartDate.value = startDate.value ? tempStartDate.value : null;
-      selectedEndDate.value = endDate.value ? tempEndDate.value : null;
       showPeriodModal.value = true;
-      validateEndTime();
     };
 
     const closePeriodModal = () => {
       showError.value = false;
-      dateOrderError.value = false;
-      endTimeError.value = false;
       showPeriodModal.value = false;
-      showStartCalendar.value = false;
-      showEndCalendar.value = false;
-      showTimePicker.value = false;
-
-      if (!startDate.value && !endDate.value) {
-        modalStartDate.value = "";
-        modalEndDate.value = "";
-        tempStartDate.value = null;
-        tempEndDate.value = null;
-        selectedStartDate.value = null;
-        selectedEndDate.value = null;
-        startTime.value = "";
-        endTime.value = "";
-      }
     };
 
-    const validateEndTime = () => {
-      if (!modalEndDate.value || !endTime.value) return;
-      
-      const endDateTime = getDateTime(modalEndDate.value, endTime.value);
-      const now = new Date();
-      
-      endTimeError.value = endDateTime < now;
-      return endDateTime >= now;
-    };
-
-    const confirmPeriod = () => {
-      showError.value =
-        !modalStartDate.value ||
-        !modalEndDate.value ||
-        !startTime.value ||
-        !endTime.value;
-
-      if (showError.value) return;
-
-      // 종료 시간 검증
-      if (!validateEndTime()) {
-        return;
-      }
-
-      const startDateTime = getDateTime(modalStartDate.value, startTime.value);
-      const endDateTime = getDateTime(modalEndDate.value, endTime.value);
-
-      if (endDateTime <= startDateTime) {
-        dateOrderError.value = true;
-        return;
-      }
-
-      dateOrderError.value = false;
-      selectedStartDate.value = tempStartDate.value;
-      selectedEndDate.value = tempEndDate.value;
-      startDate.value = modalStartDate.value;
-      endDate.value = modalEndDate.value;
-      closePeriodModal();
-    };
-
-    const updateStartDate = (date) => {
-      tempStartDate.value = date;
-      modalStartDate.value = formatDate(date);
-    };
-
-    const updateEndDate = (date) => {
-      tempEndDate.value = date;
-      modalEndDate.value = formatDate(date);
-    };
-
-    const formatDate = (date) => {
-      if (!date) return "";
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}. ${month}. ${day}`;
-    };
-
-    const toggleStartCalendar = () => {
-      showEndCalendar.value = false;
-      showTimePicker.value = false;
-      showStartCalendar.value = !showStartCalendar.value;
-    };
-
-    const toggleEndCalendar = () => {
-      showStartCalendar.value = false;
-      showTimePicker.value = false;
-      showEndCalendar.value = !showEndCalendar.value;
-    };
-
-    const toggleTimePicker = (type) => {
-      showStartCalendar.value = false;
-      showEndCalendar.value = false;
-
-      if (currentTimeInput.value === type) {
-        closeTimePicker();
-      } else {
-        showTimePicker.value = true;
-        currentTimeInput.value = type;
-
-        const currentTime = type === "start" ? startTime.value : endTime.value;
-        if (currentTime) {
-          const [hours, minutes] = currentTime.split(":").map(Number);
-          selectedAmPm.value = hours < 12 ? "AM" : "PM";
-          selectedHour.value = hours % 12 || 12;
-          selectedMinute.value = minutes;
-        } else {
-          selectedHour.value = 1;
-          selectedMinute.value = 0;
-          selectedAmPm.value = "AM";
-        }
-
-        nextTick(() => {
-          scrollToSelected();
-        });
-      }
-    };
-
-    const closeTimePicker = () => {
-      showTimePicker.value = false;
-      currentTimeInput.value = null;
-    };
-
-    const selectHour = (hour) => {
-      selectedHour.value = hour;
-      nextTick(() => {
-        scrollToSelected();
-      });
-    };
-
-    const selectMinute = (minute) => {
-      selectedMinute.value = minute;
-      nextTick(() => {
-        scrollToSelected();
-      });
-    };
-
-    const selectAmPm = (ampm) => {
-      selectedAmPm.value = ampm;
-      nextTick(() => {
-        scrollToSelected();
-      });
-    };
-
-    const formatDisplayTime = (time) => {
-      if (!time) return "";
-      const [hours, minutes] = time.split(":").map(Number);
-      const ampm = hours < 12 ? "오전" : "오후";
-      const hour = hours % 12 || 12;
-      return `${ampm} ${hour}:${minutes.toString().padStart(2, "0")}`;
-    };
-
-    const confirmTime = () => {
-      let hour = selectedHour.value;
-      if (selectedAmPm.value === "PM" && hour !== 12) {
-        hour += 12;
-      } else if (selectedAmPm.value === "AM" && hour === 12) {
-        hour = 0;
-      }
-
-      const time = `${hour.toString().padStart(2, "0")}:${selectedMinute.value
-        .toString()
-        .padStart(2, "0")}`;
-      if (currentTimeInput.value === "start") {
-        startTime.value = time;
-      } else {
-        endTime.value = time;
-      }
-      closeTimePicker();
-    };
-
-    const scrollToSelected = () => {
-      const timeColumns = document.querySelectorAll(".time-column");
-
-      timeColumns.forEach((column, index) => {
-        const selectedItem = column.querySelector(".selected");
-        if (selectedItem) {
-          const scrollPosition =
-            selectedItem.offsetTop -
-            column.offsetHeight / 2 +
-            selectedItem.offsetHeight / 2;
-          column.scrollTop = scrollPosition;
-        }
-      });
-    };
-
-    const getDateTime = (dateStr, timeStr) => {
-      const [year, month, day] = dateStr.split(".").map((s) => s.trim());
-      const [hours, minutes] = timeStr.split(":").map(Number);
-      return new Date(year, month - 1, day, hours, minutes);
+    const confirmPeriod = ({ startDateTime: start, endDateTime: end }) => {
+      startDateTime.value = start;
+      endDateTime.value = end;
+      showPeriodModal.value = false;
     };
 
     const openPreview = () => {
-      // 현재 작성 중인 설문 데이터
       const previewData = {
         title: title.value,
         description: description.value,
-        startDate: startDate.value,
-        endDate: endDate.value,
-        startTime: startTime.value,
-        endTime: endTime.value,
+        startDateTime: startDateTime.value,
+        endDateTime: endDateTime.value,
         questions: questions.value
       };
 
-      // 데이터를 sessionStorage에 임시 저장
       sessionStorage.setItem('surveyPreviewData', JSON.stringify(previewData));
       
-      // 새 탭에서 미리보기 페이지 열기
       const route = router.resolve({ name: 'SurveyPreview' });
       window.open(route.href, '_blank');
     };
 
-    // 저장 버튼 클릭 시 실행될 함수
     const validateAndSave = () => {
       let isValid = true;
       
-      // 제목 검증
       showTitleError.value = !title.value.trim();
       if (showTitleError.value) {
         isValid = false;
       }
 
-      // 질문 검증
       questionErrors.value = {};
       questions.value.forEach((question, index) => {
         let hasError = false;
         
-        // 질문 제목이 비어있는지 확인
         if (!question.title.trim()) {
           hasError = true;
         }
 
-        // 질문 유형별 옵션 검증
         if (question.type === 'single' || question.type === 'multiple') {
-          // 객관식/체크박스 질문의 경우
           if (!question.options || question.options.length === 0 || 
               question.options.some(opt => !opt.text.trim())) {
             hasError = true;
           }
         }
-        // short와 long 타입은 추가 옵션이 필요 없으므로 제목만 검증
 
         if (hasError) {
           questionErrors.value[index] = true;
@@ -830,7 +371,6 @@ export default {
       });
 
       if (!isValid) {
-        // 첫 번째 에러가 있는 요소로 스크롤
         if (showTitleError.value) {
           document.querySelector('.title-container').scrollIntoView({ behavior: 'smooth' });
         } else {
@@ -840,11 +380,9 @@ export default {
         return;
       }
 
-      // 모든 검증이 통과되면 저장 처리
       saveSurvey();
     };
 
-    // 저장 처리 함수
     const saveSurvey = () => {
       hasUnsavedChanges.value = false;
       router.push({ name: "SurveyCompletion" }).catch((error) => {
@@ -879,12 +417,11 @@ export default {
       }
     };
 
-    // Lifecycle hooks
     onMounted(() => {
       nextTick(() => {
         updateSideTabPosition();
         window.addEventListener("resize", debouncedUpdatePosition);
-        window.addEventListener("scroll", debouncedUpdatePosition); // 스크롤 이벤트 추가
+        window.addEventListener("scroll", debouncedUpdatePosition);
         window.addEventListener('beforeunload', handleBeforeUnload);
       });
 
@@ -896,14 +433,14 @@ export default {
         hasUnsavedChanges.value = true;
       }, { deep: true });
 
-      watch([startDate, endDate, startTime, endTime], () => {
+      watch([startDateTime, endDateTime], () => {
         hasUnsavedChanges.value = true;
       });
     });
 
     onBeforeUnmount(() => {
       window.removeEventListener("resize", debouncedUpdatePosition);
-      window.removeEventListener("scroll", debouncedUpdatePosition); // 스크롤 이벤트 제거
+      window.removeEventListener("scroll", debouncedUpdatePosition);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     });
 
@@ -915,30 +452,12 @@ export default {
       titleFocused,
       descFocused,
       showPeriodModal,
-      startDate,
-      startTime,
-      endDate,
-      endTime,
-      showStartCalendar,
-      showEndCalendar,
-      showTimePicker,
-      currentTimeInput,
-      selectedHour,
-      selectedMinute,
-      selectedAmPm,
-      modalStartDate,
-      modalEndDate,
+      startDateTime,
+      endDateTime,
       showError,
-      dateOrderError,
-      endTimeError,
-      selectedStartDate,
-      selectedEndDate,
       selectedQuestionIndex,
       sideTabTop,
       questions,
-      hours,
-      minutes,
-      locale,
       formattedPeriod,
       adjustHeight,
       selectQuestion,
@@ -953,28 +472,15 @@ export default {
       openPeriodModal,
       closePeriodModal,
       confirmPeriod,
-      updateStartDate,
-      updateEndDate,
-      formatDate,
-      toggleStartCalendar,
-      toggleEndCalendar,
-      toggleTimePicker,
-      closeTimePicker,
-      selectHour,
-      selectMinute,
-      selectAmPm,
-      formatDisplayTime,
-      confirmTime,
-      scrollToSelected,
-      getDateTime,
-      showTitleError,
-      questionErrors,
       openPreview,
       validateAndSave,
+      showTitleError,
+      questionErrors,
       hasUnsavedChanges
     };
   },
 };
+
 </script>
 
 <style scoped>
@@ -1000,8 +506,8 @@ export default {
 .header h2 {
   font-size: 1.25em;
   font-weight: 700;
-  margin: 0; /* 기존 margin-bottom 제거 */
-  padding: 0; /* 기존 padding-left 제거 */
+  margin: 0;
+  padding: 0;
 }
 
 .header-buttons {
@@ -1053,7 +559,7 @@ export default {
   height: 100%;
   min-height: 100vh;
   display: block;
-  margin-right: 100px; /* side-container의 너비만큼 여백 추가 */
+  margin-right: 100px;
   position: relative;
 }
 
@@ -1164,264 +670,6 @@ textarea {
 .calendar-icon {
   width: 16px;
   height: 16px;
-}
-
-.period-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 20px;
-  padding: 15px 20px 20px 20px;
-  width: 300px;
-}
-
-.modal-content h3 {
-  font-weight: bold;
-  margin-bottom: 15px;
-  margin-top: 5px;
-  text-align: center;
-  font-family: Pretendard;
-  font-size: 20px;
-}
-
-.time-group {
-  margin-bottom: 15px;
-}
-
-.time-group p {
-  padding-left: 5px;
-  margin-bottom: 6px;
-  font-size: 14px;
-  color: #000;
-  font-family: Pretendard;
-}
-
-.input-with-icon {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.input-icon {
-  position: absolute;
-  top: 13px;
-  left: 12px;
-  width: 16px;
-  height: 16px;
-}
-
-.date-input input,
-.time-input input {
-  background: #f7f9fb;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 16px 10px 36px;
-  margin-bottom: 8px;
-  width: 100%;
-  cursor: pointer;
-  font-family: Pretendard;
-  outline: none;
-}
-
-.calendar-popup {
-  position: absolute;
-  z-index: 1000;
-  margin-top: 4px;
-  width: 100%;
-}
-
-/* 시간 선택기 관련 스타일 */
-.time-input {
-  position: relative;
-}
-
-.time-picker-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-top: 4px;
-  z-index: 1000;
-  padding: 15px;
-}
-
-.time-selector {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  margin: 10px 0;
-}
-
-.time-column {
-  width: 45px;
-  height: 120px;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.ampm-column {
-  width: 50px;
-}
-
-.time-column::-webkit-scrollbar {
-  display: none;
-}
-
-.time-scroll {
-  padding: 30px 0;
-}
-
-.time-item {
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-family: Pretendard;
-  font-size: 16px;
-  color: #666;
-  transition: all 0.2s;
-}
-
-.time-item:hover {
-  background: #f7f9fb;
-}
-
-.time-item.selected {
-  color: #000;
-  font-weight: bold;
-  background: #f7f9fb;
-}
-
-.time-item.disabled {
-  color: #ccc;
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.time-item.disabled:hover {
-  background: none;
-}
-
-.time-divider {
-  font-size: 20px;
-  font-weight: bold;
-  color: #666;
-}
-
-/* v-calendar 커스텀 스타일 */
-:deep(.vc-container) {
-  border: none;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  margin-bottom: 8px;
-  width: 100%;
-  height: 240px;
-}
-
-:deep(.vc-header) {
-  padding: 4px 0 2px 0;
-  width: 100%;
-}
-
-:deep(.vc-title) {
-  font-size: 16px;
-  font-weight: bold;
-  color: #000;
-  margin-top: -8px;
-  background: none;
-}
-
-:deep(.vc-arrow) {
-  background: none !important;
-}
-
-:deep(.vc-nav-title) {
-  background: none;
-}
-
-:deep(.vc-weeks) {
-  padding: 0 12px;
-  width: 100%;
-  margin-top: 10px;
-  margin-left: 13px;
-}
-
-:deep(.vc-week) {
-  margin-left: 0 !important;
-  transform: translateX(-13.5px) !important;
-}
-
-:deep(.vc-weekday) {
-  font-size: 12px;
-  color: #666;
-  font-weight: 600;
-  padding: 5px 0;
-  width: calc(100% / 7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-:deep(.vc-day) {
-  padding: 2px 0;
-  width: 100%;
-  min-width: auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-:deep(.vc-day-content) {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 14px;
-  border-radius: 50%;
-  margin: 0;
-}
-
-:deep(.vc-day.is-today .vc-day-content) {
-  background-color: #a8c5da;
-  color: #ffffff;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* 새로운 에러 관련 스타일 */
-.input-with-icon.error input {
-  border: 1px solid #ff6b6b;
-}
-
-.end-time-error {
-  color: #ff6b6b;
-  font-size: 12px;
-  margin-top: 4px;
-  padding-left: 5px;
 }
 
 .error-message {

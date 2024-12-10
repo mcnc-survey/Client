@@ -80,6 +80,5 @@ export default {
   color: #1c1d22;
   border: none;
   border-radius: 24.877px;
-  cursor: pointer;
 }
 </style>

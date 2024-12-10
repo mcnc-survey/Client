@@ -35,7 +35,9 @@
               <i class="icon icon-delete"></i>
             </button>
           </div>
-          <span class="last-updated">최근 수정일: {{ formatDate(survey.lastModifiedAt) }}</span>
+          <span class="last-updated"
+            >최근 수정일: {{ formatDate(survey.lastModifiedAt) }}</span
+          >
         </div>
       </div>
     </div>
@@ -69,7 +71,7 @@ export default {
     // 설문조사 데이터 가져오기
     const fetchSurveys = async () => {
       try {
-        const response = await axios.get("http://218.55.79.81:9000/surveys");
+        const response = await axios.get("https://mcnc-survey.store/surveys");
 
         if (response.data.resultCode === "200") {
           surveys.value = response.data.body.filter(
@@ -214,7 +216,10 @@ export default {
             }
           } catch (error) {
             // 실패 알림
-            showErrorAlert("삭제 실패", "설문조사 삭제 중 오류가 발생했습니다.");
+            showErrorAlert(
+              "삭제 실패",
+              "설문조사 삭제 중 오류가 발생했습니다."
+            );
             console.error("삭제 중 오류:", error);
           }
         },

@@ -171,7 +171,6 @@ export default {
   padding: 10px 15px;
   box-sizing: border-box;
   transition: background-color 0.3s, border 0.3s;
-  cursor: pointer; /* 클릭 가능하도록 변경 */
 }
 
 /* input-group hover 및 포커스 스타일 */
@@ -226,7 +225,6 @@ export default {
   line-height: 100%;
   text-align: center;
   color: #1c1d22;
-  cursor: pointer;
 }
 
 .info-submit-button:hover {
@@ -270,6 +268,5 @@ export default {
 .social-icon {
   width: 40px;
   height: 40px;
-  cursor: pointer;
 }
 </style>
