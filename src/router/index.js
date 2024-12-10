@@ -45,6 +45,11 @@ const routes = [
     component: FindPwComplete,
   },
   {
+    path: "/preview",
+    component: SurveyPreview,
+    name: "SurveyPreview",
+  },
+  {
     path: "/web",
     component: WebLayout,
     children: [
@@ -67,11 +72,6 @@ const routes = [
         path: "create",
         component: SurveyCreate,
         name: "SurveyCreate",
-      },
-      {
-        path: "preview",
-        component: SurveyPreview,
-        name: "SurveyPreview",
       },
       {
         path: "complete",
