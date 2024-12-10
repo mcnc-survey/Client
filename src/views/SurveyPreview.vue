@@ -1,7 +1,7 @@
 <template>
   <div class="survey-preview">
     <div class="header">
-      <h2>미리보기</h2>
+      <h2>설문 미리보기</h2>
       <div class="header-buttons">
         <button class="close-btn" @click="closeTab">미리보기 종료</button>
       </div>
@@ -23,14 +23,15 @@
           </div>
         </div>
       </div>
+      <div class="required-notice">* 필수 질문</div>
 
       <!-- 질문 영역 -->
       <div class="questions-section">
         <div v-for="(question, index) in surveyData.questions" :key="index" class="question-item">
           <div class="question-header">
+              <span v-if="question.required" class="required-mark">*</span>
               <span class="question-number">{{ index + 1 }}. </span>
               <span class="question-title">{{ question.title }}</span>
-              <span v-if="question.required" class="required-mark">*</span>
           </div>
 
           <!-- 객관식 질문 -->
@@ -224,6 +225,7 @@ export default {
 .survey-preview {
   min-height: 100vh;
   background-color: #f7f9fb;
+  height: 100%;
 }
 
 .header {
@@ -262,35 +264,53 @@ export default {
 }
 
 .preview-container {
+  height: 90%;
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+  overflow-y: auto;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* Chrome, Safari, Opera를 위한 스크롤바 숨기기 */
+.preview-container::-webkit-scrollbar {
+  display: none;
 }
 
 .title-section {
   background: white;
   border-radius: 23.38px;
   padding: 30px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .survey-title {
   font-size: 25px;
   font-weight: 700;
   margin-bottom: 15px;
-  white-space: pre-wrap;
+  white-space: pre-line;
 }
 
 .survey-description {
   font-size: 16px;
   margin-bottom: 20px;
   color: #666;
-  white-space: pre-wrap;
+  white-space: pre-line;
 }
 
 .survey-period {
   font-size: 14px;
   color: #666;
+}
+
+.required-notice {
+  text-align: right;
+  color: #ff6b6b;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  margin-right: 10px;
 }
 
 .period-display {
@@ -322,15 +342,13 @@ export default {
 .question-title {
   font-weight: 600;
   flex: 1;
-  white-space: pre-wrap;
-  word-break: break-all; /* 자동 줄바꿈 */
-  word-wrap: break-word;
+  white-space: pre-line;
 }
 
 .required-mark {
   color: #ff6b6b;
   font-weight: bold;
-  margin-left: 4px;
+  margin-right: 4px;
 }
 
 .options-container {
