@@ -17,20 +17,10 @@
 
     <!-- 항목 리스트 -->
     <div class="deleted-list">
-      <div
-        v-for="survey in surveys"
-        :key="survey.id"
-        class="deleted-item"
-        :class="{ selected: selectedSurveys.includes(survey.id) }"
-        @click="toggleSelection(survey.id)"
-      >
+      <div v-for="survey in surveys" :key="survey.id" class="deleted-item"
+        :class="{ selected: selectedSurveys.includes(survey.id) }" @click="toggleSelection(survey.id)">
         <label class="custom-checkbox">
-          <input
-            type="checkbox"
-            v-model="selectedSurveys"
-            :value="survey.id"
-            class="checkbox-input"
-          />
+          <input type="checkbox" v-model="selectedSurveys" :value="survey.id" class="checkbox-input" />
           <span class="checkbox-image"></span>
         </label>
 
@@ -108,29 +98,42 @@ export default {
 
     // 복구 로직
     const recoverItems = async () => {
+      if (selectedSurveys.value.length === 0) {
+        showErrorAlert("복구 실패", "복구할 설문을 선택하세요.");
+        return;
+      }
+
       try {
         // 복구할 설문조사들에 대해 POST 요청을 보냄
-        await Promise.all(
-          selectedSurveys.value.map((surveyId) =>
-            axios.post(
-              `http://218.55.79.81:9000/surveys/survey-id/${surveyId}/restore`
-            )
-          )
+        const response = await axios.post(
+          "http://218.55.79.81:9000/surveys/restore",
+          {
+            surveyIds: selectedSurveys.value, // 선택된 설문 ID 리스트 전송
+          }
         );
 
-        // 복구된 항목은 삭제된 항목 리스트에서 제외
-        deletedSurveys.value = deletedSurveys.value.filter(
-          (survey) => !selectedSurveys.value.includes(survey.id)
-        );
+        // 추가된 체크: 응답 데이터 로깅
+        console.log("복구 응답:", response);
 
-        selectedSurveys.value = []; // 선택 초기화
-        isAllSelected.value = false; // 전체 선택 해제
+        // 응답의 resultCode가 '204'인 경우 성공 처리
+        if (response.data.resultCode === "204") {
+          // 복구된 항목은 삭제된 항목 리스트에서 제외
+          deletedSurveys.value = deletedSurveys.value.filter(
+            (survey) => !selectedSurveys.value.includes(survey.id)
+          );
 
-        // 성공 알림
-        showSuccessAlert(
-          "복구 완료",
-          "선택된 설문조사가 성공적으로 복구되었습니다."
-        );
+          selectedSurveys.value = []; // 선택 초기화
+          isAllSelected.value = false; // 전체 선택 해제
+
+          // 성공 알림
+          showSuccessAlert(
+            "복구 완료",
+            "선택된 설문조사가 성공적으로 복구되었습니다."
+          );
+        } else {
+          // resultCode가 204가 아니면 오류 처리
+          showErrorAlert("복구 실패", "설문조사 복구 중 오류가 발생했습니다.");
+        }
       } catch (error) {
         // 실패 알림
         showErrorAlert("복구 실패", "설문조사 복구 중 오류가 발생했습니다.");
@@ -138,25 +141,27 @@ export default {
       }
     };
 
-    // 완전 삭제 로직 (반복 요청 시 물리적 삭제)
+    // 물리적 삭제
     const deleteItems = async () => {
+      if (selectedSurveys.value.length === 0) {
+        showErrorAlert("삭제 실패", "삭제할 설문을 선택하세요.");
+        return;
+      }
+
       showConfirmAlert({
         html: "설문을 삭제하면 모든 응답 데이터도 함께 삭제됩니다.",
         subMessage: "* 삭제 후에는 복구할 수 없습니다.",
         onConfirm: async () => {
           try {
-            // 선택된 설문조사 ID 리스트에서 하나씩 처리
-            for (const surveyId of selectedSurveys.value) {
-              console.log(`Deleting survey with ID: ${surveyId}`); // 콘솔에 surveyId 출력
-
-              // DELETE 요청 보내기
-              await axios.delete(
-                `http://218.55.79.81:9000/surveys/survey-id/${surveyId}`
-              );
-
-              // 각 요청 사이에 1초 지연을 추가 (서버 과부하 방지)
-              await new Promise((resolve) => setTimeout(resolve, 1000)); // 1초 지연
-            }
+            // DELETE 요청으로 여러 설문을 한 번에 삭제
+            await axios.delete(
+              "http://218.55.79.81:9000/surveys",
+              {
+                data: {
+                  surveyIds: selectedSurveys.value, // 선택된 설문 ID 리스트 전송
+                },
+              }
+            );
 
             // 삭제된 설문조사 항목을 리스트에서 제외
             deletedSurveys.value = deletedSurveys.value.filter(
@@ -286,7 +291,7 @@ h2 {
   transition: background-image 0.3s ease;
 }
 
-.checkbox-input:checked + .checkbox-image {
+.checkbox-input:checked+.checkbox-image {
   background-image: url("@/assets/images/checked.png");
 }
 </style>
