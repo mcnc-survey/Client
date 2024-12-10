@@ -1,14 +1,17 @@
 <template>
   <div class="survey-management">
-    <h2>설문조사 목록</h2>
-
+    <div class="header">
+      <h2>설문조사 목록</h2>
+      <button class="create-btn" @click="createSurvey">생성하기</button>
+    </div>
     <div class="survey-list">
       <div v-for="survey in sortedSurveys" :key="survey.id" class="survey-item">
         <div class="survey-info">
           <button class="bookmark-button" @click="toggleBookmark(survey.id)">
             <img :src="survey.islike
-              ? require('@/assets/images/bookmark.svg')
-              : require('@/assets/images/non-bookmark.svg')" alt="북마크" class="bookmark-icon" />
+                ? require('@/assets/images/bookmark.svg')
+                : require('@/assets/images/non-bookmark.svg')
+              " alt="북마크" class="bookmark-icon" />
           </button>
           <p class="survey-info-title" @click="goToSurveyStats(survey.id)">
             {{ survey.title }}
@@ -36,8 +39,6 @@
         </div>
       </div>
     </div>
-    <!-- Floating 버튼 -->
-    <button class="floating-button" @click="createSurvey">+</button>
   </div>
 </template>
 
@@ -71,9 +72,13 @@ export default {
         const response = await axios.get("http://218.55.79.81:9000/surveys");
 
         if (response.data.resultCode === "200") {
-          surveys.value = response.data.body.filter((survey) => survey.status !== "DELETE"); // DELETE 필터링
+          surveys.value = response.data.body.filter(
+            (survey) => survey.status !== "DELETE"
+          ); 
         } else {
-          throw new Error(response.data.message || "데이터를 가져오지 못했습니다.");
+          throw new Error(
+            response.data.message || "데이터를 가져오지 못했습니다."
+          );
         }
       } catch (error) {
         console.error("설문조사 데이터 가져오기 실패:", error);
@@ -84,9 +89,13 @@ export default {
       }
     };
 
-    // 정렬된 설문조사 데이터
+    // 설문조사 데이터 정렬
     const sortedSurveys = computed(() => {
       return [...surveys.value].sort((a, b) => {
+        // 즐겨찾기 우선 정렬
+        if (a.islike && !b.islike) return -1; 
+        if (!a.islike && b.islike) return 1;  
+
         const statusComparison = statusOrder[a.status] - statusOrder[b.status];
         if (statusComparison === 0) {
           return new Date(b.lastModifiedAt) - new Date(a.lastModifiedAt);
@@ -94,6 +103,7 @@ export default {
         return statusComparison;
       });
     });
+
 
     const formatDate = (dateString) => {
       return new Date(dateString).toISOString().split("T")[0];
@@ -125,13 +135,16 @@ export default {
           const toastType = survey.islike ? toast.success : toast.info;
           toastType(message, {
             position: toast.POSITION.TOP_CENTER,
-            autoClose: 2000,
+            autoClose: 1000,
+            hideProgressBar: true
+
           });
         } catch (error) {
           console.error("북마크 토글 실패:", error);
           toast.error("북마크 상태를 변경하지 못했습니다.", {
             position: toast.POSITION.TOP_CENTER,
-            autoClose: 2000,
+            autoClose: 1000,
+            hideProgressBar: true
           });
         }
       }
@@ -188,17 +201,15 @@ export default {
         subMessage: "* 삭제된 항목은 휴지통에 저장됩니다.",
         onConfirm: async () => {
           try {
-            const response = await axios.delete(`http://218.55.79.81:9000/surveys/survey-id/${surveyId}`);
+            const response = await axios.delete(
+              `http://218.55.79.81:9000/surveys/survey-id/${surveyId}`
+            );
 
-            // 응답의 resultCode가 200이면 성공 처리
-            if (response.data.resultCode === "200" || response.data.message.includes("DELETED")) {
-              // 서버 응답에 "DELETED" 메시지가 포함된 경우에도 성공으로 처리
+            if (response.data.resultCode === "200" ||  response.data.message.includes("DELETED")) {
               surveys.value = surveys.value.filter((survey) => survey.id !== surveyId);
 
-              // 성공 알림
               showSuccessAlert("삭제 완료", "설문조사가 삭제되었습니다.");
             } else {
-              // resultCode가 200이 아닌 경우 실패 처리
               throw new Error(response.data.message || "삭제 실패");
             }
           } catch (error) {
@@ -245,15 +256,42 @@ export default {
 
 <style scoped>
 .survey-management {
-  display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px);
   padding: 0 16px 0 24px;
+  height: calc(100vh - 60px);
   position: relative;
 }
 
+/* 기존 header 스타일 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  margin-bottom: 0;
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 0px;
+}
+
+/* 기존 action-btn 스타일 */
+.create-btn {
+  font-size: 0.975rem;
+  padding-bottom: 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-family: Pretendard;
+  font-weight: bold;
+}
+
 .survey-list {
-  height: 100%;
+  overflow-y: auto;
+  height: calc(100% - 100px);
   padding-right: 8px;
 }
 
@@ -397,45 +435,8 @@ h2 {
   letter-spacing: 0.5px;
 }
 
-.create-survey-button {
-  font-family: Pretendard;
-  font-weight: bold;
-  width: 100%;
-  height: 3.25em;
-  padding: 20px;
-  background-color: #dfe7ef;
-  border-radius: 20px;
-  border: none;
-  font-size: 1.5em;
-}
-
-.floating-button {
-  position: sticky;
-  bottom: 20px;
-  left: calc(50% - 28px);
-  margin-right: auto;
-  width: 56px;
-  height: 56px;
-  background-color: #4285f4;
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
-  border: none;
-  border-radius: 50%;
+.create-button {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-}
-
-.floating-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-}
-
-.floating-button:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  gap: 10px;
 }
 </style>

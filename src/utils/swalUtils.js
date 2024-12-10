@@ -34,6 +34,11 @@ export const showSuccessAlert = (
 
 // 에러 알림 표시 함수
 export const showErrorAlert = (title, message = null) => {
+  // 'DELETED' 메시지가 포함된 경우 오류로 처리하지 않음
+  if (message && message.includes("DELETED")) {
+    return;
+  }
+
   Swal.fire({
     html: `
       <div class="custom-alert-content">
