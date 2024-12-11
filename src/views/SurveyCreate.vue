@@ -481,9 +481,15 @@ export default {
             'long': 'LONG_ANSWER'
           }[q.type];
 
+          const hasOtherOption = q.options ? q.options.some(opt => opt.isOther) : false;
+
           let columns = null;
           if (q.options) {
-            columns = q.options.map(opt => opt.text).join('|`| ');
+            // isOther가 true가 아닌 옵션들만 columns에 포함
+            columns = q.options
+              .filter(opt => !opt.isOther)
+              .map(opt => opt.text)
+              .join('|`| ');
           }
 
           return {
@@ -493,7 +499,7 @@ export default {
             columns,
             rows: null,
             required: q.required,
-            etc: q.etc || false
+            etc: hasOtherOption
           };
         });
       };
