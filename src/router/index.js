@@ -29,6 +29,11 @@ const routes = [
     component: Login,
   },
   {
+    path: "/web/preview",
+    component: SurveyPreview,
+    name: "SurveyPreview",
+  },
+  {
     path: "/help/identify",
     component: FindPwIdentify,
   },

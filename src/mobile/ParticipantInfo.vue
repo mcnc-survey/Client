@@ -1,16 +1,25 @@
 <template>
   <div class="mobile-survey-container">
     <p class="instruction">참여자 확인을 위해 아래 정보를 입력해주세요.</p>
+
     <!-- 이메일 -->
     <div class="input-group" @click="focusInput('email')">
       <label class="label">이메일</label>
-      <input
-        ref="email"
-        type="email"
-        class="input-field"
-        placeholder="example@gmail.com"
-        v-model="email"
-      />
+      <div class="email-input-container">
+        <input
+          ref="email"
+          type="email"
+          class="input-field"
+          placeholder="example@gmail.com"
+          v-model="email"
+        />
+        <button
+          class="verification-button"
+          @click.stop="requestVerificationCode"
+        >
+          인증하기
+        </button>
+      </div>
     </div>
 
     <!-- 이름 -->
@@ -32,9 +41,8 @@
         ref="phone"
         type="tel"
         class="input-field"
-        placeholder="010-1234-5678"
+        placeholder="숫자만 입력"
         v-model="phone"
-        @input="formatPhoneNumber"
       />
     </div>
 
@@ -55,16 +63,19 @@
           src="../assets/images/login_google.svg"
           alt="google"
           class="social-icon"
+          @click="handleSocialLogin('google')"
         />
         <img
           src="../assets/images/login_kakao.png"
           alt="kakao"
           class="social-icon"
+          @click="handleSocialLogin('kakao')"
         />
         <img
           src="../assets/images/login_naver.svg"
           alt="naver"
           class="social-icon"
+          @click="handleSocialLogin('naver')"
         />
       </div>
     </div>
@@ -72,56 +83,103 @@
 </template>
 
 <script>
+import Swal from "sweetalert2";
+
 export default {
   data() {
     return {
       email: "",
       name: "",
       phone: "",
+      verificationCode: "", // 인증 코드 저장
+      token: this.$route.query.t, // URL에서 토큰 받기
     };
   },
   methods: {
     focusInput(field) {
-      this.$refs[field].focus(); // 클릭 시 해당 input으로 포커스 이동
+      this.$refs[field].focus();
     },
-    formatPhoneNumber() {
-      // 숫자만 추출
-      let numbers = this.phone.replace(/\D/g, "");
-      // 전화번호 포맷팅 (010-XXXX-XXXX)
-      if (numbers.length <= 3) {
-        this.phone = numbers;
-      } else if (numbers.length <= 7) {
-        this.phone = `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
-      } else {
-        this.phone = `${numbers.slice(0, 3)}-${numbers.slice(
-          3,
-          7
-        )}-${numbers.slice(7, 11)}`;
+    requestVerificationCode() {
+      if (!this.email) {
+        Swal.fire({
+          icon: "error",
+          title: "이메일을 입력해주세요.",
+          confirmButtonText: "확인",
+        });
+        return;
       }
+
+      // 서버로 인증 코드 요청 로직 (여기선 예제용)
+      Swal.fire({
+        title: "인증번호를 입력해주세요",
+        input: "text",
+        inputPlaceholder: "인증번호를 입력하세요",
+        showCancelButton: true,
+        confirmButtonText: "확인",
+        cancelButtonText: "취소",
+        inputValidator: (value) => {
+          if (!value) {
+            return "인증번호를 입력해주세요.";
+          }
+        },
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.verificationCode = result.value; // 인증 코드 저장
+          Swal.fire("인증 성공", "인증번호가 확인되었습니다.", "success");
+        }
+      });
     },
     submitForm() {
-      // 이메일 정규식 검사
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(this.email)) {
-        alert("유효한 이메일을 입력해주세요.");
+        Swal.fire({
+          icon: "error",
+          title: "유효한 이메일을 입력해주세요.",
+          confirmButtonText: "확인",
+        });
         return;
       }
-
-      // 이름 유효성 검사
       if (!this.name.trim()) {
-        alert("이름을 입력해주세요.");
+        Swal.fire({
+          icon: "error",
+          title: "이름을 입력해주세요.",
+          confirmButtonText: "확인",
+        });
         return;
       }
-
-      // 전화번호 유효성 검사
-      const phoneRegex = /^010-\d{3,4}-\d{4}$/;
+      const phoneRegex = /^010\d{4}\d{4}$/;
       if (!phoneRegex.test(this.phone)) {
-        alert("유효한 전화번호를 입력해주세요. (예: 010-1234-5678)");
+        Swal.fire({
+          icon: "error",
+          title: "유효한 전화번호를 입력해주세요.",
+          confirmButtonText: "확인",
+        });
         return;
       }
 
-      // 모든 조건 통과 시 설문 페이지로 이동
-      this.$router.push("/mobile/survey");
+      if (!this.verificationCode) {
+        Swal.fire({
+          icon: "error",
+          title: "이메일 인증을 완료해주세요.",
+          confirmButtonText: "확인",
+        });
+        return;
+      }
+
+      // 서버로 데이터 전송 로직
+      const requestData = {
+        email: this.email,
+        name: this.name,
+        phone: this.phone,
+        verificationCode: this.verificationCode, // 인증 코드 포함
+        token: this.token, // 토큰 포함
+      };
+
+      // 예제: 성공적으로 인증 완료 처리
+      this.$router.push(`/mobile/survey?t=${this.token}`);
+    },
+    handleSocialLogin(platform) {
+      this.$router.push(`/mobile/survey?t=${this.token}`);
     },
   },
 };
@@ -208,6 +266,22 @@ export default {
   line-height: 12px;
   color: #6e6a7c;
   margin-bottom: 5px;
+}
+
+/* 이메일 인증 버튼 스타일 */
+.email-input-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.verification-button {
+  font-size: 12px;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  width: 100px;
+  border-radius: 24.877px;
 }
 
 /* 완료 버튼 스타일 */
