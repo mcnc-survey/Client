@@ -2,8 +2,8 @@
     <div class="question-stats">
         <div class="question-header">
             <div class="title-section">
-                <h4 class="question-title">{{ question }}</h4>
-                <div v-if="responseType === 'single' || responseType === 'multiple'" class="chart-toggle">
+                <h4 class="question-title">{{ question.questionTitle }}</h4>
+                <div v-if="shouldShowChartToggle" class="chart-toggle">
                     <button class="toggle-btn" :class="{ active: chartType === 'doughnut' }"
                         @click="handleChartTypeChange('doughnut')" :disabled="isChanging">
                         <span class="toggle-icon doughnut">◯</span>
@@ -15,13 +15,20 @@
                 </div>
             </div>
             <span class="total-responses">
-                총 응답수: {{ totalResponses }}명
+                총 응답수: {{ question.totalResponseCount }}명
             </span>
         </div>
 
         <div class="stats-content">
+            <!-- 데이터가 없을 때 -->
+            <template v-if="!hasResponses">
+                <div class="no-responses">
+                    <p>아직 응답이 없어요!</p>
+                </div>
+            </template>
+
             <!-- 객관식 질문 (단일/다중 선택) -->
-            <template v-if="responseType === 'single' || responseType === 'multiple'">
+            <template v-else-if="isChartableQuestion">
                 <div class="chart-container">
                     <div v-show="chartType === 'doughnut'" class="chart-wrapper">
                         <canvas ref="doughnutCanvas"></canvas>
@@ -32,7 +39,7 @@
                 </div>
 
                 <div class="stats-details">
-                    <div v-for="(option, index) in options" :key="option.id" class="stat-item">
+                    <div v-for="(option, index) in question.responses" :key="index" class="stat-item">
                         <div class="stat-label">
                             <span class="color-dot" :style="{ backgroundColor: chartColors[index] }"></span>
                             <span>{{ option.text }}</span>
@@ -46,11 +53,14 @@
             </template>
 
             <!-- 주관식 질문 -->
-            <template v-else-if="responseType === 'open'">
-                <div class="subjective-responses">
-                    <div v-for="(response, index) in responses" :key="index" class="response-item">
+            <template v-else>
+                <div v-if="!hasResponses" class="no-responses">
+                    <p>아직 응답이 없어요!</p>
+                </div>
+                <div v-else class="subjective-responses">
+                    <div v-for="(response, index) in question.responses" :key="index" class="response-item">
                         <span class="response-number">{{ index + 1 }}</span>
-                        <p class="response-text">{{ response }}</p>
+                        <p class="response-text">{{ response.columns }}</p>
                     </div>
                 </div>
             </template>
@@ -67,21 +77,8 @@ export default {
     name: 'QuestionStats',
     props: {
         question: {
-            type: String,
-            required: true,
-        },
-        responseType: {
-            type: String,
-            required: true,
-            validator: value => ['single', 'multiple', 'open'].includes(value),
-        },
-        options: {
-            type: Array,
-            default: () => [],
-        },
-        responses: {
-            type: Array,
-            default: () => [],
+            type: Object,
+            required: true
         },
     },
     data() {
@@ -91,41 +88,62 @@ export default {
             chartColors: ['#95A4FC', '#BAEDBD', '#FFFDB5', '#B1E3FF', '#F9E2AF'],
             doughnutChart: null,
             barChart: null,
+            responses: this.question.responses || [], // 주관식 질문 응답
         };
     },
     computed: {
-        totalResponses() {
-            if (this.responseType === 'open') {
-                return this.responses.length;
-            }
-            return this.options.reduce((sum, option) => sum + option.count, 0);
+        hasResponses() {
+            return this.question.responses && this.question.responses.length > 0;
         },
+        isChartableQuestion() {
+            return ['SINGLE_CHOICE', 'MULTIPLE_CHOICE'].includes(this.question.questionType);
+        },
+        shouldShowChartToggle() {
+            return this.isChartableQuestion && this.hasResponses;
+        },
+        responseResults() {
+            // 데이터가 없을 때 빈 배열 반환
+            return this.question.responses ? this.question.responses.map((response) => ({
+                text: response.text,
+                count: response.count,
+            })) : [];
+        },
+
         chartData() {
-            const labels = this.options.map(option => option.text);
-            const data = this.options.map(option => option.count);
+            // 데이터가 없을 때 처리
+            if (!this.question.responses || this.question.responses.length === 0) {
+                return { labels: [], datasets: [{ data: [], backgroundColor: [] }] };
+            }
+
+            const labels = this.question.responses.map((option) => option.text);
+            const data = this.question.responses.map((option) => option.count);
             const colors = this.chartColors.slice(0, labels.length);
 
-            if (this.chartType === 'doughnut') {
+            if (this.chartType === "doughnut") {
                 return {
                     labels: labels.reverse(),
-                    datasets: [{
-                        data: data.reverse(),
-                        backgroundColor: colors.reverse(),
-                    }],
+                    datasets: [
+                        {
+                            data: data.reverse(),
+                            backgroundColor: colors.slice(0, labels.length).reverse(),
+                        },
+                    ],
                 };
             }
 
             return {
                 labels,
-                datasets: [{
-                    data,
-                    backgroundColor: colors,
-                }],
+                datasets: [
+                    {
+                        data,
+                        backgroundColor: colors.slice(0, labels.length),
+                    },
+                ],
             };
         },
     },
     mounted() {
-        if (this.responseType === 'single' || this.responseType === 'multiple') {
+        if (this.question.questionType === 'SINGLE_CHOICE' || this.question.questionType === 'MULTIPLE_CHOICE') {
             this.$nextTick(() => {
                 this.initializeCharts();
             });
@@ -136,8 +154,11 @@ export default {
     },
     methods: {
         calculatePercentage(value) {
-            return ((value / this.totalResponses) * 100).toFixed(1);
+            // 데이터가 없을 때 퍼센트 계산 방지
+            const total = this.question.totalResponseCount || 0;
+            return total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
         },
+
         async handleChartTypeChange(newType) {
             if (this.isChanging || this.chartType === newType) return;
 
@@ -158,50 +179,55 @@ export default {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: { duration: 300 },
+                    animation: {
+                        duration: 300,
+                    },
                     plugins: {
-                        legend: { display: false },
+                        legend: {
+                            display: false,
+                        },
                         tooltip: {
                             mode: 'index',
                             intersect: false,
                             displayColors: false,
                             callbacks: {
                                 label: (context) => {
-                                    const index = this.chartType === 'doughnut' ?
-                                        this.options.length - 1 - context.dataIndex :
-                                        context.dataIndex;
-                                    const option = this.options[index];
-                                    const percentage = this.calculatePercentage(option.count);
-                                    return `${option.text}: ${option.count}명 (${percentage}%)`;
-                                },
-                            },
-                        },
-                    },
-                },
+                                    const value = context.parsed;
+                                    const percentage = this.calculatePercentage(value);
+                                    return `${value}명 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
             };
 
-            if (type === 'doughnut') {
-                baseConfig.options.cutout = '88%';
-                baseConfig.data.datasets[0].borderWidth = 28;
-                baseConfig.data.datasets[0].hoverBorderWidth = 30; // 호버 시 두께 고정
+            if (type === "doughnut") {
+                baseConfig.options.cutout = '85%';
+                baseConfig.data.datasets[0].borderWidth = 30;
+                baseConfig.data.datasets[0].hoverBorderWidth = 30;
                 baseConfig.data.datasets[0].borderRadius = 30;
                 baseConfig.data.datasets[0].borderColor = baseConfig.data.datasets[0].backgroundColor;
             } else {
+                baseConfig.data.datasets[0].borderWidth = 0;
+                baseConfig.data.datasets[0].borderRadius = 15;
                 baseConfig.options.scales = {
                     y: { grid: { display: false } },
                     x: { grid: { display: false }, beginAtZero: true },
                 };
-                baseConfig.data.datasets[0].borderRadius = 15;
-                baseConfig.data.datasets[0].borderWidth = 0;
             }
 
             return baseConfig;
         },
+
         initializeCharts() {
+
             this.destroyCharts();
 
             const doughnutCtx = this.$refs.doughnutCanvas?.getContext('2d');
             const barCtx = this.$refs.barCanvas?.getContext('2d');
+
+            console.log("차트 데이터:", this.chartData);
 
             if (doughnutCtx) {
                 this.doughnutChart = new Chart(doughnutCtx, this.getChartConfig('doughnut'));
@@ -210,26 +236,21 @@ export default {
                 this.barChart = new Chart(barCtx, this.getChartConfig('bar'));
             }
         },
+
         updateCharts() {
             this.initializeCharts();
         },
+
         destroyCharts() {
-            if (this.doughnutChart) {
-                this.doughnutChart.destroy();
-                this.doughnutChart = null;
-            }
-            if (this.barChart) {
-                this.barChart.destroy();
-                this.barChart = null;
-            }
+            if (this.doughnutChart) this.doughnutChart.destroy();
+            if (this.barChart) this.barChart.destroy();
         },
+
     },
     watch: {
-        options: {
+        responseResults: {
             handler() {
-                if (this.responseType === 'single' || this.responseType === 'multiple') {
-                    this.updateCharts();
-                }
+                this.updateCharts();
             },
             deep: true,
         },
@@ -442,5 +463,18 @@ export default {
     margin: 0;
     font-size: 18px;
     padding-top: 2px;
+}
+
+.no-responses {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+    margin-right: 20px;
+    background-color: white;
+    border-radius: 8px;
+    color: #666;
+    font-size: 18px;
 }
 </style>

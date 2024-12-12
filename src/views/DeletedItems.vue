@@ -6,7 +6,7 @@
         <button class="action-btn" @click="toggleSelectAll">
           {{ isAllSelected ? "선택 해제" : "전체 선택" }}
         </button>
-        <button class="action-btn recover-btn" @click="recoverItems">
+        <button class="action-btn recover-btn" @click="restoreItems">
           복구하기
         </button>
         <button class="action-btn delete-btn" @click="deleteItems">
@@ -33,13 +33,13 @@
 
 <script>
 import { ref, onMounted } from "vue";
-import axios from "axios";
 import { toast } from "vue3-toastify";
 import {
   showSuccessAlert,
   showErrorAlert,
   showConfirmAlert,
 } from "@/utils/swalUtils";
+import { surveyAPI } from "@/service/surveyService";
 
 export default {
   name: "DeletedItems",
@@ -51,12 +51,10 @@ export default {
     // 삭제된 설문조사 데이터 가져오기
     const fetchSurveys = async () => {
       try {
-        const response = await axios.get(
-          "http://218.55.79.81:9000/surveys/delete"
-        );
+        const response = await surveyAPI.getDeletedSurveys();
 
         if (response.data.resultCode === "200") {
-          deletedSurveys.value = response.data.body; // 상태가 'DELETE'인 설문조사 목록
+          deletedSurveys.value = response.data.body;
         } else {
           throw new Error(
             response.data.message || "데이터를 가져오지 못했습니다."
@@ -97,23 +95,17 @@ export default {
     };
 
     // 복구 로직
-    const recoverItems = async () => {
+    const restoreItems = async () => {
       if (selectedSurveys.value.length === 0) {
         showErrorAlert("복구 실패", "복구할 설문을 선택하세요.");
         return;
       }
 
       try {
-        // 복구할 설문조사들에 대해 POST 요청을 보냄
-        const response = await axios.post(
-          "http://218.55.79.81:9000/surveys/restore",
-          {
-            surveyIds: selectedSurveys.value, // 선택된 설문 ID 리스트 전송
-          }
-        );
-
-        // 추가된 체크: 응답 데이터 로깅
-        console.log("복구 응답:", response);
+        const response = await surveyAPI.restoreSurvey({
+          surveyIds: selectedSurveys.value // 선택된 설문 ID 배열
+        });
+        // console.log("복구 응답:", response);
 
         // 응답의 resultCode가 '204'인 경우 성공 처리
         if (response.data.resultCode === "204") {
@@ -153,15 +145,9 @@ export default {
         subMessage: "* 삭제 후에는 복구할 수 없습니다.",
         onConfirm: async () => {
           try {
-            // DELETE 요청으로 여러 설문을 한 번에 삭제
-            await axios.delete(
-              "http://218.55.79.81:9000/surveys",
-              {
-                data: {
-                  surveyIds: selectedSurveys.value, // 선택된 설문 ID 리스트 전송
-                },
-              }
-            );
+            await surveyAPI.hardDeleteSurvey({
+              surveyIds: selectedSurveys.value
+            });
 
             // 삭제된 설문조사 항목을 리스트에서 제외
             deletedSurveys.value = deletedSurveys.value.filter(
@@ -195,7 +181,7 @@ export default {
       isAllSelected,
       toggleSelectAll,
       toggleSelection,
-      recoverItems,
+      restoreItems,
       deleteItems,
     };
   },

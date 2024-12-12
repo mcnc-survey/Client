@@ -1,7 +1,14 @@
 <template>
     <div class="stats-section">
+        <div v-if="loading" class="loading-container">
+            <p>데이터를 불러오는 중...</p>
+        </div>
+        <div v-else-if="error" class="error-container">
+            <p>{{ error }}</p>
+        </div>
+
         <!-- 상단 통계 카드 -->
-        <div class="info-cards-container">
+        <div v-else class="info-cards-container">
             <div class="info-card respondent-card">
                 <h3>응답자 수</h3>
                 <p>{{ surveySummary.respondentCount }}명</p>
@@ -16,52 +23,77 @@
             </div>
             <div class="share-buttons-container">
                 <button class="share-button download-excel" @click="downloadExcel">
-                    <img src="../assets/images/excel.svg" class="excel-icon">응답 데이터 엑셀로 다운로드
-                </button>
+                    <img src="../assets/images/excel.svg" class="excel-icon">응답 데이터 엑셀로 다운로드</button>
                 <button class="share-button send-email" @click="sendEmail">
-                    <img src="../assets/images/gmail.svg" class="gmail-icon">응답 데이터 메일로 공유하기
-                </button>
+                    <img src="../assets/images/gmail.svg" class="gmail-icon">응답 데이터 메일로 공유하기</button>
             </div>
         </div>
 
         <!-- 문항별 통계 -->
-        <div class="questions-stats-container">
-            <QuestionStats v-for="(question, id) in surveyResults" :key="id" :question="question.questionTitle"
-                :response-type="question.responseType" :options="question.options || []"
-                :responses="question.responses || []" />
+        <div v-if="!loading && !error" class="questions-stats-container">
+            <QuestionStats v-for="(question, id) in surveyResults" :key="id" :question="question" />
         </div>
     </div>
 </template>
 
 <script>
-import surveyData from "@/data/surveyResult";  // 임시 데이터
-import QuestionStats from "../components/QuestionsStats.vue";  // 문항 통계 컴포넌트
+import QuestionStats from "../components/QuestionsStats.vue";
+import { surveyAPI } from '@/service/surveyService';
+import { useRoute } from 'vue-router';
 
 export default {
     name: "StatsTab",
     components: {
         QuestionStats,
     },
+    props: {
+        surveyId: {
+            type: String,
+            required: true
+        }
+    },
     data() {
         return {
-            surveySummary: surveyData.body.surveySummary,
-            surveyResults: surveyData.body.surveyResults,
+            surveySummary: {},
+            surveyResults: {},
+            loading: true,
+            error: null,
         };
     },
     computed: {
         remainingTime() {
+            if (!this.surveySummary.endDate) return "종료됨";
             const now = new Date();
             const endDate = new Date(this.surveySummary.endDate);
             const diff = endDate - now;
-
             if (diff <= 0) return "종료됨";
-
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
             return `${days}일 ${hours}시간`;
         },
     },
     methods: {
+        async fetchSurveyResults() {
+            const route = useRoute();
+
+            try {
+                this.loading = true;
+                const response = await surveyAPI.getSurveyStats(route.params.id);
+
+                if (response.data.resultCode === "200") {
+                    this.surveySummary = response.data.body.surveySummary;
+                    this.surveyResults = response.data.body.surveyResults || {};
+
+                } else {
+                    throw new Error('데이터를 불러오는 데 실패했습니다.');
+                }
+            } catch (error) {
+                this.error = error.response?.data?.message || error.message || '데이터를 불러오는 중 오류가 발생했습니다.';
+                console.error('API 호출 오류:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
         downloadExcel() {
             console.log("엑셀 다운로드 클릭");
         },
@@ -69,6 +101,9 @@ export default {
             console.log("이메일 공유 클릭");
         },
     },
+    created() {
+        this.fetchSurveyResults();
+    }
 };
 </script>
 

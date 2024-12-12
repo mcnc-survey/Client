@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <component :is="currentTabComponent" />
+    <component :is="currentTabComponent" :surveyId="surveyId" />
   </div>
 </template>
 
