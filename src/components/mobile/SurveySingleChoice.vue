@@ -79,14 +79,7 @@ export default {
   padding: 10px 15px;
   margin-bottom: 10px;
   font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
   position: relative;
-}
-
-.options label:hover {
-  background: #dbe4eb; /* 호버 배경색 */
-  transform: scale(1.02); /* 살짝 확대 효과 */
 }
 
 .options label.selected {
@@ -104,14 +97,12 @@ export default {
   border-radius: 50%;
   position: relative;
   margin-left: 10px;
-  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .radio-input:checked + .custom-radio {
   background-image: url("../../assets/images/selected.svg"); /* 이미지 경로 */
   background-repeat: no-repeat;
   background-position: center;
-  transform: scale(0.9);
 }
 
 .radio-input:checked + .custom-radio::after {

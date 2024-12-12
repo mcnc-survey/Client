@@ -58,12 +58,31 @@ export default {
 .survey-page {
   width: 100%;
   height: 100%;
-  overflow-y: auto;
+  overflow-y: auto; /* 수직 스크롤 추가 */
   box-sizing: border-box; /* padding을 포함하여 크기 계산 */
 
   display: flex;
-  align-items: center;
   flex-direction: column;
+  align-items: center;
+}
+
+/* 스크롤바 스타일링 */
+.survey-page::-webkit-scrollbar {
+  width: 8px;
+}
+
+.survey-page::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.survey-page::-webkit-scrollbar-thumb {
+  background: #e8eaec;
+  border-radius: 4px;
+}
+
+.survey-page::-webkit-scrollbar-thumb:hover {
+  background: #d1d5d9;
 }
 
 .survey-submit-button {

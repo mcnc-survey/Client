@@ -1,6 +1,7 @@
 import axios from "./axios";
 
 export const surveyAPI = {
+  
   // 설문 생성
   createSurvey: (data) => axios.post("/surveys", data),
 
