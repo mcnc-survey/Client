@@ -87,32 +87,6 @@
             </div>
           </div>
 
-          <!-- 그리드 질문 -->
-          <div v-else-if="question.type === 'grid'" class="grid-container">
-          <table>
-              <thead>
-              <tr>
-                  <th></th>
-                  <th v-for="(column, colIndex) in question.columns" :key="colIndex">
-                  {{ column.text }}
-                  </th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr v-for="(row, rowIndex) in question.rows" :key="rowIndex">
-                  <td>{{ row.text }}</td>
-                  <td v-for="(column, colIndex) in question.columns" :key="colIndex">
-                  <input
-                      type="radio"
-                      :name="'grid-' + index + '-' + rowIndex"
-                      :value="column.text"
-                  >
-                  </td>
-              </tr>
-              </tbody>
-          </table>
-          </div>
-
           <!-- 주관식 짧은 답변 -->
           <div v-else-if="question.type === 'short'" class="text-answer">
               <input
@@ -413,36 +387,6 @@ export default {
 
 .input-wrapper:hover .underline {
   background: rgba(191, 208, 224, 0.4);
-}
-
-.grid-container {
-  overflow-x: auto;
-  margin-top: 10px;
-}
-
-.grid-container table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 400px;
-}
-
-.grid-container th,
-.grid-container td {
-  padding: 12px;
-  text-align: center;
-  border: 1px solid #eee;
-}
-
-.grid-container th:first-child,
-.grid-container td:first-child {
-  text-align: left;
-  min-width: 150px;
-}
-
-.grid-container input[type="radio"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
 }
 
 .text-answer input,

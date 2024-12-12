@@ -7,7 +7,7 @@
         :class="{ 'disabled': isTitleSelected }"
         @click="!isTitleSelected && $emit('change-type', 'single')"
       >
-        <img src="@/assets/images/single_multiple_choice.png" alt="단일 선택" />
+        <img src="@/assets/images/single_multiple_choice.svg" alt="단일 선택" />
         <span>단일 선택</span>
       </div>
       <div 
@@ -15,7 +15,7 @@
         :class="{ 'disabled': isTitleSelected }"
         @click="!isTitleSelected && $emit('change-type', 'multiple')"
       >
-        <img src="@/assets/images/single_multiple_choice.png" alt="중복 선택" />
+        <img src="@/assets/images/single_multiple_choice.svg" alt="중복 선택" />
         <span>중복 선택</span>
       </div>
       <div 
@@ -23,7 +23,7 @@
         :class="{ 'disabled': isTitleSelected }"
         @click="!isTitleSelected && $emit('change-type', 'short')"
       >
-        <img src="@/assets/images/short_answer.png" alt="단답형" />
+        <img src="@/assets/images/short_answer.svg" alt="단답형" />
         <span>단답형</span>
       </div>
       <div 
@@ -31,7 +31,7 @@
         :class="{ 'disabled': isTitleSelected }"
         @click="!isTitleSelected && $emit('change-type', 'long')"
       >
-        <img src="@/assets/images/descriptive_answer.png" alt="장문형" />
+        <img src="@/assets/images/descriptive_answer.svg" alt="장문형" />
         <span>장문형</span>
       </div>
 
@@ -39,7 +39,7 @@
         class="tab-item add-question"
         @click="$emit('add-question')"
       >
-        <img src="@/assets/images/add_option.png" alt="질문 추가" />
+        <img src="@/assets/images/add_question.svg" alt="질문 추가" />
         <span>질문 추가</span>
       </div>
     </div>
@@ -113,9 +113,9 @@ export default {
 }
 
 .tab-item img {
-  width: 16px;
-  height: 16px;
-  min-width: 16px; /* 이미지가 찌그러지지 않도록 최소 너비 설정 */
+  width: 20px;
+  height: 20px;
+  min-width: 20px; /* 이미지가 찌그러지지 않도록 최소 너비 설정 */
 }
 
 .tab-item span {

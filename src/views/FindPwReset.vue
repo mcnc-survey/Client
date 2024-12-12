@@ -25,8 +25,8 @@
                 <img 
                     v-if="password"
                     :src="showPassword 
-                        ? require('@/assets/images/eye_hide.png')
-                        : require('@/assets/images/eye_show.png')"
+                        ? require('@/assets/images/eye_hide.svg')
+                        : require('@/assets/images/eye_show.svg')"
                     @click="togglePassword"
                     class="eye-icon"
                     :alt="showPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
@@ -56,8 +56,8 @@
                 <img 
                     v-if="passwordConfirm"
                     :src="showPasswordConfirm
-                        ? require('@/assets/images/eye_hide.png')
-                        : require('@/assets/images/eye_show.png')"
+                        ? require('@/assets/images/eye_hide.svg')
+                        : require('@/assets/images/eye_show.svg')"
                     @click="togglePasswordConfirm"
                     class="eye-icon"
                     :alt="showPasswordConfirm ? '비밀번호 숨기기' : '비밀번호 보기'"
@@ -321,8 +321,8 @@ html, body {
     right: 15px;
     top: 50%;
     transform: translateY(-50%);
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     cursor: pointer;
     padding: 2px;
 }
