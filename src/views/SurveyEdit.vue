@@ -49,7 +49,7 @@
             <div class="survey-period">
               <div class="period-select" @click="openPeriodModal">
                 <img
-                  src="@/assets/images/edit_date.png"
+                  src="@/assets/images/edit_date.svg"
                   alt="달력"
                   class="calendar-icon"
                 />
@@ -125,7 +125,6 @@ import { debounce } from 'lodash';
 import QuestionTypeTab from '@/components/QuestionTypeTab.vue';
 import SingleChoiceQuestion from '@/components/SingleChoiceQuestion.vue';
 import MultipleChoiceQuestion from '@/components/MultipleChoiceQuestion.vue';
-import GridQuestion from '@/components/GridQuestion.vue';
 import ShortAnswerQuestion from '@/components/ShortAnswerQuestion.vue';
 import LongAnswerQuestion from '@/components/DescriptiveAnswerQuestion.vue';
 import PeriodModalComponent from '@/components/PeriodModalComponent.vue';
@@ -139,7 +138,6 @@ export default {
    QuestionTypeTab,
    SingleChoiceQuestion,
    MultipleChoiceQuestion,
-   GridQuestion,
    ShortAnswerQuestion,
    LongAnswerQuestion,
    PeriodModalComponent
@@ -176,6 +174,12 @@ export default {
     try {
       const response = await surveyAPI.getSurveyForEdit(surveyId.value);
       console.log(response);
+
+      // 실패 케이스 먼저 처리
+      if (!response.data.success) {
+        throw new Error(response.data.body || response.data.message);
+      }
+
       if (response.data.resultCode === "200") {
         const { body } = response.data;
         
@@ -264,7 +268,8 @@ export default {
       }
     } catch (error) {
       console.error('Error fetching survey data:', error);
-      // 에러 처리 로직 추가 필요
+      await showErrorAlert("설문 조회 실패", "설문을 불러오는데 실패했습니다.");
+      router.replace({ name: 'SurveyManagement' });
     } finally {
 
     }
