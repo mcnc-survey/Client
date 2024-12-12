@@ -53,7 +53,7 @@
           type="text"
           v-model="option.text"
           placeholder="옵션"
-          @input="updateQuestion"
+          @input="(e) => validateAndUpdateOption(option, e.target.value)"
           :readonly="option.isOther"
           :class="{ 'other-option': option.isOther }"
         >
@@ -84,6 +84,7 @@
 <script>
 import { cloneDeep } from 'lodash';
 import { nextTick } from 'vue';
+import { showErrorAlert } from '@/utils/swalUtils';
 
 export default {
   name: 'MultipleChoiceQuestion',
@@ -128,6 +129,21 @@ export default {
       nextTick(() => {
         this.adjustHeight();
       });
+    },
+
+    validateAndUpdateOption(option, value) {
+      if (value.includes('|`|')) {
+        // 특수문자 제거
+        option.text = value.replace(/\|\`\|/g, '');
+        // 에러 메시지 표시
+        showErrorAlert(
+          "옵션 입력 오류", 
+          "'|`|' 문자는 옵션 텍스트에 사용할 수 없습니다."
+        );
+      } else {
+        option.text = value;
+      }
+      this.updateQuestion();
     },
 
     addOption() {

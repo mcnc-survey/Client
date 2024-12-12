@@ -54,6 +54,12 @@ export const showErrorAlert = (title, message = null) => {
       content: "custom-alert-content",
     },
     buttonsStyling: false,
+    didOpen: () => {
+      const confirmButton = Swal.getConfirmButton();
+      if (confirmButton) {
+        confirmButton.style.margin = "0 0 35px 0";
+      }
+    },
   });
 };
 

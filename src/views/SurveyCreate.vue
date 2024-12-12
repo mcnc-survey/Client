@@ -11,7 +11,7 @@
       <div class="content-area">
         <!-- 메인 설문 영역 -->
         <div class="survey-container">
-          <div class="title-container" @click="selectTitleContainer" :class="{ error: showTitleError, selected: isTitleContainerSelected }">
+          <div class="title-container" @click="selectTitleContainer" :class="{ error: showTitleError || showPeriodError, selected: isTitleContainerSelected }">
             <!-- 설문 제목 입력 -->
             <div class="input-wrapper">
               <textarea
@@ -51,8 +51,8 @@
                 {{ formattedPeriod }}
               </div>
             </div>
-            <div v-if="showTitleError" class="error-message">
-              설문 제목을 입력해주세요.
+            <div v-if="showTitleError || showPeriodError" class="error-message">
+              설문 제목 및 기간을 모두 입력해주세요.
             </div>
           </div>
 
@@ -77,7 +77,7 @@
                   @copy="copyQuestion(index)"
                 />
                 <div v-if="questionErrors[index]" class="error-message">
-                  질문과 옵션을 모두 입력해주세요.
+                  {{ getErrorMessage(question.type) }}
                 </div>
               </div>
             </div>
@@ -98,10 +98,12 @@
 
     <!-- 설문 기간 선택 컴포넌트 -->
     <PeriodModalComponent
-      v-model="showPeriodModal"
-      v-model:startDateTime="startDateTime"
-      v-model:endDateTime="endDateTime"
-      :show-error="showError"
+      v-if="showPeriodModal"
+      :show-period-modal="showPeriodModal"
+      :initial-start-date="startDate"
+      :initial-start-time="startTime"
+      :initial-end-date="endDate"
+      :initial-end-time="endTime"
       @cancel="closePeriodModal"
       @confirm="confirmPeriod"
     />
@@ -119,9 +121,12 @@ import GridQuestion from "@/components/GridQuestion.vue";
 import ShortAnswerQuestion from "@/components/ShortAnswerQuestion.vue";
 import LongAnswerQuestion from "@/components/DescriptiveAnswerQuestion.vue";
 import PeriodModalComponent from "@/components/PeriodModalComponent.vue";
-import { showConfirmAlert } from '@/utils/swalUtils';
+import { showConfirmAlert, showErrorAlert } from '@/utils/swalUtils';
+import { surveyAPI } from '@/service/surveyService';
 
 export default {
+  name: 'SurveyCreate',
+
   components: {
     PeriodModalComponent,
     QuestionTypeTab,
@@ -146,17 +151,19 @@ export default {
     const descFocused = ref(false);
     const showTitleError = ref(false);
     const questionErrors = ref({});
+    const showPeriodError = ref(false);
 
     // Period modal state
     const showPeriodModal = ref(false);
-    const startDateTime = ref(null);
-    const endDateTime = ref(null);
-    const showError = ref(false);
+    const startDate = ref("");
+    const startTime = ref("");
+    const endDate = ref("");
+    const endTime = ref("");
 
-    const isTitleContainerSelected = ref(false);
+    const isTitleContainerSelected = ref(true);
 
     // Question data
-    const selectedQuestionIndex = ref(0);
+    const selectedQuestionIndex = ref(null);
     const sideTabTop = ref(0);
     const questions = ref([
       {
@@ -169,13 +176,20 @@ export default {
 
     // Computed
     const formattedPeriod = computed(() => {
-      if (!startDateTime.value && !endDateTime.value) {
+      if (!startDate.value || !endDate.value) {
         return "시작 날짜 ~ 종료 날짜";
       }
-      return formatDateTime(startDateTime.value) + " ~ " + formatDateTime(endDateTime.value);
+      return `${startDate.value} ${startTime.value ? formatDisplayTime(startTime.value) : ''} ~ ${endDate.value} ${endTime.value ? formatDisplayTime(endTime.value) : ''}`;
     });
 
-    // Methods
+    const formatDisplayTime = (time) => {
+      if (!time) return "";
+      const [hours, minutes] = time.split(":").map(Number);
+      const ampm = hours < 12 ? "오전" : "오후";
+      const hour = hours % 12 || 12;
+      return `${ampm} ${hour}:${minutes.toString().padStart(2, "0")}`;
+    };
+
     const formatDateTime = (datetime) => {
       if (!datetime) return '';
       const date = new Date(datetime);
@@ -191,17 +205,29 @@ export default {
     };
 
     const updateSideTabPosition = () => {
-      if (selectedQuestionIndex.value !== null && 
-          questionContainer.value[selectedQuestionIndex.value]) {
-        const selectedElement = questionContainer.value[selectedQuestionIndex.value];
-        const containerRect = createContainer.value.getBoundingClientRect();
-        const titleContainer = document.querySelector('.title-container');
-        const rect = selectedElement.getBoundingClientRect();
-        const minTop = titleContainer.getBoundingClientRect().top - containerRect.top;
-        const maxTop = containerRect.height - 300;
-        const relativeTop = rect.top - containerRect.top;
-        const constrainedTop = Math.max(minTop, Math.min(relativeTop, maxTop));
-        sideTabTop.value = constrainedTop;
+      const scrollContainer = createContainer.value;
+      if (!scrollContainer) return;
+      
+      let targetElement;
+      
+      if (isTitleContainerSelected.value) {
+        targetElement = scrollContainer.querySelector('.title-container');
+      } else if (selectedQuestionIndex.value !== null && 
+                questionContainer.value[selectedQuestionIndex.value]) {
+        targetElement = questionContainer.value[selectedQuestionIndex.value];
+      }
+      
+      if (targetElement) {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const elementRect = targetElement.getBoundingClientRect();
+        const scrollTop = scrollContainer.scrollTop;
+        
+        // 질문 컨테이너와 수평을 맞추기 위한 오프셋 계산
+        const offset = 20; // 질문 컨테이너와의 간격
+        const relativeTop = elementRect.top - containerRect.top + scrollTop - offset;
+        const maxTop = scrollContainer.scrollHeight - 300;
+        
+        sideTabTop.value = Math.min(Math.max(0, relativeTop), maxTop);
       }
     };
 
@@ -217,11 +243,19 @@ export default {
       selectedQuestionIndex.value = null;
       isTitleContainerSelected.value = true;
       
-      const titleContainer = document.querySelector('.title-container');
-      if (titleContainer && createContainer.value) {
-        const containerRect = createContainer.value.getBoundingClientRect();
+      const containerElement = createContainer.value;
+      if (!containerElement) return;
+      
+      const titleContainer = containerElement.querySelector('.title-container');
+      if (titleContainer) {
+        const containerRect = containerElement.getBoundingClientRect();
         const rect = titleContainer.getBoundingClientRect();
         sideTabTop.value = rect.top - containerRect.top;
+        
+        containerElement.scrollTo({
+          top: titleContainer.offsetTop - 20,
+          behavior: 'smooth'
+        });
       }
     };
 
@@ -229,9 +263,13 @@ export default {
       selectedQuestionIndex.value = index;
       isTitleContainerSelected.value = false;
       
-      if (questionContainer.value[index]) {
+      if (questionContainer.value[index] && createContainer.value) {
         const element = questionContainer.value[index];
-        element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const containerElement = createContainer.value;
+        containerElement.scrollTo({
+          top: element.offsetTop - 20,
+          behavior: 'smooth'
+        });
         
         setTimeout(() => {
           updateSideTabPosition();
@@ -307,7 +345,7 @@ export default {
         short: "ShortAnswerQuestion",
         long: "LongAnswerQuestion",
       };
-      return components[type];
+      return components[type] || components.single;
     };
 
     // Period related methods
@@ -316,13 +354,14 @@ export default {
     };
 
     const closePeriodModal = () => {
-      showError.value = false;
       showPeriodModal.value = false;
     };
 
-    const confirmPeriod = ({ startDateTime: start, endDateTime: end }) => {
-      startDateTime.value = start;
-      endDateTime.value = end;
+    const confirmPeriod = ({ startDate: newStartDate, endDate: newEndDate, startTime: newStartTime, endTime: newEndTime }) => {
+      startDate.value = newStartDate;
+      startTime.value = newStartTime;
+      endDate.value = newEndDate;
+      endTime.value = newEndTime;
       showPeriodModal.value = false;
     };
 
@@ -330,22 +369,38 @@ export default {
       const previewData = {
         title: title.value,
         description: description.value,
-        startDateTime: startDateTime.value,
-        endDateTime: endDateTime.value,
+        startDate: startDate.value,
+        startTime: startTime.value,
+        endDate: endDate.value,
+        endTime: endTime.value,
         questions: questions.value
       };
 
       sessionStorage.setItem('surveyPreviewData', JSON.stringify(previewData));
-      
       const route = router.resolve({ name: 'SurveyPreview' });
       window.open(route.href, '_blank');
+    };
+
+    const getErrorMessage = (type) => {
+      switch(type) {
+        case 'single':
+        case 'multiple':
+          return '질문 및 옵션을 모두 입력해주세요.';
+        case 'short':
+        case 'long':
+          return '질문을 입력해주세요.';
+        default:
+          return '질문을 입력해주세요.';
+      }
     };
 
     const validateAndSave = () => {
       let isValid = true;
       
       showTitleError.value = !title.value.trim();
-      if (showTitleError.value) {
+      showPeriodError.value = !startDate.value || !startTime.value || !endDate.value || !endTime.value;
+      
+      if (showTitleError.value || showPeriodError.value) {
         isValid = false;
       }
 
@@ -371,11 +426,30 @@ export default {
       });
 
       if (!isValid) {
-        if (showTitleError.value) {
-          document.querySelector('.title-container').scrollIntoView({ behavior: 'smooth' });
+        const containerElement = createContainer.value;
+        if (!containerElement) return;
+
+        if (showTitleError.value || showPeriodError.value) {
+          const titleElement = containerElement.querySelector('.title-container');
+          if (titleElement) {
+            // 컨테이너 내부에서의 스크롤 처리
+            containerElement.scrollTo({
+              top: titleElement.offsetTop - 20,
+              behavior: 'smooth'
+            });
+          }
         } else {
           const firstErrorIndex = Object.keys(questionErrors.value)[0];
-          questionContainer.value[firstErrorIndex]?.scrollIntoView({ behavior: 'smooth' });
+          if (firstErrorIndex !== undefined) {
+            const questionElement = questionContainer.value[firstErrorIndex];
+            if (questionElement) {
+              // 컨테이너 내부에서의 스크롤 처리
+              containerElement.scrollTo({
+                top: questionElement.offsetTop - 20,
+                behavior: 'smooth'
+              });
+            }
+          }
         }
         return;
       }
@@ -383,12 +457,69 @@ export default {
       saveSurvey();
     };
 
-    const saveSurvey = () => {
+    const saveSurvey = async () => {
+    try {
+      const formatDateTime = (date, time) => {
+        if (!date || !time) return null;
+        const [year, month, day] = date.split('. ');
+        const [timeStr, period] = time.split(' ');
+        const [hour, minute] = timeStr.split(':');
+        
+        let hour24 = parseInt(hour);
+        if (period === '오후' && hour24 !== 12) hour24 += 12;
+        if (period === '오전' && hour24 === 12) hour24 = 0;
+        
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour24.toString().padStart(2, '0')}:${minute}:00`;
+      };
+
+      const formatQuestions = (questions) => {
+        return questions.map((q, index) => {
+          const questionType = {
+            'single': 'SINGLE_CHOICE',
+            'multiple': 'MULTIPLE_CHOICE',
+            'short': 'SHORT_ANSWER',
+            'long': 'LONG_ANSWER'
+          }[q.type];
+
+          const hasOtherOption = q.options ? q.options.some(opt => opt.isOther) : false;
+
+          let columns = null;
+          if (q.options) {
+            // isOther가 true가 아닌 옵션들만 columns에 포함
+            columns = q.options
+              .filter(opt => !opt.isOther)
+              .map(opt => opt.text)
+              .join('|`| ');
+          }
+
+          return {
+            title: q.title,
+            questionType,
+            order: index + 1,
+            columns,
+            rows: null,
+            required: q.required,
+            etc: hasOtherOption
+          };
+        });
+      };
+
+      const surveyData = {
+        title: title.value,
+        description: description.value,
+        startAt: formatDateTime(startDate.value, startTime.value),
+        endAt: formatDateTime(endDate.value, endTime.value),
+        questions: formatQuestions(questions.value)
+      };
+
+      await surveyAPI.createSurvey(surveyData);
       hasUnsavedChanges.value = false;
-      router.push({ name: "SurveyCompletion" }).catch((error) => {
-        console.error("SurveyCompletion 페이지로 이동 실패:", error);
-      });
-    };
+      router.push({ name: "SurveyCompletion" });
+    } catch (error) {
+      console.error('설문 저장 실패:', error);
+      showErrorAlert( "설문조사 생성 실패", "설문조사 생성 중 오류가 발생했습니다." );
+    }
+  };
 
     onBeforeRouteLeave((to, from, next) => {
       if (!hasUnsavedChanges.value) {
@@ -419,9 +550,12 @@ export default {
 
     onMounted(() => {
       nextTick(() => {
+        selectTitleContainer();
         updateSideTabPosition();
         window.addEventListener("resize", debouncedUpdatePosition);
-        window.addEventListener("scroll", debouncedUpdatePosition);
+        if (createContainer.value) {
+          createContainer.value.addEventListener("scroll", debouncedUpdatePosition);
+        }
         window.addEventListener('beforeunload', handleBeforeUnload);
       });
 
@@ -433,14 +567,55 @@ export default {
         hasUnsavedChanges.value = true;
       }, { deep: true });
 
-      watch([startDateTime, endDateTime], () => {
+      watch([startDate, startTime, endDate, endTime], () => {
         hasUnsavedChanges.value = true;
       });
+
+      // 제목과 기간 입력 감시
+      watch([title, startDate, startTime, endDate, endTime], () => {
+        hasUnsavedChanges.value = true;
+        
+        // 에러 상태 실시간 업데이트
+        if (showTitleError.value || showPeriodError.value) {
+          showTitleError.value = !title.value.trim();
+          showPeriodError.value = !startDate.value || !startTime.value || !endDate.value || !endTime.value;
+        }
+      });
+
+      // 질문 입력 감시
+      watch(questions, (newQuestions) => {
+        hasUnsavedChanges.value = true;
+        // 에러가 있는 질문들만 실시간 검사
+        Object.keys(questionErrors.value).forEach(index => {
+          if (questionErrors.value[index]) {
+            const question = newQuestions[index];
+            let hasError = false;
+            
+            if (!question.title.trim()) {
+              hasError = true;
+            }
+
+            if (question.type === 'single' || question.type === 'multiple') {
+              if (!question.options || question.options.length === 0 || 
+                  question.options.some(opt => !opt.text.trim())) {
+                hasError = true;
+              }
+            }
+
+            // 에러가 해결되었다면 해당 질문의 에러 상태 제거
+            if (!hasError) {
+              delete questionErrors.value[index];
+            }
+          }
+        });
+      }, { deep: true });
     });
 
     onBeforeUnmount(() => {
       window.removeEventListener("resize", debouncedUpdatePosition);
-      window.removeEventListener("scroll", debouncedUpdatePosition);
+      if (createContainer.value) {
+        createContainer.value.removeEventListener("scroll", debouncedUpdatePosition);
+      }
       window.removeEventListener('beforeunload', handleBeforeUnload);
     });
 
@@ -452,9 +627,6 @@ export default {
       titleFocused,
       descFocused,
       showPeriodModal,
-      startDateTime,
-      endDateTime,
-      showError,
       selectedQuestionIndex,
       sideTabTop,
       questions,
@@ -476,7 +648,14 @@ export default {
       validateAndSave,
       showTitleError,
       questionErrors,
-      hasUnsavedChanges
+      hasUnsavedChanges,
+      showPeriodError,
+      startDate,
+      startTime,
+      endDate,
+      endTime,
+      formatDisplayTime,
+      getErrorMessage
     };
   },
 };
@@ -487,7 +666,7 @@ export default {
 .survey-create {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100%;
   padding: 0 10px 10px;
 }
 
@@ -540,24 +719,23 @@ export default {
 
 .create-container {
   width: 100%;
-  min-height: 100%;
   background-color: #f7f9fb;
   border-radius: 30px;
   padding: 20px;
-  margin: 0 auto;
+  margin-bottom: 20px;
+  overflow-y: auto;
+  min-height: 80vh;
 }
 
 .content-area {
   display: flex;
   justify-content: center;
-  min-height: 100%;
   position: relative;
 }
 
 .survey-container {
   width: 60%;
   height: 100%;
-  min-height: 100vh;
   display: block;
   margin-right: 100px;
   position: relative;

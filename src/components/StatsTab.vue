@@ -76,7 +76,7 @@ export default {
 .stats-section {
     font-family: Pretendard;
     overflow-y: auto;
-    overflow: hidden;
+    height: 100%;
 }
 
 .stats-section::-webkit-scrollbar {
