@@ -84,6 +84,7 @@
 
 <script>
 import Swal from "sweetalert2";
+import { API } from "../service/mobileService";
 
 export default {
   data() {
@@ -91,8 +92,8 @@ export default {
       email: "",
       name: "",
       phone: "",
-      verificationCode: "", // 인증 코드 저장
-      token: this.$route.query.t, // URL에서 토큰 받기
+      verificationCode: "",
+      token: this.$route.query.t,
     };
   },
   methods: {
@@ -109,7 +110,11 @@ export default {
         return;
       }
 
-      // 서버로 인증 코드 요청 로직 (여기선 예제용)
+      // 주석 처리된 API 호출
+      // API.sendVerificationCode(this.email)
+      //   .then(() => {
+
+      // 인증 성공을 가정한 코드
       Swal.fire({
         title: "인증번호를 입력해주세요",
         input: "text",
@@ -124,10 +129,20 @@ export default {
         },
       }).then((result) => {
         if (result.isConfirmed) {
-          this.verificationCode = result.value; // 인증 코드 저장
+          this.verificationCode = result.value;
           Swal.fire("인증 성공", "인증번호가 확인되었습니다.", "success");
         }
       });
+
+      // })
+      // .catch((error) => {
+      //   Swal.fire({
+      //     icon: "error",
+      //     title: "인증 코드 요청 실패",
+      //     text: error.response?.data?.message || "다시 시도해주세요.",
+      //     confirmButtonText: "확인",
+      //   });
+      // });
     },
     submitForm() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -166,20 +181,59 @@ export default {
         return;
       }
 
-      // 서버로 데이터 전송 로직
       const requestData = {
-        email: this.email,
         name: this.name,
-        phone: this.phone,
-        verificationCode: this.verificationCode, // 인증 코드 포함
-        token: this.token, // 토큰 포함
+        email: this.email,
+        phoneNumber: this.phone,
       };
 
-      // 예제: 성공적으로 인증 완료 처리
-      this.$router.push(`/mobile/survey?t=${this.token}`);
+      API.submitParticipantInfo(requestData)
+        .then((response) => {
+          if (response.data.success) {
+            Swal.fire({
+              icon: "success",
+              title: "로그인 성공",
+              text: "설문 페이지로 이동합니다.",
+              confirmButtonText: "확인",
+            }).then(() => {
+              this.$router.push(`/mobile/survey?t=${this.token}`);
+            });
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "로그인 실패",
+              text: response.data.message || "다시 시도해주세요.",
+              confirmButtonText: "확인",
+            });
+          }
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: "error",
+            title: "오류 발생",
+            text:
+              error.response?.data?.message || "서버와 통신에 실패했습니다.",
+            confirmButtonText: "확인",
+          });
+        });
     },
     handleSocialLogin(platform) {
-      this.$router.push(`/mobile/survey?t=${this.token}`);
+      const baseUrl = "https://mobile.mcnc-survey.store/oauth2/authorization";
+      const surveyId = "8385b7f6-bda1-44a4-ae3d-3616ea6e575f";
+
+      switch (platform) {
+        case "kakao":
+          window.location.href = `${baseUrl}/kakao?surveyId=${surveyId}`;
+          break;
+        case "google":
+          window.location.href = `${baseUrl}/google?surveyId=${surveyId}`;
+          break;
+        case "naver":
+          window.location.href = `${baseUrl}/naver?surveyId=${surveyId}`;
+          break;
+        default:
+          alert("지원하지 않는 플랫폼입니다.");
+      }
     },
   },
 };
@@ -194,7 +248,6 @@ export default {
   margin: 0 auto;
   background: #f7f9fb;
   overflow: hidden;
-  box-sizing: border-box;
 
   display: flex;
   justify-content: center; /* 수평 가운데 정렬 */
@@ -227,12 +280,8 @@ export default {
   flex-direction: column;
   justify-content: center;
   padding: 10px 15px;
-  box-sizing: border-box;
-  transition: background-color 0.3s, border 0.3s;
 }
 
-/* input-group hover 및 포커스 스타일 */
-.input-group:hover,
 .input-group:focus-within {
   background: #f0f4f8; /* 배경색 밝게 변경 */
   border: 1px solid #c5dff0; /* 테두리 추가 */
@@ -245,7 +294,7 @@ export default {
   font-weight: 400;
   font-size: 14px;
   line-height: 17px;
-  border: none;
+  border-style: none;
   background: transparent; /* 배경 기본 투명 */
   outline: none; /* 포커스 시 테두리 제거 */
   width: 100%; /* 입력 필드의 크기 확장 */
@@ -299,10 +348,6 @@ export default {
   line-height: 100%;
   text-align: center;
   color: #1c1d22;
-}
-
-.info-submit-button:hover {
-  background: #c5dff0;
 }
 
 /* 구분선 */
