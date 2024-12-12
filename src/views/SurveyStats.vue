@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <component :is="currentTabComponent" />
+    <component :is="currentTabComponent" :surveyId="surveyId" />
   </div>
 </template>
 
@@ -79,6 +79,7 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 0 25px 25px;
+  height: 100%;
 }
 
 .header {

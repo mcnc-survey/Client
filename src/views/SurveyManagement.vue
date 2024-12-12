@@ -8,9 +8,9 @@
       <div v-for="survey in sortedSurveys" :key="survey.id" class="survey-item">
         <div class="survey-info">
           <button class="bookmark-button" @click="toggleBookmark(survey.id)">
-            <img :src="survey.islike
-                ? require('@/assets/images/bookmark.svg')
-                : require('@/assets/images/non-bookmark.svg')
+            <img :src="survey.isLike
+              ? require('@/assets/images/bookmark.svg')
+              : require('@/assets/images/non-bookmark.svg')
               " alt="북마크" class="bookmark-icon" />
           </button>
           <p class="survey-info-title" @click="goToSurveyStats(survey.id)">
@@ -35,9 +35,7 @@
               <i class="icon icon-delete"></i>
             </button>
           </div>
-          <span class="last-updated"
-            >최근 수정일: {{ formatDate(survey.lastModifiedAt) }}</span
-          >
+          <span class="last-updated">최근 수정일: {{ formatDate(survey.lastModifiedAt) }}</span>
         </div>
       </div>
     </div>
@@ -47,7 +45,7 @@
 <script>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import axios from "axios";
+import { surveyAPI } from "@/service/surveyService";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import {
@@ -71,12 +69,12 @@ export default {
     // 설문조사 데이터 가져오기
     const fetchSurveys = async () => {
       try {
-        const response = await axios.get("https://mcnc-survey.store/surveys");
+        const response = await surveyAPI.getSurveys();
 
         if (response.data.resultCode === "200") {
           surveys.value = response.data.body.filter(
             (survey) => survey.status !== "DELETE"
-          ); 
+          );
         } else {
           throw new Error(
             response.data.message || "데이터를 가져오지 못했습니다."
@@ -95,8 +93,8 @@ export default {
     const sortedSurveys = computed(() => {
       return [...surveys.value].sort((a, b) => {
         // 즐겨찾기 우선 정렬
-        if (a.islike && !b.islike) return -1; 
-        if (!a.islike && b.islike) return 1;  
+        if (a.isLike && !b.isLike) return -1;
+        if (!a.isLike && b.isLike) return 1;
 
         const statusComparison = statusOrder[a.status] - statusOrder[b.status];
         if (statusComparison === 0) {
@@ -125,16 +123,15 @@ export default {
     const toggleBookmark = async (surveyId) => {
       const survey = surveys.value.find((s) => s.id === surveyId);
       if (survey) {
-        const url = `http://218.55.79.81:9000/surveys/survey-id/${surveyId}/like`;
 
         try {
-          await axios.get(url);
-          survey.islike = !survey.islike;
+          await surveyAPI.bookmarkSurvey(surveyId);
+          survey.isLike = !survey.isLike;
 
-          const message = survey.islike
+          const message = survey.isLike
             ? "즐겨찾기에 추가되었습니다."
             : "즐겨찾기에서 제거되었습니다.";
-          const toastType = survey.islike ? toast.success : toast.info;
+          const toastType = survey.isLike ? toast.success : toast.info;
           toastType(message, {
             position: toast.POSITION.TOP_CENTER,
             autoClose: 1000,
@@ -164,7 +161,6 @@ export default {
     };
 
     const goToSurveyStats = (surveyId) => {
-      console.log("통계 페이지 이동, 설문조사 ID:", surveyId);
       router.push({ name: "SurveyStats", params: { id: surveyId } });
     };
 
@@ -203,11 +199,9 @@ export default {
         subMessage: "* 삭제된 항목은 휴지통에 저장됩니다.",
         onConfirm: async () => {
           try {
-            const response = await axios.delete(
-              `http://218.55.79.81:9000/surveys/survey-id/${surveyId}`
-            );
+            const response = await surveyAPI.softDeleteSurvey(surveyId);
 
-            if (response.data.resultCode === "200" ||  response.data.message.includes("DELETED")) {
+            if (response.data.resultCode === "200" || response.data.message.includes("DELETED")) {
               surveys.value = surveys.value.filter((survey) => survey.id !== surveyId);
 
               showSuccessAlert("삭제 완료", "설문조사가 삭제되었습니다.");
