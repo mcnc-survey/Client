@@ -27,8 +27,7 @@ export const surveyAPI = {
   hardDeleteSurvey: (data) => axios.delete("/surveys", { data }),
 
   // 설문 북마크
-  bookmarkSurvey: (surveyId) =>
-    axios.get(`/surveys/survey-id/${surveyId}/like`),
+  bookmarkSurvey: (surveyId) => axios.get(`/surveys/survey-id/${surveyId}/like`),
 
   // 즐겨찾기 목록 조회
   getBookmarkSurveys: () => axios.get("/surveys/like"),

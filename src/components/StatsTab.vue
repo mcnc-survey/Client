@@ -24,8 +24,8 @@
             <div class="share-buttons-container">
                 <button class="share-button download-excel" @click="downloadExcel">
                     <img src="../assets/images/excel.svg" class="excel-icon">응답 데이터 엑셀로 다운로드</button>
-                <button class="share-button send-email" @click="sendEmail">
-                    <img src="../assets/images/gmail.svg" class="gmail-icon">응답 데이터 메일로 공유하기</button>
+                <button class="share-button download-pdf" @click="downloadPDF">
+                    <img src="../assets/images/pdf.svg" class="pdf-icon">응답 데이터 pdf로 다운로드</button>
             </div>
         </div>
 
@@ -40,6 +40,9 @@
 import QuestionStats from "../components/QuestionsStats.vue";
 import { surveyAPI } from '@/service/surveyService';
 import { useRoute } from 'vue-router';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export default {
     name: "StatsTab",
@@ -50,7 +53,7 @@ export default {
         surveyId: {
             type: String,
             required: true
-        }
+        },
     },
     data() {
         return {
@@ -94,12 +97,134 @@ export default {
                 this.loading = false;
             }
         },
+
         downloadExcel() {
-            console.log("엑셀 다운로드 클릭");
+            try {
+                const workbook = XLSX.utils.book_new();
+
+                const surveyTitle = this.surveySummary.title || '설문조사';
+                const sanitizedFileName = surveyTitle.replace(/[\\/\\?%*:|"<>]/g, '_');
+
+                // Survey Summary Sheet 추가
+                const summaryData = [
+                    ['응답자 수', '설문 종료 날짜', '최근 수정일'],
+                    [
+                        this.surveySummary.respondentCount || 'N/A',
+                        this.surveySummary.endDate || 'N/A',
+                        this.surveySummary.lastModifiedDate || 'N/A'
+                    ]
+                ];
+                const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+
+                // 셀 너비 조정
+                summarySheet['!cols'] = [
+                    { wch: 15 }, // 첫 번째 열 너비
+                    { wch: 20 }, // 두 번째 열 너비
+                    { wch: 25 }  // 세 번째 열 너비
+                ];
+
+                XLSX.utils.book_append_sheet(workbook, summarySheet, 'Survey Summary');
+
+                // Survey Results (각 질문) Sheet 추가
+                if (Object.keys(this.surveyResults).length > 0) {
+                    Object.values(this.surveyResults).forEach((question, index) => {
+                        const questionData = [
+                            ['질문 제목', question.questionTitle || ''],
+                            ['질문 유형', question.questionType || ''],
+                            ['전체 응답 수', question.totalResponseCount || 0],
+                            [], // 빈 줄
+                            ['응답 내용', '응답 수']
+                        ];
+
+                        // 응답 내용 추가
+                        (question.responses || []).forEach(response => {
+                            questionData.push([response.text || '', response.count || 0]);
+                        });
+
+                        const questionSheet = XLSX.utils.aoa_to_sheet(questionData);
+
+                        // 셀 너비 조정
+                        questionSheet['!cols'] = [
+                            { wch: 40 }, // 응답 내용 (긴 텍스트 고려)
+                            { wch: 15 }  // 응답 수
+                        ];
+
+                        XLSX.utils.book_append_sheet(workbook, questionSheet, `Question ${index + 1}`);
+                    });
+                } else {
+                    const noDataSheet = XLSX.utils.aoa_to_sheet([['데이터 없음']]);
+                    noDataSheet['!cols'] = [{ wch: 20 }]; // 너비 설정
+                    XLSX.utils.book_append_sheet(workbook, noDataSheet, 'No Data');
+                }
+
+                // Excel 파일 다운로드
+                const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+                const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${sanitizedFileName}.xlsx`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+            } catch (error) {
+                console.error('엑셀 생성 오류:', error);
+                alert('엑셀 파일을 생성하는 중 오류가 발생했습니다.');
+            }
         },
-        sendEmail() {
-            console.log("이메일 공유 클릭");
-        },
+
+        async downloadPDF() {
+            try {
+                const pdf = new jsPDF({
+                    orientation: 'p',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const element = this.$el.querySelector('.questions-stats-container');
+                const margin = 10;
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const contentWidth = pageWidth - (2 * margin);
+
+                // 각 질문 통계를 개별적으로 처리
+                const questionElements = element.querySelectorAll('.question-stats');
+                let yPosition = margin;
+
+                for (const questionEl of questionElements) {
+                    const canvas = await html2canvas(questionEl, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        // windowWidth 옵션 제거
+                        width: questionEl.scrollWidth, // 요소의 실제 너비 사용
+                        height: questionEl.scrollHeight // 요소의 실제 높이 사용
+                    });
+
+                    const imgData = canvas.toDataURL('image/png');
+                    const aspectRatio = canvas.height / canvas.width;
+                    const imgWidth = contentWidth;
+                    const imgHeight = contentWidth * aspectRatio;
+
+                    // 현재 페이지에 충분한 공간이 없으면 새 페이지 추가
+                    if (yPosition + imgHeight > pageHeight - margin) {
+                        pdf.addPage();
+                        yPosition = margin;
+                    }
+
+                    // 이미지 추가
+                    pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, imgHeight);
+                    yPosition += imgHeight + 10; // 질문 사이 여백 추가
+                }
+
+                const sanitizedFileName = (this.surveySummary.title || '설문조사').replace(/[\\/\\?%*:|"<>]/g, '_');
+                pdf.save(`${sanitizedFileName}.pdf`);
+
+            } catch (error) {
+                console.error('PDF 생성 오류:', error);
+                alert('PDF 파일을 생성하는 중 오류가 발생했습니다.');
+            }
+        }
     },
     created() {
         this.fetchSurveyResults();
@@ -135,7 +260,7 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    max-width: 200px;
+    max-width: 290px;
 }
 
 .info-card h3 {
@@ -175,7 +300,7 @@ export default {
     justify-content: center;
     gap: 10px;
     width: 100%;
-    height: 55px;
+    height: 50px;
     padding: 10px 20px;
     border: none;
     border-radius: 12.5px;
@@ -194,8 +319,8 @@ export default {
     background: #C5ECD2;
 }
 
-.send-email {
-    background: #FFDD80;
+.download-pdf {
+    background: #FDD4D3;
 }
 
 /* 문항별 통계 컨테이너 */
@@ -203,5 +328,6 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    margin-bottom: 30px;
 }
 </style>

@@ -13,7 +13,7 @@
               : require('@/assets/images/non-bookmark.svg')
               " alt="북마크" class="bookmark-icon" />
           </button>
-          <p class="survey-info-title" @click="goToSurveyStats(survey.id)">
+          <p class="survey-info-title" @click="goToSurveyStats(survey)">
             {{ survey.title }}
           </p>
           <span :class="['status', getStatusClass(survey.status)]">{{
@@ -25,13 +25,13 @@
             <button class="icon-button" @click="exportSurvey(survey.id)">
               <i class="icon icon-export"></i>
             </button>
-            <button class="icon-button" @click="handleLink(survey.id)">
+            <button class="icon-button" @click="shareLink(survey.id)">
               <i class="icon icon-link"></i>
             </button>
             <button class="icon-button" @click="editSurvey(survey.id)">
               <i class="icon icon-edit"></i>
             </button>
-            <button class="icon-button" @click="deleteSurvey(survey.id)">
+            <button class="icon-button" @click="deleteItemSoftly(survey.id)">
               <i class="icon icon-delete"></i>
             </button>
           </div>
@@ -164,15 +164,21 @@ export default {
       }
     };
 
-    const goToSurveyStats = (surveyId) => {
-      router.push({ name: "SurveyStats", params: { id: surveyId } });
+    const goToSurveyStats = (survey) => {
+      router.push({
+        name: "SurveyStats",
+        params: { id: survey.id },
+        state: {
+          surveyLink: JSON.stringify(survey.surveyLink)
+        }
+      });
     };
 
     const exportSurvey = (surveyId) => {
       console.log("Exporting survey:", surveyId);
     };
 
-    const handleLink = (surveyId) => {
+    const shareLink = (surveyId) => {
       const survey = surveys.value.find((s) => s.id === surveyId);
       if (survey) {
         const link = survey.surveyLink;
@@ -197,7 +203,7 @@ export default {
       router.push({ name: "SurveyEdit", params: { id: surveyId } });
     };
 
-    const deleteSurvey = (surveyId) => {
+    const deleteItemSoftly = (surveyId) => {
       showConfirmAlert({
         html: "설문을 삭제하면 모든 응답 데이터도 함께 삭제됩니다.",
         subMessage: "* 삭제된 항목은 휴지통에 저장됩니다.",
@@ -248,9 +254,9 @@ export default {
       statusDisplay,
       goToSurveyStats,
       exportSurvey,
-      handleLink,
+      shareLink,
       editSurvey,
-      deleteSurvey,
+      deleteItemSoftly,
       createSurvey,
     };
   },

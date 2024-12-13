@@ -45,7 +45,7 @@
                             <span>{{ option.text }}</span>
                         </div>
                         <div class="stat-values">
-                            <span class="stat-count">{{ option.count }}명</span>
+                            <span class="stat-count">{{ option.count }}표</span>
                             <span class="stat-percentage">({{ calculatePercentage(option.count) }}%)</span>
                         </div>
                     </div>
@@ -110,7 +110,6 @@ export default {
         },
 
         chartData() {
-            // 데이터가 없을 때 처리
             if (!this.question.responses || this.question.responses.length === 0) {
                 return { labels: [], datasets: [{ data: [], backgroundColor: [] }] };
             }
@@ -122,23 +121,19 @@ export default {
             if (this.chartType === "doughnut") {
                 return {
                     labels: labels.reverse(),
-                    datasets: [
-                        {
-                            data: data.reverse(),
-                            backgroundColor: colors.slice(0, labels.length).reverse(),
-                        },
-                    ],
+                    datasets: [{
+                        data: data.reverse(),
+                        backgroundColor: colors.slice(0, labels.length).reverse(),
+                    }],
                 };
             }
 
             return {
                 labels,
-                datasets: [
-                    {
-                        data,
-                        backgroundColor: colors.slice(0, labels.length),
-                    },
-                ],
+                datasets: [{
+                    data,
+                    backgroundColor: colors.slice(0, labels.length),
+                }],
             };
         },
     },
@@ -154,8 +149,12 @@ export default {
     },
     methods: {
         calculatePercentage(value) {
-            // 데이터가 없을 때 퍼센트 계산 방지
-            const total = this.question.totalResponseCount || 0;
+            // responses 배열에서 count 값의 총합을 계산
+            const total = this.question.responses
+                ? this.question.responses.reduce((sum, response) => sum + response.count, 0)
+                : 0;
+
+            // 퍼센트를 계산하며, total이 0이면 0.0% 반환
             return total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
         },
 
@@ -192,9 +191,18 @@ export default {
                             displayColors: false,
                             callbacks: {
                                 label: (context) => {
-                                    const value = context.parsed;
+                                    // 차트 타입에 따라 인덱스 처리 다르게
+                                    let dataIndex = context.dataIndex;
+
+                                    // 도넛 그래프일 경우에만 역순 처리
+                                    if (type === 'doughnut') {
+                                        dataIndex = this.question.responses.length - 1 - context.dataIndex;
+                                    }
+
+                                    const value = this.question.responses[dataIndex].count;
                                     const percentage = this.calculatePercentage(value);
-                                    return `${value}명 (${percentage}%)`;
+
+                                    return `${value}표 (${percentage}%)`;
                                 }
                             }
                         }

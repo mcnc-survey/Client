@@ -9,7 +9,7 @@
         <button class="action-btn recover-btn" @click="restoreItems">
           복구하기
         </button>
-        <button class="action-btn delete-btn" @click="deleteItems">
+        <button class="action-btn delete-btn" @click="deleteItemsPermanently">
           삭제하기
         </button>
       </div>
@@ -134,7 +134,7 @@ export default {
     };
 
     // 물리적 삭제
-    const deleteItems = async () => {
+    const deleteItemsPermanently = async () => {
       if (selectedSurveys.value.length === 0) {
         showErrorAlert("삭제 실패", "삭제할 설문을 선택하세요.");
         return;
@@ -145,9 +145,10 @@ export default {
         subMessage: "* 삭제 후에는 복구할 수 없습니다.",
         onConfirm: async () => {
           try {
-            await surveyAPI.hardDeleteSurvey({
-              surveyIds: selectedSurveys.value
-            });
+            const payload = { surveyIds: selectedSurveys.value };
+
+            // API 호출
+            await surveyAPI.hardDeleteSurvey(payload);
 
             // 삭제된 설문조사 항목을 리스트에서 제외
             deletedSurveys.value = deletedSurveys.value.filter(
@@ -182,7 +183,7 @@ export default {
       toggleSelectAll,
       toggleSelection,
       restoreItems,
-      deleteItems,
+      deleteItemsPermanently,
     };
   },
 };
