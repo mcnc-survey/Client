@@ -82,6 +82,13 @@ import Swal from "sweetalert2";
 import { API } from "../service/mobileService";
 
 export default {
+  // beforeCreate() {
+  //   localStorage.setItem("accessToken", this.$route.query.t);
+  //   const accessToken = localStorage.Item("accessToken");
+  //   if (accessToken) {
+  //     this.$router.push("/mobile/survey");
+  //   }
+  // },
   data() {
     return {
       email: "",
@@ -182,16 +189,16 @@ export default {
         phoneNumber: this.phone,
       };
 
-      API.submitParticipantInfo(requestData)
+      API.submitParticipantInfo(requestData, this.token)
         .then((response) => {
-          if (/*response.data.success*/ true) {
+          if (response.data.success) {
             Swal.fire({
               icon: "success",
               title: "로그인 성공",
               text: "설문 페이지로 이동합니다.",
               confirmButtonText: "확인",
             }).then(() => {
-              this.$router.push(`/mobile/survey?t=${this.token}`);
+              this.$router.push("/mobile/survey");
             });
           } else {
             Swal.fire({
@@ -218,6 +225,7 @@ export default {
       switch (platform) {
         case "kakao":
           window.location.href = `${baseUrl}/kakao?surveyId=${this.token}`;
+
           break;
         case "google":
           window.location.href = `${baseUrl}/google?surveyId=${this.token}`;
