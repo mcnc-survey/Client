@@ -30,6 +30,9 @@ export const surveyAPI = {
   bookmarkSurvey: (surveyId) =>
     axios.get(`/surveys/survey-id/${surveyId}/like`),
 
+  // 즐겨찾기 목록 조회
+  getBookmarkSurveys: () => axios.get("/surveys/like"),
+
   // 삭제된 설문 목록 조회
   getDeletedSurveys: () => axios.get(`/surveys/delete`),
 
