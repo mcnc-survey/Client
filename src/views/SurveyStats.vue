@@ -17,19 +17,24 @@
       </button>
 
       <div v-if="menuVisible" class="menu-dropdown">
-        <button @click="deleteSurvey">휴지통</button>
-        <button @click="deletePermanently">완전 삭제</button>
+        <button @click="deleteItemSoftly">휴지통</button>
         <button @click="shareLink">링크 공유</button>
       </div>
     </div>
 
-    <component :is="currentTabComponent" :surveyId="surveyId" />
+    <component :is="currentTabComponent" :surveyId="surveyId"/>
   </div>
 </template>
 
 <script>
 import SurveyTab from "../components/SurveyTab.vue";
 import StatsTab from "../components/StatsTab.vue";
+import { surveyAPI } from "@/service/surveyService";
+import { toast } from "vue3-toastify";
+import {
+  showSuccessAlert,
+  showErrorAlert,
+} from "@/utils/swalUtils";
 
 export default {
   data() {
@@ -57,16 +62,42 @@ export default {
     toggleMenu() {
       this.menuVisible = !this.menuVisible;
     },
-    deleteSurvey() {
-      alert("휴지통");
+
+    async deleteItemSoftly() {
+      try {
+        const surveyId = this.$route.params.id;
+        const response = await surveyAPI.softDeleteSurvey(surveyId);
+
+        if (response.data.resultCode === "200" || response.data.message.includes("DELETED")) {
+          showSuccessAlert("삭제 완료", "설문조사가 휴지통으로 이동되었습니다.");
+          this.$router.push({ name: 'SurveyManagement' });
+        } else {
+          throw new Error(response.data.message || "삭제 실패");
+        }
+      } catch (error) {
+        console.error("설문조사 삭제 오류:", error);
+        showErrorAlert("삭제 실패", "설문조사를 삭제하는 중 오류가 발생했습니다.");
+      }
+
       this.menuVisible = false;
     },
-    deletePermanently() {
-      alert("완전 삭제 기능");
-      this.menuVisible = false;
-    },
-    shareLink() {
-      alert("링크 공유 기능");
+
+    async shareLink() {
+      const surveyLink = JSON.parse(history.state.surveyLink);
+      try {
+        await navigator.clipboard.writeText(surveyLink);
+        toast.success("설문 링크가 복사되었습니다!", {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000,
+        });
+      } catch (error) {
+        console.error("링크 공유 오류:", error);
+        toast.error("링크 복사에 실패했습니다.", {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000,
+        });
+      }
+
       this.menuVisible = false;
     },
   },
