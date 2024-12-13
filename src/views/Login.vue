@@ -61,8 +61,8 @@
             <img
               :src="
                 showPassword
-                  ? require('../assets/images/eye_hide.png')
-                  : require('../assets/images/eye_show.png')
+                  ? require('../assets/images/eye_hide.svg')
+                  : require('../assets/images/eye_show.svg')
               "
               :alt="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'"
               class="eye-icon"
@@ -125,6 +125,8 @@
 </template>
 
 <script>
+import { showErrorAlert } from '@/utils/swalUtils';
+
 export default {
   name: "LoginPage",
   data() {
@@ -190,7 +192,11 @@ export default {
       // 유효성 검사를 통과한 경우에만 다음 페이지로 이동
       if (!this.emailError && !this.passwordError) {
         this.$router.push("/web/management");
+        //this.loginError();
       }
+    },
+    loginError() {
+      showErrorAlert("로그인 실패", "이메일 및 비밀번호를 다시 확인해주세요.");
     },
     togglePassword() {
       this.showPassword = !this.showPassword;

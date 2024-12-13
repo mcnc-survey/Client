@@ -27,14 +27,19 @@
     <!-- 즐겨찾기 목록 -->
     <transition name="fade">
       <ul v-if="isFavoritesOpen" class="favorites-list">
-        <li
-          v-for="(item, index) in favorites"
-          :key="index"
-          :class="{
-            active: isActiveRoute(item.route),
-          }"
-        >
-          <router-link :to="item.route">{{ item.label }}</router-link>
+        <template v-if="favorites.length > 0">
+          <li
+            v-for="item in favorites"
+            :key="item.id"
+            :class="{
+              active: isActiveRoute(`/web/stats/${item.id}`),
+            }"
+          >
+            <router-link :to="`/web/stats/${item.id}`">{{ item.title }}</router-link>
+          </li>
+        </template>
+        <li v-else class="favorites-list-item empty-favorites">
+          <span>즐겨찾기를 추가해주세요!</span>
         </li>
       </ul>
     </transition>
@@ -48,6 +53,9 @@
 </template>
 
 <script>
+import { surveyAPI } from '@/service/surveyService';
+import { emitter } from '@/eventBus/eventBus';
+
 export default {
   props: {
     isSidebarOpen: {
@@ -57,18 +65,16 @@ export default {
   },
   data() {
     return {
-      isFavoritesOpen: true, // 즐겨찾기 리스트 표시 여부
-      isFavoritesHovered: false, // hover 상태
-      favorites: [
-        { label: "입학 설명회 참가", route: "/web/edit/id1" },
-        { label: "독립 서점 이용 경험", route: "/web/edit/id2" },
-        { label: "지하철 앱 사용 경험", route: "/web/edit/id3" },
-      ],
+      isFavoritesOpen: true,
+      isFavoritesHovered: false,
+      favorites: [],
     };
   },
   computed: {
     isFavoritesActive() {
-      return this.favorites.some((item) => this.isActiveRoute(item.route));
+      return this.favorites.some((item) => 
+        this.isActiveRoute(`/web/stats/${item.id}`)
+      );
     },
   },
   methods: {
@@ -78,6 +84,29 @@ export default {
     isActiveRoute(route) {
       return this.$route.path === route;
     },
+    async fetchFavorites() {
+      try {
+        const response = await surveyAPI.getBookmarkSurveys();
+        if (response.data.success && response.data.resultCode === "200") {
+          this.favorites = response.data.body;
+        } else {
+          console.error('즐겨찾기 데이터를 불러오는데 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('즐겨찾기 API 호출 중 오류 발생:', error);
+      }
+    },
+  },
+  created() {
+    this.fetchFavorites();
+    // 북마크 이벤트 리스너 등록
+    emitter.on('updateBookmarks', () => {
+      this.fetchFavorites();
+    });
+  },
+  unmounted() {
+    // 컴포넌트 제거 시 이벤트 리스너 제거
+    emitter.off('updateBookmarks');
   },
 };
 </script>
@@ -94,6 +123,7 @@ export default {
 .sidebar.collapsed {
   transform: translateX(-100%);
 }
+
 .user-info {
   display: flex;
   align-items: center;
@@ -194,5 +224,30 @@ export default {
   border: none;
   background-color: rgba(0, 0, 0, 0);
   transition: background-color 0.3s ease;
+}
+
+.favorites-list-item {
+  list-style: none;
+  padding: 5px;
+  margin-left: 10px;
+  color: #999;
+}
+
+.empty-favorites {
+  display: block;
+  text-decoration: none;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.empty-favorites span {
+  color: #999;
+  display: block;
+  padding: 5px;
+}
+
+.empty-favorites:hover {
+  background-color: #ddd;
 }
 </style>

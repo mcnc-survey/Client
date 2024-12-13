@@ -32,10 +32,10 @@
             </div>
           </label>
           <button @click="copyQuestion" class="action-item copy-btn">
-            <img src="@/assets/images/copy_question.png" alt="복사" />
+            <img src="@/assets/images/copy_question.svg" alt="복사" />
           </button>
           <button @click="$emit('delete')" class="action-item delete-btn">
-            <img src="@/assets/images/delete_question.png" alt="삭제" />
+            <img src="@/assets/images/delete_question.svg" alt="삭제" />
           </button>
         </div>
       </div>
@@ -62,7 +62,7 @@
           class="remove-option"
           v-if="questionData.options.length > 1"
         >
-          <img src="@/assets/images/delete_option.png" alt="옵션 삭제" />
+          <img src="@/assets/images/delete_option.svg" alt="옵션 삭제" />
         </button>
       </div>
     </div>
@@ -70,11 +70,11 @@
     <!-- 옵션 추가 버튼들 -->
     <div class="add-buttons">
       <button @click="addOption" class="add-option">
-        <img src="@/assets/images/add_question.png" alt="옵션 추가" />
+        <img src="@/assets/images/add_option.svg" alt="옵션 추가" />
         <span>옵션 추가</span>
       </button>
       <button @click="addOtherOption" class="add-option" v-if="!hasOtherOption">
-        <img src="@/assets/images/add_question.png" alt="기타 추가" />
+        <img src="@/assets/images/add_option.svg" alt="기타 추가" />
         <span>기타 추가</span>
       </button>
     </div>
@@ -325,8 +325,8 @@ export default {
 }
 
 .action-item img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
 }
 
@@ -437,8 +437,8 @@ export default {
 }
 
 .remove-option img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 .add-buttons {
@@ -464,7 +464,7 @@ export default {
 }
 
 .add-option img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 </style>

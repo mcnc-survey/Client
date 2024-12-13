@@ -10,7 +10,7 @@
             :class="{ error: showError && !modalStartDate }"
           >
             <img
-              src="@/assets/images/set_date.png"
+              src="@/assets/images/set_date.svg"
               alt="날짜"
               class="input-icon"
             />
@@ -38,7 +38,7 @@
             :class="{ error: showError && !startTime }"
           >
             <img
-              src="@/assets/images/set_time.png"
+              src="@/assets/images/set_time.svg"
               alt="시간"
               class="input-icon"
             />
@@ -121,7 +121,7 @@
             :class="{ error: (showError && !modalEndDate) || endTimeError }"
           >
             <img
-              src="@/assets/images/set_date.png"
+              src="@/assets/images/set_date.svg"
               alt="날짜"
               class="input-icon"
             />
@@ -149,7 +149,7 @@
             :class="{ error: (showError && !endTime) || endTimeError }"
           >
             <img
-              src="@/assets/images/set_time.png"
+              src="@/assets/images/set_time.svg"
               alt="시간"
               class="input-icon"
             />

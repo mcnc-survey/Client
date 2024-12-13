@@ -43,7 +43,7 @@
             :class="{ 'error-label': passwordError && passwordTouched }">비밀번호</label>
           <div v-if="password.length > 0" class="password-toggle" @click="togglePassword">
             <img
-              :src="showPassword ? require('../assets/images/eye_hide.png') : require('../assets/images/eye_show.png')"
+              :src="showPassword ? require('../assets/images/eye_hide.svg') : require('../assets/images/eye_show.svg')"
               :alt="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'" class="eye-icon" />
           </div>
           <span v-if="passwordError && passwordTouched" class="error-message">비밀번호는 영문, 숫자, 특수문자를 포함한 8자 이상입니다.</span>
@@ -57,7 +57,7 @@
             :class="{ 'error-label': confirmPasswordError && confirmPasswordTouched }">비밀번호 확인</label>
           <div v-if="confirmPassword.length > 0" class="password-toggle" @click="toggleConfirmPassword">
             <img
-              :src="showConfirmPassword ? require('../assets/images/eye_hide.png') : require('../assets/images/eye_show.png')"
+              :src="showConfirmPassword ? require('../assets/images/eye_hide.svg') : require('../assets/images/eye_show.svg')"
               :alt="showConfirmPassword ? '비밀번호 숨기기' : '비밀번호 표시'" class="eye-icon" />
           </div>
           <span v-if="confirmPasswordError && confirmPasswordTouched" class="error-message">비밀번호가 일치하지 않습니다</span>

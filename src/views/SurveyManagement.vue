@@ -46,6 +46,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { surveyAPI } from "@/service/surveyService";
+import { emitter } from "@/eventBus/eventBus";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import {
@@ -127,6 +128,9 @@ export default {
         try {
           await surveyAPI.bookmarkSurvey(surveyId);
           survey.isLike = !survey.isLike;
+
+          // 북마크 상태 변경 후 이벤트 발생
+          emitter.emit('updateBookmarks');
 
           const message = survey.isLike
             ? "즐겨찾기에 추가되었습니다."

@@ -44,7 +44,7 @@
             <div class="survey-period">
               <div class="period-select" @click="openPeriodModal">
                 <img
-                  src="@/assets/images/edit_date.png"
+                  src="@/assets/images/edit_date.svg"
                   alt="달력"
                   class="calendar-icon"
                 />
@@ -117,7 +117,6 @@ import { debounce } from 'lodash';
 import QuestionTypeTab from "@/components/QuestionTypeTab.vue";
 import SingleChoiceQuestion from "@/components/SingleChoiceQuestion.vue";
 import MultipleChoiceQuestion from "@/components/MultipleChoiceQuestion.vue";
-import GridQuestion from "@/components/GridQuestion.vue";
 import ShortAnswerQuestion from "@/components/ShortAnswerQuestion.vue";
 import LongAnswerQuestion from "@/components/DescriptiveAnswerQuestion.vue";
 import PeriodModalComponent from "@/components/PeriodModalComponent.vue";
@@ -132,7 +131,6 @@ export default {
     QuestionTypeTab,
     SingleChoiceQuestion,
     MultipleChoiceQuestion,
-    GridQuestion,
     ShortAnswerQuestion,
     LongAnswerQuestion,
   },

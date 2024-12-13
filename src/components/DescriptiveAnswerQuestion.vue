@@ -32,10 +32,10 @@
             </div>
           </label>
           <button @click="copyQuestion" class="action-item copy-btn">
-            <img src="@/assets/images/copy_question.png" alt="복사" />
+            <img src="@/assets/images/copy_question.svg" alt="복사" />
           </button>
           <button @click="$emit('delete')" class="action-item delete-btn">
-            <img src="@/assets/images/delete_question.png" alt="삭제" />
+            <img src="@/assets/images/delete_question.svg" alt="삭제" />
           </button>
         </div>
       </div>
@@ -228,8 +228,8 @@ export default {
 }
 
 .action-item img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
 }
 
