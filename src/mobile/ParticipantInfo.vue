@@ -5,22 +5,17 @@
     <!-- 이메일 -->
     <div class="input-group" @click="focusInput('email')">
       <label class="label">이메일</label>
-      <div class="email-input-container">
-        <input
-          ref="email"
-          type="email"
-          class="input-field"
-          placeholder="example@gmail.com"
-          v-model="email"
-        />
-        <button
-          class="verification-button"
-          @click.stop="requestVerificationCode"
-        >
-          인증하기
-        </button>
-      </div>
+      <input
+        ref="email"
+        type="email"
+        class="input-field"
+        placeholder="example@gmail.com"
+        v-model="email"
+      />
     </div>
+    <button class="verification-button" @click.stop="requestVerificationCode">
+      인증하기
+    </button>
 
     <!-- 이름 -->
     <div class="input-group" @click="focusInput('name')">
@@ -189,7 +184,7 @@ export default {
 
       API.submitParticipantInfo(requestData)
         .then((response) => {
-          if (response.data.success) {
+          if (/*response.data.success*/ true) {
             Swal.fire({
               icon: "success",
               title: "로그인 성공",
@@ -219,17 +214,16 @@ export default {
     },
     handleSocialLogin(platform) {
       const baseUrl = "https://mobile.mcnc-survey.store/oauth2/authorization";
-      const surveyId = "8385b7f6-bda1-44a4-ae3d-3616ea6e575f";
 
       switch (platform) {
         case "kakao":
-          window.location.href = `${baseUrl}/kakao?surveyId=${surveyId}`;
+          window.location.href = `${baseUrl}/kakao?surveyId=${this.token}`;
           break;
         case "google":
-          window.location.href = `${baseUrl}/google?surveyId=${surveyId}`;
+          window.location.href = `${baseUrl}/google?surveyId=${this.token}`;
           break;
         case "naver":
-          window.location.href = `${baseUrl}/naver?surveyId=${surveyId}`;
+          window.location.href = `${baseUrl}/naver?surveyId=${this.token}`;
           break;
         default:
           alert("지원하지 않는 플랫폼입니다.");
@@ -325,12 +319,19 @@ export default {
 }
 
 .verification-button {
-  font-size: 12px;
-  color: #fff;
-  background-color: #007bff;
+  width: 157px;
+  height: 45px;
+  margin-bottom: 20px;
+  background: #dae8f4;
   border: none;
-  width: 100px;
   border-radius: 24.877px;
+  font-family: "Pretendard", sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 100%;
+  text-align: center;
+  color: #1c1d22;
 }
 
 /* 완료 버튼 스타일 */

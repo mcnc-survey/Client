@@ -1,13 +1,15 @@
 import axios from "./mobileAxios";
 
 export const API = {
-  // sendVerificationCode(email) {
-  //   return axios.post("auth/verify", { email });
-  // },
   submitParticipantInfo(data) {
-    return axios.post(
-      "auth/sign?t=YzNiYzE5YTYtYmM0My00ZmRlLWI5Y2QtMDM1MGU3MmYwNDk1",
-      data
-    );
+    // 로컬 스토리지에서 accessToken 가져오기
+    const token = localStorage.getItem("accessToken");
+    const surveyId = localStorage.getItem("SurveyId");
+    return axios.post(`auth/sign?t=${surveyId}`, data, {
+      headers: {
+        ...axios.defaults.headers.common, // 기존 공통 헤더 병합
+        Authorization: `Bearer ${token}`, // Authorization 헤더 직접 추가
+      },
+    });
   },
 };
