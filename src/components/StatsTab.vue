@@ -39,6 +39,7 @@
 <script>
 import QuestionStats from "../components/QuestionsStats.vue";
 import { surveyAPI } from '@/service/surveyService';
+import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -49,69 +50,70 @@ export default {
     components: {
         QuestionStats,
     },
-    props: {
-        surveyId: {
-            type: String,
-            required: true
-        },
-    },
-    data() {
-        return {
-            surveySummary: {},
-            surveyResults: {},
-            loading: true,
-            error: null,
-        };
-    },
-    computed: {
-        remainingTime() {
-            if (!this.surveySummary.endDate) return "종료됨";
+    setup() {
+        const route = useRoute();
+        const surveySummary = ref({});
+        const surveyResults = ref({});
+        const loading = ref(true);
+        const error = ref(null);
+
+        const remainingTime = computed(() => {
+            if (!surveySummary.value.endDate) return "종료됨";
             const now = new Date();
-            const endDate = new Date(this.surveySummary.endDate);
+            const endDate = new Date(surveySummary.value.endDate);
             const diff = endDate - now;
             if (diff <= 0) return "종료됨";
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
             return `${days}일 ${hours}시간`;
-        },
-    },
-    methods: {
-        async fetchSurveyResults() {
-            const route = useRoute();
+        });
 
+        const fetchSurveyResults = async (surveyId) => {
             try {
-                this.loading = true;
-                const response = await surveyAPI.getSurveyStats(route.params.id);
+                loading.value = true;
+                error.value = null;
+                const response = await surveyAPI.getSurveyStats(surveyId);
 
                 if (response.data.resultCode === "200") {
-                    this.surveySummary = response.data.body.surveySummary;
-                    this.surveyResults = response.data.body.surveyResults || {};
-
+                    surveySummary.value = response.data.body.surveySummary;
+                    surveyResults.value = response.data.body.surveyResults || {};
                 } else {
                     throw new Error('데이터를 불러오는 데 실패했습니다.');
                 }
-            } catch (error) {
-                this.error = error.response?.data?.message || error.message || '데이터를 불러오는 중 오류가 발생했습니다.';
-                console.error('API 호출 오류:', error);
+            } catch (err) {
+                error.value = err.response?.data?.message || err.message || '데이터를 불러오는 중 오류가 발생했습니다.';
+                console.error('API 호출 오류:', err);
             } finally {
-                this.loading = false;
+                loading.value = false;
             }
-        },
+        };
 
-        downloadExcel() {
+        // URL 파라미터 변경 감지 및 API 호출
+        watch(
+            () => route.params.id,
+            (newId) => {
+                if (newId) {
+                    fetchSurveyResults(newId);
+                }
+            },
+            { immediate: true } // 컴포넌트 마운트 시 즉시 첫 호출
+        );
+
+        // 엑셀 다운로드 메서드
+        const downloadExcel = () => {
             try {
                 const workbook = XLSX.utils.book_new();
 
-                const surveyTitle = this.surveySummary.title || '설문조사';
+                const surveyTitle = surveySummary.value.title || '설문조사';
                 const sanitizedFileName = surveyTitle.replace(/[\\/\\?%*:|"<>]/g, '_');
 
                 // Survey Summary Sheet 추가
                 const summaryData = [
                     ['응답자 수', '설문 종료 날짜', '최근 수정일'],
                     [
-                        this.surveySummary.respondentCount || 'N/A',
-                        this.surveySummary.endDate || 'N/A',
-                        this.surveySummary.lastModifiedDate || 'N/A'
+                        surveySummary.value.respondentCount || 'N/A',
+                        surveySummary.value.endDate || 'N/A',
+                        surveySummary.value.lastModifiedDate || 'N/A'
                     ]
                 ];
                 const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
@@ -126,8 +128,8 @@ export default {
                 XLSX.utils.book_append_sheet(workbook, summarySheet, 'Survey Summary');
 
                 // Survey Results (각 질문) Sheet 추가
-                if (Object.keys(this.surveyResults).length > 0) {
-                    Object.values(this.surveyResults).forEach((question, index) => {
+                if (Object.keys(surveyResults.value).length > 0) {
+                    Object.values(surveyResults.value).forEach((question, index) => {
                         const questionData = [
                             ['질문 제목', question.questionTitle || ''],
                             ['질문 유형', question.questionType || ''],
@@ -171,9 +173,10 @@ export default {
                 console.error('엑셀 생성 오류:', error);
                 alert('엑셀 파일을 생성하는 중 오류가 발생했습니다.');
             }
-        },
+        };
 
-        async downloadPDF() {
+        // PDF 다운로드 메서드
+        const downloadPDF = async () => {
             try {
                 const pdf = new jsPDF({
                     orientation: 'p',
@@ -181,7 +184,7 @@ export default {
                     format: 'a4'
                 });
 
-                const element = this.$el.querySelector('.questions-stats-container');
+                const element = document.querySelector('.questions-stats-container');
                 const margin = 10;
                 const pageWidth = pdf.internal.pageSize.getWidth();
                 const pageHeight = pdf.internal.pageSize.getHeight();
@@ -196,9 +199,8 @@ export default {
                         scale: 2,
                         useCORS: true,
                         logging: false,
-                        // windowWidth 옵션 제거
-                        width: questionEl.scrollWidth, // 요소의 실제 너비 사용
-                        height: questionEl.scrollHeight // 요소의 실제 높이 사용
+                        width: questionEl.scrollWidth,
+                        height: questionEl.scrollHeight
                     });
 
                     const imgData = canvas.toDataURL('image/png');
@@ -217,17 +219,24 @@ export default {
                     yPosition += imgHeight + 10; // 질문 사이 여백 추가
                 }
 
-                const sanitizedFileName = (this.surveySummary.title || '설문조사').replace(/[\\/\\?%*:|"<>]/g, '_');
+                const sanitizedFileName = (surveySummary.value.title || '설문조사').replace(/[\\/\\?%*:|"<>]/g, '_');
                 pdf.save(`${sanitizedFileName}.pdf`);
 
             } catch (error) {
                 console.error('PDF 생성 오류:', error);
                 alert('PDF 파일을 생성하는 중 오류가 발생했습니다.');
             }
-        }
-    },
-    created() {
-        this.fetchSurveyResults();
+        };
+
+        return {
+            surveySummary,
+            surveyResults,
+            loading,
+            error,
+            remainingTime,
+            downloadExcel,
+            downloadPDF
+        };
     }
 };
 </script>

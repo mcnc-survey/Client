@@ -109,10 +109,8 @@ export default {
 <style>
 /* 전체 캘린더 감싸는 박스 */
 .calendar-wrapper {
-  max-width: 980px;
+  max-width: 950px;
   width: 100%;
-  margin: 0 auto;
-  padding: 0 24px;
   box-sizing: border-box;
   overflow: hidden;
 }

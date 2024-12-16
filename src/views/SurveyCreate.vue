@@ -1,6 +1,8 @@
 <template>
   <div class="survey-create">
     <div class="header">
+      <BackButton />
+
       <h2>설문조사 생성</h2>
       <div class="header-buttons">
         <button class="preview-btn" @click="openPreview">미리보기</button>
@@ -114,6 +116,7 @@
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { ref, computed, nextTick, onMounted, onBeforeUnmount, watch } from "vue";
 import { debounce } from 'lodash';
+import BackButton from "../components/BackButton.vue";
 import QuestionTypeTab from "@/components/QuestionTypeTab.vue";
 import SingleChoiceQuestion from "@/components/SingleChoiceQuestion.vue";
 import MultipleChoiceQuestion from "@/components/MultipleChoiceQuestion.vue";
@@ -127,6 +130,7 @@ export default {
   name: 'SurveyCreate',
 
   components: {
+    BackButton,
     PeriodModalComponent,
     QuestionTypeTab,
     SingleChoiceQuestion,
@@ -684,7 +688,9 @@ export default {
   font-size: 1.25em;
   font-weight: 700;
   margin: 0;
-  padding: 0;
+  padding: 0 0 0 30px;
+  flex: 1; 
+  text-align: left; 
 }
 
 .header-buttons {

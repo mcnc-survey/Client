@@ -1,9 +1,7 @@
 <template>
   <div class="survey-stats">
     <div class="header">
-      <button class="back-button" @click="goBack">
-        <img src="../assets/images/back.svg" alt="뒤로가기" />
-      </button>
+      <BackButton />
 
       <div class="tab-container">
         <div class="tab-buttons">
@@ -27,6 +25,7 @@
 </template>
 
 <script>
+import BackButton from "../components/BackButton.vue";
 import SurveyTab from "../components/SurveyTab.vue";
 import StatsTab from "../components/StatsTab.vue";
 import { surveyAPI } from "@/service/surveyService";
@@ -44,6 +43,7 @@ export default {
     };
   },
   components: {
+    BackButton,
     SurveyTab,
     StatsTab,
   },
@@ -53,9 +53,6 @@ export default {
     },
   },
   methods: {
-    goBack() {
-      this.$router.back();
-    },
     setTab(tab) {
       this.activeTab = tab;
     },
@@ -129,11 +126,6 @@ export default {
   background: none;
   border: none;
   padding: 0;
-}
-
-.back-button img {
-  width: 15px;
-  height: 20px;
 }
 
 .menu-button img {
