@@ -1,42 +1,62 @@
 <template>
   <div class="survey-page">
-    <SurveyTitle
-      title="설문 제목"
-      description="설문에 대한 간략한 설명을 여기에 작성합니다. 설명이 길어질 경우 자동으로 줄바꿈이 적용됩니다."
-    />
+    <!-- 설문 제목 및 설명 -->
+    <SurveyTitle :title="survey.title" :description="survey.description" />
 
-    <SurveySingleChoice
-      question="질문 1: 단일 선택"
-      :options="['선택지 1', '선택지 2', '선택지 3']"
-      name="question1"
-      :required="true"
-    />
+    <!-- 질문 목록 -->
+    <div
+      class="survey-question"
+      v-for="(question, index) in survey.question"
+      :key="index"
+    >
+      <!-- 단일 선택 질문 -->
+      <SurveySingleChoice
+        v-if="question.questionType === 'SINGLE_CHOICE'"
+        :question="question.title"
+        :options="question.columns"
+        :name="`question${question.id}`"
+        :required="question.required"
+      />
 
-    <SurveyMultipleChoice
-      question="질문 2: 다중 선택"
-      :options="['선택지 1', '선택지 2', '선택지 3']"
-      name="question2"
-      :required="true"
-    />
-    <SurveyMultipleChoice
-      question="질문 2: 다중 선택"
-      :options="['선택지 1', '선택지 2', '선택지 3']"
-      name="question2"
-      :required="true"
-    />
+      <!-- 다중 선택 질문 -->
+      <SurveyMultipleChoice
+        v-else-if="question.questionType === 'MULTIPLE_CHOICE'"
+        :question="question.title"
+        :options="question.columns"
+        :name="`question${question.id}`"
+        :required="question.required"
+      />
 
-    <SurveyTextAnswer question="질문 3: 주관식" :required="true" />
+      <!-- 텍스트 입력 질문 -->
+      <SurveyTextAnswer
+        v-else-if="question.questionType === 'LONG_ANSWER'"
+        :question="question.title"
+        :name="`question${question.id}`"
+        :required="question.required"
+        type="LONG_ANSWER"
+      />
 
-    <!-- 제출 버튼 -->
+      <!-- 텍스트 입력 질문 -->
+      <SurveyTextAnswer
+        v-else-if="question.questionType === 'SHORT_ANSWER'"
+        :question="question.title"
+        :name="`question${question.id}`"
+        :required="question.required"
+        type="SHORT_ANSWER"
+      />
+    </div>
+
     <button class="survey-submit-button" @click="submitForm">제출</button>
   </div>
 </template>
 
 <script>
+import axios from "axios";
+
 import SurveyTitle from "../components/mobile/SurveyTitle.vue";
 import SurveySingleChoice from "../components/mobile/SurveySingleChoice.vue";
 import SurveyMultipleChoice from "../components/mobile/SurveyMultipleChoice.vue";
-import SurveyTextAnswer from "../components/mobile/SurveyTextAnswer.vue";
+import SurveyTextAnswer from "@/components/mobile/SurveyTextAnswer.vue";
 
 export default {
   components: {
@@ -45,49 +65,124 @@ export default {
     SurveyMultipleChoice,
     SurveyTextAnswer,
   },
+  data() {
+    return {
+      survey: {
+        title: "",
+        description: "",
+        question: [],
+      },
+    };
+  },
   methods: {
+    async fetchSurveyData() {
+      try {
+        // const response = await axios.get(
+        //   "https://mobile.mcnc-survey.store/responses/hello",
+        //   {
+        //     headers: {
+        //       Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        //     },
+        //   }
+        // );
+        // const surveyData = response.data.body.surveySnippet;
+
+        // 목데이터로 테스트
+        const surveyData = {
+          title: "테스트 설문 제목",
+          description: "이 설문은 테스트 목적으로 제공됩니다.",
+          question: [
+            {
+              id: "78418fcf-d2cb-41e5-a6e7-a6884b86a75e",
+              title: "현재 한국 정부에 대해 개인적인 생각을 적어주세요",
+              questionType: "LONG_ANSWER",
+              order: 1,
+              required: true,
+              etc: false,
+            },
+            {
+              id: 2,
+              questionType: "SINGLE_CHOICE",
+              title: "이 중에서 가장 좋아하는 색상은 무엇인가요?",
+              columns: ["빨강", "파랑", "초록", "노랑"],
+              required: true,
+            },
+            {
+              id: 3,
+              questionType: "MULTIPLE_CHOICE",
+              title: "좋아하는 과일을 모두 선택해주세요.",
+              columns: ["사과", "바나나", "딸기", "포도"],
+              required: false,
+            },
+            {
+              id: "78418fcf-d2cb-41e5-a6e7-a6884b86a75e",
+              title: "현재 한국 정부에 대해 개인적인 생각을 적어주세요",
+              questionType: "LONG_ANSWER",
+              order: 4,
+              required: true,
+              etc: false,
+            },
+            {
+              id: "d7002c5e-2020-475c-b23a-b345975034be",
+              title: "집에 가고 싶은 마음을 표현해주세요",
+              questionType: "SHORT_ANSWER",
+              order: 5,
+              required: true,
+              etc: false,
+            },
+
+            {
+              id: "d7002c5e-2020-475c-b23a-b345975034be",
+              title: "집에 가고 싶은 마음을 표현해주세요",
+              questionType: "SHORT_ANSWER",
+              order: 5,
+              required: true,
+              etc: false,
+            },
+          ],
+        };
+
+        // 가져온 데이터를 컴포넌트 데이터에 저장
+        this.survey.title = surveyData.title;
+        this.survey.description = surveyData.description;
+        this.survey.question = surveyData.question;
+      } catch (error) {
+        console.error("설문 데이터를 가져오는 중 오류 발생:", error);
+      }
+    },
     submitForm() {
-      // 모든 조건 통과 시 설문 페이지로 이동
+      // 예시: 제출 후 이동
       this.$router.push("/mobile/completion");
     },
   },
+  created() {
+    // 페이지 로딩 시 설문 데이터 가져오기
+    this.fetchSurveyData();
+  },
 };
 </script>
-
 <style scoped>
 .survey-page {
   width: 100%;
   height: 100%;
-  overflow-y: auto; /* 수직 스크롤 추가 */
-  box-sizing: border-box; /* padding을 포함하여 크기 계산 */
+  overflow-y: auto;
+  box-sizing: border-box;
 
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* 스크롤바 스타일링 */
-.survey-page::-webkit-scrollbar {
-  width: 8px;
+/* 질문 컨테이너 너비 조정 */
+.survey-question {
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.survey-page::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.survey-page::-webkit-scrollbar-thumb {
-  background: #e8eaec;
-  border-radius: 4px;
-}
-
-.survey-page::-webkit-scrollbar-thumb:hover {
-  background: #d1d5d9;
-}
-
+/* 제출 버튼 스타일 */
 .survey-submit-button {
-  margin-top: auto; /* 버튼을 페이지의 하단으로 이동 */
-  margin-bottom: 20px; /* 부모의 padding과 조화롭게 간격 추가 */
+  margin-top: auto;
+  margin-bottom: 20px;
   padding: 10px 0;
   width: 157px;
   height: 45px;
