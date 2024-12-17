@@ -4,11 +4,13 @@
     <textarea
       class="answer-field"
       rows="3"
+      :maxlength="isLongAnswer ? 2000 : 100"
       placeholder="답변을 입력하세요."
-      @input="autoResize($event)"
+      v-model="answer"
+      @input="handleInput"
     ></textarea>
+    <p class="char-count">{{ `${answer.length} / ${maxLength} 자` }}</p>
     <p v-if="required" class="required-text">* 필수 답변</p>
-    <!-- Conditionally render the required text -->
   </div>
 </template>
 
@@ -20,8 +22,28 @@ export default {
       type: Boolean,
       default: false,
     },
+    type: {
+      type: String,
+      default: "LONG_ANSWER", // 기본값: LONG_ANSWER
+    },
+  },
+  data() {
+    return {
+      answer: "",
+    };
+  },
+  computed: {
+    isLongAnswer() {
+      return this.type === "LONG_ANSWER";
+    },
+    maxLength() {
+      return this.isLongAnswer ? 2000 : 100;
+    },
   },
   methods: {
+    handleInput(event) {
+      this.autoResize(event);
+    },
     autoResize(event) {
       const textarea = event.target;
       textarea.style.height = "auto";
@@ -63,6 +85,13 @@ textarea {
 }
 textarea:focus {
   border: 1px solid #bfd0e0; /* 원하는 색으로 변경 */
+}
+
+.char-count {
+  font-size: 12px;
+  color: gray;
+  text-align: right;
+  margin-top: 5px;
 }
 
 .required-text {

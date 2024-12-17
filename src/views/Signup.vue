@@ -9,15 +9,9 @@
           <h2>회원가입</h2>
         </div>
 
-        <div class="name-container">
-          <div class="form-field relative">
-            <input type="text" id="lastName" class="input-field peer" v-model="lastName" placeholder=" " ref="lastNameInput" />
-            <label for="lastName" class="floating-label">성</label>
-          </div>
-          <div class="form-field relative">
-            <input type="text" id="firstName" class="input-field peer" v-model="firstName" placeholder=" " ref="firstNameInput" />
-            <label for="firstName" class="floating-label">이름</label>
-          </div>
+        <div class="form-field relative">
+          <input type="text" id="userName" class="input-field peer" v-model="userName" placeholder=" " ref="userNameInput" />
+          <label for="userName" class="floating-label">이름</label>
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': emailError && emailTouched }">
@@ -31,7 +25,7 @@
         <div class="form-field relative" :class="{ 'has-error': phoneError && phoneTouched }">
           <input type="tel" id="phone" class="input-field peer" :class="{ 'error-border': phoneError && phoneTouched }"
             v-model="phone" @input="validatePhone" placeholder=" " ref="phoneInput" />
-          <label for="phone" class="floating-label" :class="{ 'error-label': phoneError && phoneTouched }">전화번호</label>
+          <label for="phone" class="floating-label" :class="{ 'error-label': phoneError && phoneTouched }">전화번호 (숫자만 입력)</label>
           <span v-if="phoneError && phoneTouched" class="error-message">올바른 전화번호 형식이 아닙니다</span>
         </div>
 
@@ -73,14 +67,14 @@
 </template>
 
 <script>
-import { showNavigateAlert } from '@/utils/swalUtils';
+import { showNavigateAlert, showErrorAlert } from '@/utils/swalUtils';
+import { authAPI } from '@/service/surveyService';
 
 export default {
   name: 'SignupPage',
   data() {
     return {
-      lastName: '',
-      firstName: '',
+      userName: '',
       email: '',
       phone: '',
       password: '',
@@ -102,8 +96,7 @@ export default {
   },
   computed: {
     isFormValid() {
-      return this.lastName &&
-        this.firstName &&
+      return this.userName &&
         this.email && !this.emailError &&
         this.phone && !this.phoneError &&
         this.password && !this.passwordError &&
@@ -155,17 +148,11 @@ export default {
       this.confirmPasswordTouched = true;
       this.confirmPasswordError = this.password !== this.confirmPassword;
     },
-    doSignup() {
-      // 성, 이름 체크
-      if (!this.lastName || !this.firstName) {
-        if (!this.lastName) {
-          this.$refs.lastNameInput.focus();
-          return;
-        }
-        if (!this.firstName) {
-          this.$refs.firstNameInput.focus();
-          return;
-        }
+    async doSignup() {
+      // 이름 체크
+      if (!this.userName) {
+        this.$refs.userNameInput.focus();
+        return;
       }
 
       // 이메일 체크
@@ -204,18 +191,38 @@ export default {
 
       // 모든 유효성 검사 통과 확인
       if (this.isFormValid) {
-        showNavigateAlert({
-          html: "회원가입 완료",
-          subMessage: "가입이 성공적으로 완료되었습니다.",
-          confirmText: "로그인",
-          onConfirm: () => {
-            this.$router.push("/");
+        try {
+          const signupData = {
+            userName: this.userName,
+            phoneNumber: this.phone,
+            email: this.email,
+            password: this.password
+          };
+
+          const response = await authAPI.doSignUp(signupData);
+
+          if(response.data.success) {
+            showNavigateAlert({
+              html: "회원가입 완료",
+              subMessage: "가입이 성공적으로 완료되었습니다.",
+              confirmText: "로그인",
+              onConfirm: () => {
+                this.$router.push("/");
+              }
+            });
+          } 
+          
+        } catch(error) {
+          // 400 Bad Request이고 에러 코드가 A003인 경우
+          if (error.response?.status === 400 && error.response?.data?.resultCode === 'A003') {
+            showErrorAlert("회원가입 실패", "이미 존재하는 이메일입니다.");
+          } else {
+            showErrorAlert("회원가입 실패", "회원가입 중 오류가 발생했습니다.");
           }
-        });
-        // TODO: 회원가입 API 호출
+        }
+
         console.log('회원가입 시도', {
-          lastName: this.lastName,
-          firstName: this.firstName,
+          userName: this.userName,
           email: this.email,
           phone: this.phone,
           password: this.password
@@ -272,17 +279,6 @@ h2 {
   font-weight: bold;
   margin: 0;
   cursor: default;
-}
-
-.name-container {
-  display: flex;
-  gap: 10px;
-  width: 100%;
-}
-
-.name-container .form-field {
-  width: calc(50% - 5px);
-  margin-bottom: 5px;
 }
 
 .form-field {
