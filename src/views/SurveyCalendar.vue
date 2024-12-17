@@ -10,6 +10,7 @@
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import { surveyAPI } from "@/service/surveyService";
 
 export default {
   components: {
@@ -41,50 +42,23 @@ export default {
     };
   },
   methods: {
-    // 목데이터로 설문 데이터 생성
-    fetchSurveyData() {
-      // 하드코딩된 목데이터 예시
-      const surveyData = [
-        {
-          id: 1,
-          title: "설문 1",
-          start_date: "2024-11-14",
-          end_date: "2024-11-20",
-        },
-        {
-          id: 2,
-          title: "설문 2",
-          start_date: "2024-11-16",
-          end_date: "2024-11-22",
-        },
-        {
-          id: 3,
-          title: "설문 3",
-          start_date: "2024-11-18",
-          end_date: "2024-11-25",
-        },
-        {
-          id: 4,
-          title: "설문 4",
-          start_date: "2024-11-13",
-          end_date: "2024-11-25",
-        },
-        {
-          id: 5,
-          title: "설문 5",
-          start_date: "2024-11-23",
-          end_date: "2024-12-01",
-        },
-      ];
-
-      // 캘린더 이벤트 형식으로 변환
-      this.calendarOptions.events = surveyData.map((survey, index) => ({
-        title: survey.title,
-        start: survey.start_date,
-        end: survey.end_date,
-        color: this.getEventColor(index), // 색상 다르게 설정
-        id: survey.id, // 아이템 ID를 설정하여 나중에 클릭 시 사용
-      }));
+    async fetchSurveyData() {
+      try {
+        const response = await surveyAPI.getCalendarSurvey();
+        
+        if (response.data.success && response.data.body) {
+          this.calendarOptions.events = response.data.body.map((survey, index) => ({
+            id: survey.id,
+            title: survey.title,
+            start: survey.startAt.split('T')[0],  // 'T' 이전의 날짜 부분만 사용
+            end: survey.endAt.split('T')[0],      // 'T' 이전의 날짜 부분만 사용
+            allDay: true,
+            color: this.getEventColor(index),
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching survey data:', error);
+      }
     },
 
     // 이벤트 색상을 번갈아가며 다르게 설정
@@ -97,7 +71,7 @@ export default {
     handleEventClick(info) {
       // 클릭된 이벤트의 ID를 통해 SurveyEdit 페이지로 이동
       const surveyId = info.event.id;
-      this.$router.push({ name: "SurveyEdit", params: { id: surveyId } });
+      this.$router.push({ name: "SurveyStats", params: { id: surveyId } });
     },
   },
   mounted() {
