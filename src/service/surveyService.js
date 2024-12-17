@@ -37,6 +37,9 @@ export const surveyAPI = {
 
   // 설문 응답자 데이터 조회
   getSurveyStats: (surveyId) => axios.get(`/responses-aggregation/${surveyId}`),
+
+  // 캘린더 설문 조회
+  getCalendarSurvey: (data) => axios.get("/surveys/calendar")
 };
 
 export const authAPI = {
