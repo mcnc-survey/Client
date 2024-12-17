@@ -109,7 +109,6 @@ export default {
 <style>
 /* 전체 캘린더 감싸는 박스 */
 .calendar-wrapper {
-  max-width: 950px;
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
@@ -118,7 +117,7 @@ export default {
 /* FullCalendar 기본 스타일 수정 */
 .fc {
   width: 100%;
-  max-width: 980px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -142,7 +141,7 @@ export default {
   padding: 10px 14px 10px 24px;
   font-size: 12px;
   font-weight: 500;
-  margin-top: 16.6px;
+  margin-top: 6.6px;
   background: #DFE7EF;
   border-radius: 16px;
 }
