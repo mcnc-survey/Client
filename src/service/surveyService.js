@@ -38,3 +38,15 @@ export const surveyAPI = {
   // 설문 응답자 데이터 조회
   getSurveyStats: (surveyId) => axios.get(`/responses-aggregation/${surveyId}`),
 };
+
+export const authAPI = {
+
+  // 관리자 회원가입
+  doSignUp: (data) => axios.post("/auth/sign-up", data),
+
+  // 관리자 로그인
+  doLogin: (data) => axios.post("/auth/sign-in", data),
+
+  //관리자 로그아웃
+  doLogout: () => axios.delete("/auth/sign-out")
+};
