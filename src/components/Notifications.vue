@@ -22,10 +22,10 @@ export default {
 
 <style scoped>
 .notifications {
-  width: 15%;
+  width: 16%;
   background-color: #ffffff;
   padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-left: 3px solid #E8E8E8;
 }
 
 .notifications h3 {

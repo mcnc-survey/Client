@@ -6,10 +6,12 @@
     <div class="content-wrapper">
       <!-- 상단 탭바 -->
       <div class="topbar">
-        <button class="sidebar-toggle" @click="toggleSidebar">☰</button>
-        <span class="title">My Application</span>
+        <button class="sidebar-toggle" @click="toggleSidebar">
+          <img :src="require('@/assets/images/sidetab.svg')" alt="Toggle Sidebar" class="icon" />
+        </button>
+        <span class="title">{{ title }}</span>
         <button class="notifications-toggle" @click="toggleNotifications">
-          🔔
+          <img :src="require('@/assets/images/alarm.svg')" alt="Toggle Notifications" class="icon" />
         </button>
       </div>
 
@@ -27,6 +29,7 @@
 <script>
 import Sidebar from "../components/Sidebar.vue";
 import Notifications from "../components/Notifications.vue";
+import { emitter } from '@/eventBus/eventBus';
 
 export default {
   name: "WebLayout",
@@ -38,6 +41,7 @@ export default {
     return {
       isSidebarOpen: true,
       isNotificationsOpen: true,
+      title: "마음의 소리",
     };
   },
   methods: {
@@ -47,6 +51,25 @@ export default {
     toggleNotifications() {
       this.isNotificationsOpen = !this.isNotificationsOpen;
     },
+  },
+  watch: {
+    // 라우트가 변경될 때마다 title 업데이트
+    $route(to) {
+      this.title = to.meta.title || '마음의 소리'; // 라우터 meta의 title을 설정
+    },
+  },
+  created() {
+    // 이벤트 수신: updateTitle 이벤트가 발생하면 title 업데이트
+    emitter.on('updateTitle', (newTitle) => {
+      this.title = newTitle;
+    });
+
+    // 최초 라우트 메타 title 설정
+    this.title = this.$route.meta.title || '마음의 소리';
+  },
+  beforeUnmount() {
+    // 이벤트 해제 (메모리 누수 방지)
+    emitter.off('updateTitle');
   },
 };
 </script>
@@ -68,10 +91,9 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  background-color: #34495e;
+  padding: 17px 40px;
   color: #ecf0f1;
-  border-bottom: 1px solid #2c3e50;
+  border-bottom: 2px solid #E8E8E8;
 }
 
 .sidebar-toggle,
@@ -79,13 +101,20 @@ export default {
   background: none;
   border: none;
   color: #ecf0f1;
-  font-size: 20px;
   cursor: pointer;
 }
 
+.icon {
+  margin-top: 5px;
+  width: 22px;
+  height: 22px;
+}
+
 .title {
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 16px;
+  color: #000;
+  position: absolute;
+  margin-left: 40px;
 }
 
 .content-wrapper {
@@ -99,6 +128,6 @@ export default {
   flex-grow: 1;
   padding: 20px;
   background-color: #fff;
-  height: 100%; /* 높이 지정 */
+  height: 100%;
 }
 </style>

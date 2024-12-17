@@ -62,36 +62,43 @@ const routes = [
         path: "management",
         component: SurveyManagement,
         name: "SurveyManagement",
+        meta: { title: '설문조사 목록' },
       },
       {
         path: "edit/:id",
         component: SurveyEdit,
         name: "SurveyEdit",
+        meta: { title: '설문조사 수정' },
       },
       {
         path: "stats/:id",
         component: SurveyStats,
         name: "SurveyStats",
+        meta: { title: '설문조사 통계' },
       },
       {
         path: "create",
         component: SurveyCreate,
         name: "SurveyCreate",
+        meta: { title: '설문조사 생성' },
       },
       {
         path: "complete",
         component: SurveyCompletion,
         name: "SurveyCompletion",
+        meta: { title: '설문조사 완료' },
       },
       {
         path: "calendar",
         component: SurveyCalendar,
+        meta: { title: '캘린더' },
       },
 
       {
         path: "recycle",
         component: DeletedItems,
         name: "DeletedItems",
+        meta: { title: '삭제된 항목' },
       },
     ],
   },

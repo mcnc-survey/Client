@@ -1,40 +1,27 @@
 <template>
   <nav v-if="isSidebarOpen" class="sidebar">
     <div class="user-info">
-      <img
-        src="@/assets/images/icon-user.png"
-        alt="User Image"
-        class="user-image"
-      />
-      <h>홍길동</h>
+      <h>안녕하세요, <b>홍길동</b>님!</h>
     </div>
     <br />
     <!-- 즐겨찾기 헤더 -->
-    <div
-      class="favorites-header"
-      :class="{
-        active: isFavoritesActive,
-        hover: isFavoritesHovered,
-      }"
-      @mouseenter="isFavoritesHovered = true"
-      @mouseleave="isFavoritesHovered = false"
-    >
-      <button @click="toggleFavoritesList" class="toggle-btn">
-        {{ isFavoritesOpen ? "▽" : "▶" }}
+    <div @click="toggleFavoritesList" class="favorites-header" :class="{
+      active: isFavoritesActive,
+      hover: isFavoritesHovered,
+    }" @mouseenter="isFavoritesHovered = true" @mouseleave="isFavoritesHovered = false">
+      <button class="toggle-btn">
+        <img :src="isFavoritesOpen ? require('@/assets/images/bookmark-open.svg') : require('@/assets/images/bookmark-close.svg')"
+          alt="toggle-icon" class="toggle-icon" />
       </button>
       <p>즐겨찾기</p>
     </div>
     <!-- 즐겨찾기 목록 -->
-    <transition name="fade">
+    <transition name="fade">``
       <ul v-if="isFavoritesOpen" class="favorites-list">
         <template v-if="favorites.length > 0">
-          <li
-            v-for="item in favorites"
-            :key="item.id"
-            :class="{
-              active: isActiveRoute(`/web/stats/${item.id}`),
-            }"
-          >
+          <li v-for="item in favorites" :key="item.id" :class="{
+            active: isActiveRoute(`/web/stats/${item.id}`),
+          }">
             <router-link :to="`/web/stats/${item.id}`">{{ item.title }}</router-link>
           </li>
         </template>
@@ -72,7 +59,7 @@ export default {
   },
   computed: {
     isFavoritesActive() {
-      return this.favorites.some((item) => 
+      return this.favorites.some((item) =>
         this.isActiveRoute(`/web/stats/${item.id}`)
       );
     },
@@ -99,13 +86,11 @@ export default {
   },
   created() {
     this.fetchFavorites();
-    // 북마크 이벤트 리스너 등록
     emitter.on('updateBookmarks', () => {
       this.fetchFavorites();
     });
   },
   unmounted() {
-    // 컴포넌트 제거 시 이벤트 리스너 제거
     emitter.off('updateBookmarks');
   },
 };
@@ -113,11 +98,12 @@ export default {
 
 <style scoped>
 .sidebar {
-  width: 20%;
-  background-color: #f4f4f4;
+  width: 15%;
+  background-color: #fff;
   padding: 20px;
   transition: transform 0.3s ease;
   transform: translateX(0);
+  border-right: 2px solid #E8E8E8;
 }
 
 .sidebar.collapsed {
@@ -131,13 +117,8 @@ export default {
 
 .user-info h {
   color: #000;
-}
-
-.user-image {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  margin-right: 10px;
+  margin: 5px 0 0 5px;
+  font-size: 16px;
 }
 
 .sidebar a {
@@ -154,10 +135,27 @@ export default {
   background-color: #ddd;
 }
 
+.sidebar .menu-item {
+  padding-left: 10px;
+}
+
 .sidebar .menu-item.router-link-active {
-  background-color: #bbb;
+  background-color: #ddd;
   font-weight: bold;
   color: black;
+}
+
+.toggle-btn {
+  border: none;
+  background-color: transparent;
+  padding: 5px 5px 0;
+  cursor: pointer;
+}
+
+.toggle-icon {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.3s ease;
 }
 
 .favorites-list {
