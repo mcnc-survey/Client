@@ -138,6 +138,7 @@ export const showNavigateAlert = (options) => {
     didOpen: () => {
       const confirmButton = Swal.getConfirmButton();
       if (confirmButton) {
+        confirmButton.style.backgroundColor = "#FCE391"; // 버튼 배경색 (초록색 예시)
         confirmButton.style.margin = "0 0 35px 0";
       }
     },

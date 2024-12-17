@@ -1,11 +1,6 @@
 <template>
   <nav v-if="isSidebarOpen" class="sidebar">
     <div class="user-info">
-      <img
-        src="@/assets/images/icon-user.png"
-        alt="User Image"
-        class="user-image"
-      />
       <h>안녕하세요, <span class="user-name">{{ userName }}</span>님!</h>
     </div>
     <br />
