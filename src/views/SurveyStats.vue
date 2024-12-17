@@ -29,6 +29,7 @@ import BackButton from "../components/BackButton.vue";
 import SurveyTab from "../components/SurveyTab.vue";
 import StatsTab from "../components/StatsTab.vue";
 import { surveyAPI } from "@/service/surveyService";
+import { emitter } from "@/eventBus/eventBus";
 import { toast } from "vue3-toastify";
 import {
   showSuccessAlert,
@@ -67,6 +68,9 @@ export default {
 
         if (response.data.resultCode === "200" || response.data.message.includes("DELETED")) {
           showSuccessAlert("삭제 완료", "설문조사가 휴지통으로 이동되었습니다.");
+
+          // 북마크 업데이트 이벤트 발생
+          emitter.emit('updateBookmarks');
           this.$router.push({ name: 'SurveyManagement' });
         } else {
           throw new Error(response.data.message || "삭제 실패");
@@ -111,7 +115,7 @@ export default {
 }
 
 .header {
-  margin: 12px 0 16px;
+  margin: 0 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;

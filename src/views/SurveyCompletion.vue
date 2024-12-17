@@ -6,7 +6,6 @@
         <div class="completion-message">
           <p class="completion-title">설문조사 등록이 완료되었습니다!</p>
           <p class="completion-subtitle">참여 링크를 공유하고, 소중한 의견을 모아보세요.</p>
-          <img src="@/assets/images/img-koala.png" alt="Koala" class="completion-image" />
         </div>
         <div class="button-group">
           <button class="btn btn-secondary" @click="goToSurveyList">목록으로 돌아가기</button>
@@ -65,7 +64,7 @@ export default {
 .survey-completion {
   display: flex;
   flex-direction: column;
-  padding: 36px;
+  padding: 0 24px;
 }
 
 .survey-title {
@@ -78,7 +77,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 700px;
+  height: 550px;
   width: 100%;
   background-color: #f7f9fb;
   border-radius: 24px;
@@ -87,11 +86,11 @@ export default {
 .survey-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 800px;
-  padding: 54px;
+  justify-content: center;
   background-color: #fff;
   border-radius: 24px;
+  width: 80%;
+  height: 80%;
 }
 
 .completion-message {
@@ -99,19 +98,14 @@ export default {
 }
 
 .completion-title {
-  margin: 0;
-  font-size: 1.75rem;
+  margin: 30px 0 0 0;
+  font-size: 1.5rem;
   font-weight: bold;
 }
 
 .completion-subtitle {
   margin: 13px 0 0;
-  font-size: 1.5rem;
-}
-
-.completion-image {
-  width: 180px;
-  margin: 30px 0 60px;
+  font-size: 1.25rem;
 }
 
 .button-group {
@@ -123,14 +117,19 @@ export default {
 .btn {
   font-family: Pretendard;
   font-weight: bold;
-  width: 230px;
-  height: 50px;
-  font-size: 1.25rem;
+  width: 200px;
+  height: 45px;
+  font-size: 1rem;
   padding: 10px 20px;
   border: none;
   border-radius: 28px;
   cursor: pointer;
   color: #000;
+}
+
+.btn-primary,
+.btn-secondary {
+  margin-top: 30px;
 }
 
 .btn-secondary {

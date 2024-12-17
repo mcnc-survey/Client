@@ -39,6 +39,7 @@
 <script>
 import QuestionStats from "../components/QuestionsStats.vue";
 import { surveyAPI } from '@/service/surveyService';
+import { emitter } from '@/eventBus/eventBus';
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import * as XLSX from 'xlsx';
@@ -77,6 +78,12 @@ export default {
                 if (response.data.resultCode === "200") {
                     surveySummary.value = response.data.body.surveySummary;
                     surveyResults.value = response.data.body.surveyResults || {};
+
+                    // 이벤트 발생: 제목 업데이트
+                    if (surveySummary.value.title) {
+                        const newTitle = "설문조사 통계 / " + surveySummary.value.title;
+                        emitter.emit('updateTitle', newTitle);
+                    }
                 } else {
                     throw new Error('데이터를 불러오는 데 실패했습니다.');
                 }
@@ -96,7 +103,7 @@ export default {
                     fetchSurveyResults(newId);
                 }
             },
-            { immediate: true } // 컴포넌트 마운트 시 즉시 첫 호출
+            { immediate: true }
         );
 
         // 엑셀 다운로드 메서드
@@ -337,6 +344,6 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    margin-bottom: 30px;
+    margin-bottom: 50px;
 }
 </style>

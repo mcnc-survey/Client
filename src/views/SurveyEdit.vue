@@ -133,6 +133,7 @@ import LongAnswerQuestion from '@/components/DescriptiveAnswerQuestion.vue';
 import PeriodModalComponent from '@/components/PeriodModalComponent.vue';
 import { showConfirmAlert, showErrorAlert } from '@/utils/swalUtils';
 import { surveyAPI } from '@/service/surveyService';
+import { emitter } from "@/eventBus/eventBus";
 
 export default {
  name: 'SurveyEdit',
@@ -274,8 +275,6 @@ export default {
       console.error('Error fetching survey data:', error);
       await showErrorAlert("설문 조회 실패", "설문을 불러오는데 실패했습니다.");
       router.replace({ name: 'SurveyManagement' });
-    } finally {
-
     }
   };
 
@@ -623,6 +622,7 @@ export default {
       if (response.data.resultCode === "200") {
         hasUnsavedChanges.value = false;
         router.push({ name: "SurveyCompletion" });
+        emitter.emit('updateBookmarks');
       } else {
         throw new Error(response.data.message || "설문 수정에 실패했습니다.");
       }

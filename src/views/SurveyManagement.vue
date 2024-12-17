@@ -35,7 +35,7 @@
               <i class="icon icon-delete"></i>
             </button>
           </div>
-          <span class="last-updated">최근 수정일: {{ formatDate(survey.lastModifiedAt) }}</span>
+          <span class="survey-period"> {{ formatDate(survey.startAt) + " - " + formatDate(survey.endAt) }}</span>
         </div>
       </div>
     </div>
@@ -98,16 +98,25 @@ export default {
         if (!a.isLike && b.isLike) return 1;
 
         const statusComparison = statusOrder[a.status] - statusOrder[b.status];
-        if (statusComparison === 0) {
-          return new Date(b.lastModifiedAt) - new Date(a.lastModifiedAt);
+        if (statusComparison !== 0) {
+          return statusComparison;
         }
-        return statusComparison;
+
+        // endAt이 가장 임박한 순서로 정렬
+        const endAtComparison = new Date(a.endAt) - new Date(b.endAt);
+        if (endAtComparison !== 0) {
+          return endAtComparison;
+        }
+
       });
     });
 
-
     const formatDate = (dateString) => {
-      return new Date(dateString).toISOString().split("T")[0];
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}.${month}.${day}`;
     };
 
     const getStatusClass = (status) => {
@@ -215,6 +224,9 @@ export default {
               surveys.value = surveys.value.filter((survey) => survey.id !== surveyId);
 
               showSuccessAlert("삭제 완료", "설문조사가 삭제되었습니다.");
+
+              // 북마크 업데이트 이벤트 발생
+              emitter.emit('updateBookmarks');
             } else {
               throw new Error(response.data.message || "삭제 실패");
             }
@@ -391,7 +403,7 @@ h2 {
   flex-direction: column;
   align-items: flex-end;
   margin-top: 10px;
-  gap: 15px;
+  gap: 10px;
 }
 
 .management-buttons {
@@ -418,8 +430,8 @@ h2 {
 
 .icon-export {
   width: 22px;
-  height: 18px;
-  margin-top: 2px;
+  height: 19px;
+  margin-top: 7px;
   background-image: url("@/assets/images/icon-export.svg");
 }
 
@@ -435,13 +447,15 @@ h2 {
   background-image: url("@/assets/images/icon-delete.svg");
 }
 
-.last-updated {
+.survey-period {
   text-align: end;
-  color: #757575;
+  background: #fff;
+  border-radius: 16px;
+  color: #A4A4A4;
   font-size: 0.875em;
-  margin-left: 4px;
-  font-weight: bold;
+  font-weight: 600;
   letter-spacing: 0.5px;
+  padding: 5px 10px;
 }
 
 .create-button {
