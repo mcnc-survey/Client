@@ -16,7 +16,7 @@
       <p>즐겨찾기</p>
     </div>
     <!-- 즐겨찾기 목록 -->
-    <transition name="fade">``
+    <transition name="fade">
       <ul v-if="isFavoritesOpen" class="favorites-list">
         <template v-if="favorites.length > 0">
           <li v-for="item in favorites" :key="item.id" :class="{
