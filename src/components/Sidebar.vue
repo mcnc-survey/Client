@@ -6,7 +6,7 @@
         alt="User Image"
         class="user-image"
       />
-      <h>홍길동</h>
+      <h>안녕하세요, <span class="user-name">{{ userName }}</span>님!</h>
     </div>
     <br />
     <!-- 즐겨찾기 헤더 -->
@@ -48,13 +48,14 @@
     </router-link>
     <router-link to="/web/calendar" class="menu-item">캘린더</router-link>
     <router-link to="/web/recycle" class="menu-item">삭제된 항목</router-link>
-    <router-link to="/" class="menu-item">로그아웃</router-link>
+    <a @click="handleLogout" class="menu-item">로그아웃</a>
   </nav>
 </template>
 
 <script>
-import { surveyAPI } from '@/service/surveyService';
+import { surveyAPI, authAPI } from '@/service/surveyService';
 import { emitter } from '@/eventBus/eventBus';
+import { showErrorAlert, showConfirmAlert } from '@/utils/swalUtils';
 
 export default {
   props: {
@@ -68,6 +69,7 @@ export default {
       isFavoritesOpen: true,
       isFavoritesHovered: false,
       favorites: [],
+      userName: localStorage.getItem('userName') || '사용자',
     };
   },
   computed: {
@@ -95,6 +97,33 @@ export default {
       } catch (error) {
         console.error('즐겨찾기 API 호출 중 오류 발생:', error);
       }
+    },
+    async handleLogout() {
+      showConfirmAlert({
+        title: '로그아웃',
+        html: '정말 로그아웃 하시겠습니까?',
+        confirmText: '확인',
+        cancelText: '취소',
+        subMessage: '', // 삭제 관련 메시지를 표시하지 않기 위해 빈 문자열로 설정
+        onConfirm: async () => {
+          try {
+            const response = await authAPI.doLogout();
+            
+            if (response.data.success) {
+              localStorage.removeItem('accessToken');
+              localStorage.removeItem('userName');
+              this.$router.push('/');
+            }
+          } catch (error) {
+            console.error('로그아웃 에러:', error);
+            showErrorAlert('로그아웃 실패', '로그아웃 처리 중 오류가 발생했습니다.');
+            // 에러가 발생하더라도 로컬 데이터 삭제 및 리다이렉트
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('userName');
+            this.$router.push('/');
+          }
+        }
+      });
     },
   },
   created() {
@@ -138,6 +167,10 @@ export default {
   height: 30px;
   border-radius: 50%;
   margin-right: 10px;
+}
+
+.user-name {
+  font-weight: bold;
 }
 
 .sidebar a {

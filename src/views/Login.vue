@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <div class="login-container" @keyup.enter="handleLogin">
     <div class="left-bg">
       <div class="login-layout">
         <h2>로그인</h2>
@@ -100,16 +100,19 @@
               src="../assets/images/login_google.svg"
               alt="google"
               class="social-icon"
+              @click="googleLogin"
             />
             <img
               src="../assets/images/login_kakao.png"
               alt="kakao"
               class="social-icon"
+              @click="kakaoLogin"
             />
             <img
               src="../assets/images/login_naver.svg"
               alt="naver"
               class="social-icon"
+              @click="naverLogin"
             />
           </div>
         </div>
@@ -126,6 +129,7 @@
 
 <script>
 import { showErrorAlert } from '@/utils/swalUtils';
+import { authAPI } from '@/service/surveyService';
 
 export default {
   name: "LoginPage",
@@ -140,7 +144,34 @@ export default {
       showPassword: false,
     };
   },
+  created() {
+    // URL에서 accessToken 파라미터 확인
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get('accessToken');
+    const userName = urlParams.get('userName');
+    
+    if (accessToken) {
+      this.handleSocialLoginSuccess(accessToken, userName);
+    }
+  },
   methods: {
+    // 소셜 로그인 성공 처리
+    handleSocialLoginSuccess(accessToken, userName) {
+      try {
+        // 로컬 스토리지에 토큰 저장
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('userName', userName);
+        
+        // URL에서 토큰 파라미터 제거
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        
+        // 메인 페이지로 리다이렉트
+        this.$router.push("/web/management");
+      } catch (error) {
+        showErrorAlert("로그인 실패", "소셜 로그인 처리 중 오류가 발생했습니다.");
+      }
+    },
     validateEmail() {
       if (this.email.length === 0) {
         this.emailError = false;
@@ -162,7 +193,7 @@ export default {
       const hasNumber = /[0-9]/.test(this.password);     // 숫자 포함
       this.passwordError = !(hasSpecialChar && hasMinLength && hasLetter && hasNumber);
     },
-    handleLogin() {
+    async handleLogin() {
       // 이메일과 비밀번호가 모두 비어있는 경우
       if (!this.email && !this.password) {
         this.$refs.emailInput.focus();
@@ -191,9 +222,40 @@ export default {
 
       // 유효성 검사를 통과한 경우에만 다음 페이지로 이동
       if (!this.emailError && !this.passwordError) {
-        this.$router.push("/web/management");
-        //this.loginError();
+
+        try {
+          const loginData = {
+            email: this.email,
+            password: this.password
+          };
+
+          const response = await authAPI.doLogin(loginData);
+
+          if(response.data.success) {
+            localStorage.setItem('userName', response.data.body.userName);
+            this.$router.push("/web/management");
+          } 
+
+        } catch(error) {
+          // 400 Bad Request이고 에러 코드가 A002나 A004인 경우
+          if (error.response?.status === 400 && 
+              (error.response?.data?.resultCode === 'A002' || 
+              error.response?.data?.resultCode === 'A004')) {
+            this.loginError();
+          } else {
+            showErrorAlert("로그인 실패", "로그인 중 오류가 발생했습니다.");
+          }
+        }
       }
+    },
+    googleLogin() {
+      window.location.href = "https://web.mcnc-survey.store/oauth2/authorization/google";
+    },
+    kakaoLogin() {
+      window.location.href = "https://web.mcnc-survey.store/oauth2/authorization/kakao";
+    },
+    naverLogin() {
+      window.location.href = "https://web.mcnc-survey.store/oauth2/authorization/naver";
     },
     loginError() {
       showErrorAlert("로그인 실패", "이메일 및 비밀번호를 다시 확인해주세요.");

@@ -13,9 +13,9 @@ const instance = axios.create({
 instance.interceptors.request.use(
     (config) => {
         // 요청 보내기 전 처리
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        const accessToken = localStorage.getItem('accessToken');
+        if (accessToken) {
+            config.headers.Authorization = `Bearer ${accessToken}`;
         }
         return config;
     },
@@ -28,13 +28,41 @@ instance.interceptors.request.use(
 // 응답 인터셉터
 instance.interceptors.response.use(
     (response) => {
-        // 응답 데이터 처리
+        if (response.data?.body?.accessToken) {
+            localStorage.setItem('accessToken', response.data.body.accessToken);
+        }
         return response;
     },
-    (error) => {
-        // 응답 에러 처리
-        if (error.response.status === 401) {
-            // 인증 에러 처리
+    async (error) => {
+        const originalRequest = error.config;
+
+        // accessToken이 만료된 경우 (401 에러)
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                // 현재 가지고 있는 만료된 accessToken과 함께 재발급 요청
+                const response = await instance.post('/token/reissue', {
+                    accessToken: localStorage.getItem('accessToken')
+                });
+                
+                if (response.data.success) {
+                    // 새로운 accessToken 저장
+                    const newAccessToken = response.data.body.accessToken;
+                    localStorage.setItem('accessToken', newAccessToken);
+                    
+                    // 실패했던 원래 요청의 헤더에 새로운 accessToken 설정
+                    originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                    
+                    // 원래 요청 재시도
+                    return instance(originalRequest);
+                }
+            } catch (refreshError) {
+                // refreshToken도 만료되었거나 재발급 실패
+                localStorage.removeItem('accessToken');
+                window.location.href = '/';
+                return Promise.reject(refreshError);
+            }
         }
         return Promise.reject(error);
     }
