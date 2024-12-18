@@ -26,6 +26,8 @@
 </template>
 
 <script>
+import { get } from "lodash";
+
 export default {
   props: {
     question: String,
@@ -45,10 +47,16 @@ export default {
     toggleOption(option) {
       // 두 번째 클릭 시 선택 해제
       this.selectedOption = this.selectedOption === option ? null : option;
+      this.$emit("update:selected", this.selectedOption); // 부모에게 선택된 값 전달
     },
     selectOption(option) {
       // 라디오 버튼 변경 이벤트 처리
       this.selectedOption = option;
+      this.$emit("update:selected", this.selectedOption); // 부모에게 선택된 값 전달
+    },
+    getResponse() {
+      // 선택된 옵션 반환
+      return this.selectedOption;
     },
   },
 };

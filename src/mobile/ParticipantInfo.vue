@@ -82,13 +82,6 @@ import Swal from "sweetalert2";
 import { API } from "../service/mobileService";
 
 export default {
-  // beforeCreate() {
-  //   localStorage.setItem("accessToken", this.$route.query.t);
-  //   const accessToken = localStorage.Item("accessToken");
-  //   if (accessToken) {
-  //     this.$router.push("/mobile/survey");
-  //   }
-  // },
   data() {
     return {
       email: "",
@@ -192,6 +185,9 @@ export default {
       API.submitParticipantInfo(requestData, this.token)
         .then((response) => {
           if (response.data.success) {
+            // 로그인 성공 시 토큰을 localStorage에 저장
+            localStorage.setItem("surveyId", this.token);
+
             Swal.fire({
               icon: "success",
               title: "로그인 성공",

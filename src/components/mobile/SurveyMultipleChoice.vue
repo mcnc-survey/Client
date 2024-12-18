@@ -51,6 +51,7 @@ export default {
       } else {
         this.selectedOptions.push(option);
       }
+      this.$emit("update:selected", this.selectedOptions.join("|`|"));
     },
     selectOption(option) {
       // 체크박스 변경 이벤트 처리
@@ -61,6 +62,7 @@ export default {
       } else {
         this.selectedOptions.push(option);
       }
+      this.$emit("update:selected", this.selectedOptions.join("|`|"));
     },
   },
 };

@@ -49,6 +49,9 @@ export default {
       textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
     },
+    getResponse() {
+      return this.answer;
+    },
   },
 };
 </script>
