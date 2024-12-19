@@ -7,7 +7,9 @@
       :maxlength="isLongAnswer ? 2000 : 100"
       placeholder="답변을 입력하세요."
       v-model="answer"
+      value="answer"
       @input="handleInput"
+      @focusout="getAnswer(answer)"
     ></textarea>
     <p class="char-count">{{ `${answer.length} / ${maxLength} 자` }}</p>
     <p v-if="required" class="required-text">* 필수 답변</p>
@@ -49,8 +51,9 @@ export default {
       textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
     },
-    getResponse() {
-      return this.answer;
+    getAnswer(answer) {
+      this.answer = answer;
+      this.$emit("update:selected", answer); // 부모에게 선택된 값 전달
     },
   },
 };

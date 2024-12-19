@@ -30,6 +30,7 @@
         :name="`question${question.id}`"
         :required="question.required"
         type="LONG_ANSWER"
+        @update:selected="updateSelected(index, $event)"
       />
 
       <SurveyTextAnswer
@@ -38,6 +39,7 @@
         :name="`question${question.id}`"
         :required="question.required"
         type="SHORT_ANSWER"
+        @update:selected="updateSelected(index, $event)"
       />
     </div>
 
@@ -45,7 +47,7 @@
   </div>
 </template>
 <script>
-import axios from "axios";
+import { API } from "../service/mobileService";
 import SurveyTitle from "../components/mobile/SurveyTitle.vue";
 import SurveySingleChoice from "../components/mobile/SurveySingleChoice.vue";
 import SurveyMultipleChoice from "../components/mobile/SurveyMultipleChoice.vue";
@@ -63,37 +65,26 @@ export default {
       survey: {
         title: "",
         description: "",
-        question: [],
+        question: {},
       },
-      responses: {}, // 질문 ID를 키로 하고 응답 데이터를 값으로 저장
+      responses: [], // 질문 ID를 키로 하고 응답 데이터를 값으로 저장
       token: localStorage.getItem("surveyId"),
     };
   },
   methods: {
     updateSelected(index, selectedOption) {
-      console.log(`${selectedOption}`); // 선택된 값 저장
+      // 자식의 응답을 responses[index]에 저장
       this.responses[index] = selectedOption;
     },
     async fetchSurveyData() {
       try {
-        const response = await axios.get(
-          `https://mobile.mcnc-survey.store/responses`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            },
-          }
-        );
+        const response = await API.getSurvey();
+
         const surveyData = response.data.body.surveySnippet;
 
         this.survey.title = surveyData.title;
         this.survey.description = surveyData.description;
         this.survey.question = surveyData.question;
-
-        // 질문 ID를 기반으로 responses 객체 초기화
-        surveyData.question.forEach((q) => {
-          this.responses[q.id] = q.questionType === "MULTIPLE_CHOICE" ? [] : "";
-        });
       } catch (error) {
         console.error("설문 데이터를 가져오는 중 오류 발생:", error);
       }
@@ -102,44 +93,43 @@ export default {
       console.log("응답 데이터:", this.responses);
     },
     async submitForm() {
-      console.log("응답 데이터:", this.responses);
-      // await axios.post(
-      //   `https://mobile.mcnc-survey.store/responses`,
-      //   {
-      //     responses: [
-      //       {
-      //         questionId: "a760e4ba-4bc5-4e86-8734-3300922edaa2",
-      //         questionType: "SINGLE_CHOICE",
-      //         orderNumber: 1,
-      //         response: "FSD",
-      //       },
-      //       {
-      //         questionId: "01f09426-4968-413c-8bab-3bccf4b15ab8",
-      //         questionType: "MULTIPLE_CHOICE",
-      //         orderNumber: 2,
-      //         response: "SFD|`|SFD",
-      //       },
-      //       {
-      //         questionId: "f439dcbf-114a-43b8-930b-f742526a239c",
-      //         questionType: "SHORT_ANSWER",
-      //         orderNumber: 3,
-      //         response: "FSD",
-      //       },
-      //       {
-      //         questionId: "7dad0be8-1dca-4219-a989-0416b0fa4c21",
-      //         questionType: "LONG_ANSWER",
-      //         orderNumber: 4,
-      //         response: "FSD",
-      //       },
-      //     ],
-      //   },
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      //       "Content-Type": "application/json",
-      //     },
-      //   }
-      // );
+      try {
+        // `responses` 배열을 생성
+        const formattedResponses = this.survey.question.map(
+          (question, index) => {
+            const responseValue = this.responses[index]; // 해당 질문의 응답 데이터 가져오기
+            let response = "";
+
+            // MULTIPLE_CHOICE의 경우 배열 값을 `|`로 구분된 문자열로 변환
+            if (Array.isArray(responseValue)) {
+              response = responseValue.join("|");
+            } else {
+              response = responseValue;
+            }
+
+            return {
+              questionId: question.id,
+              questionType: question.questionType,
+              orderNumber: question.order,
+              response,
+            };
+          }
+        );
+
+        // 최종 payload 구조
+        const payload = {
+          responses: formattedResponses,
+        };
+
+        console.log("최종 payload:", JSON.stringify(payload, null, 2));
+
+        // API 요청
+        const response = await API.submitSurvey(payload);
+
+        console.log("응답 전송 성공:", response.data);
+      } catch (error) {
+        console.error("응답 전송 중 오류 발생:", error);
+      }
     },
   },
   created() {

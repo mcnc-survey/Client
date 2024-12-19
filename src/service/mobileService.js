@@ -11,4 +11,24 @@ export const API = {
       },
     });
   },
+  submitSurvey(data) {
+    // 로컬 스토리지에서 accessToken 가져오기
+    const token = localStorage.getItem("accessToken");
+    return axios.post(`responses`, data, {
+      headers: {
+        ...axios.defaults.headers.common, // 기존 공통 헤더 병합
+        Authorization: `Bearer ${token}`, // Authorization 헤더 직접 추가
+      },
+    });
+  },
+  getSurvey() {
+    // 로컬 스토리지에서 accessToken 가져오기
+    const token = localStorage.getItem("accessToken");
+    return axios.get(`responses`, {
+      headers: {
+        ...axios.defaults.headers.common, // 기존 공통 헤더 병합
+        Authorization: `Bearer ${token}`, // Authorization 헤더 직접 추가
+      },
+    });
+  },
 };
