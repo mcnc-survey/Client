@@ -53,6 +53,7 @@ import {
   showSuccessAlert,
   showErrorAlert,
   showConfirmAlert,
+  showEmailInviteDialog
 } from "@/utils/swalUtils";
 
 const statusOrder = {
@@ -183,8 +184,20 @@ export default {
       });
     };
 
-    const exportSurvey = (surveyId) => {
-      console.log("Exporting survey:", surveyId);
+    const exportSurvey = async (surveyId) => {
+      await showEmailInviteDialog({
+        onConfirm: async (emails) => {
+          try {
+            await surveyAPI.inviteSurvey(surveyId, emails);
+            toast.success('초대 메일이 발송되었습니다.', {
+              position: toast.POSITION.TOP_CENTER,
+              autoClose: 2000,
+            });
+          } catch (error) {
+            throw new Error(error.response?.data?.message || '초대 처리 중 오류가 발생했습니다.');
+          }
+        }
+      });
     };
 
     const shareLink = (surveyId) => {

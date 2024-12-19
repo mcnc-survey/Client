@@ -45,7 +45,7 @@ export default {
     async fetchSurveyData() {
       try {
         const response = await surveyAPI.getCalendarSurvey();
-        
+
         if (response.data.success && response.data.body) {
           this.calendarOptions.events = response.data.body.map((survey, index) => ({
             id: survey.id,
@@ -92,6 +92,7 @@ export default {
 .fc {
   width: 100%;
   max-width: 1000px;
+  max-height: 560px;
   margin: 0 auto;
 }
 

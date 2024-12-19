@@ -1,7 +1,7 @@
 import axios from "./axios";
 
 export const surveyAPI = {
-  
+
   // 설문 생성
   createSurvey: (data) => axios.post("/surveys", data),
 
@@ -11,7 +11,7 @@ export const surveyAPI = {
   // 설문 수정
   updateSurvey: (surveyId, data) => axios.put(`/surveys/survey-id/${surveyId}`, data),
 
-  // 설문 미리보기 
+  // 설문 미리보기
   getSurveyDetail: (surveyId) => axios.get(`/surveys/survey-id/${surveyId}`),
 
   // 설문 목록 조회
@@ -39,11 +39,14 @@ export const surveyAPI = {
   getSurveyStats: (surveyId) => axios.get(`/responses-aggregation/${surveyId}`),
 
   // 캘린더 설문 조회
-  getCalendarSurvey: (data) => axios.get("/surveys/calendar")
+  getCalendarSurvey: () => axios.get("/surveys/calendar"),
+
+  // 설문 초대
+  inviteSurvey: (surveyId, emails) => axios.post(`/surveys/survey-id/${surveyId}/invite`, { emails }),
 };
 
 export const authAPI = {
-
+  
   // 관리자 회원가입
   doSignUp: (data) => axios.post("/auth/sign-up", data),
 

@@ -1,19 +1,19 @@
-/* 팝업창 커스터마이징 */
+/* 공통 팝업 스타일 */
 .custom-swal-popup {
   width: 560px;
-  height: 270px;
+  height: auto;
   background-color: #fff;
   border-radius: 11px;
   padding: 40px 0 0;
-
   display: flex;
   flex-direction: column;
-  align-items: center; /* 수평 정렬 */
-  justify-content: center; /* 수직 정렬 */
+  align-items: center;
+  justify-content: flex-start; /* 위쪽부터 내용 배치 */
 }
 
+/* 공통 텍스트 스타일 */
 .custom-alert-content {
-  text-align: center; /* 텍스트를 중앙 정렬 */
+  text-align: center;
 }
 
 /* 팝업 내 텍스트 스타일 */
@@ -44,12 +44,11 @@
   height: 40px;
   border-radius: 24px;
   border: none;
-  margin-top: -20px;
   margin-bottom: 35px;
 }
 
 .custom-confirm-button {
-  background-color: #fba9a7;
+  background-color: #dfe7ef;
   color: #000;
   margin-right: 36px;
 }
@@ -57,4 +56,88 @@
 .custom-cancel-button {
   background-color: #dee0e2;
   color: #000;
+}
+
+.swal2-actions {
+  gap: 20px;
+}
+
+/* showValidationMessage 커스텀 스타일 */
+.email-input-container {
+  display: flex;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+#email-input {
+  flex: 1;
+  padding-right: 48px;
+}
+
+#add-email-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #f3f4f6;
+  color: #333;
+  border: none;
+  border-radius: 16px;
+  padding: 4px 8px;
+  cursor: pointer;
+  width: 70px;
+}
+
+#add-email-btn:hover {
+  background-color: #e5e7eb;
+}
+
+/* 이메일 태그 스타일 */
+.email-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.email-tag {
+  display: flex;
+  align-items: center;
+  background-color: #f3f4f6;
+  padding: 5px 15px;
+  border-radius: 16px;
+  gap: 8px;
+}
+
+.remove-email {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 16px;
+}
+
+.remove-email:hover {
+  color: #ef4444;
+}
+
+/* Validation 메시지 스타일 */
+.swal2-validation-message {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  text-align: center;
+  background-color: #fff;
+  border: 1px solid #fba9a7;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #000;
+  font-size: 0.875rem;
+}
+
+.custom-email-title {
+  margin-bottom: 15px;
+  font-size: 1.375rem;
 }

@@ -34,6 +34,7 @@
 <script>
 import { ref, onMounted } from "vue";
 import { toast } from "vue3-toastify";
+import { emitter } from "@/eventBus/eventBus";
 import {
   showSuccessAlert,
   showErrorAlert,
@@ -116,6 +117,8 @@ export default {
 
           selectedSurveys.value = []; // 선택 초기화
           isAllSelected.value = false; // 전체 선택 해제
+
+          emitter.emit('updateBookmarks');
 
           // 성공 알림
           showSuccessAlert(
