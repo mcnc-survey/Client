@@ -1,6 +1,6 @@
 <template>
   <div class="survey-completion">
-    <h2 class="survey-title">설문조사 생성</h2>
+    <h2 class="survey-title">설문조사 완료</h2>
     <div class="survey-container">
       <div class="survey-content">
         <div class="completion-message">
@@ -9,7 +9,7 @@
         </div>
         <div class="button-group">
           <button class="btn btn-secondary" @click="goToSurveyList">목록으로 돌아가기</button>
-          <button class="btn btn-primary" @click="shareLink">공유하기</button>
+          <button class="btn btn-primary" @click="exportSurvey(surveyId)">이메일로 초대하기</button>
         </div>
       </div>
     </div>
@@ -17,21 +17,21 @@
 </template>
 
 <script>
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
+import { surveyAPI } from "@/service/surveyService";
 import { toast } from "vue3-toastify"; // toastify
 import "vue3-toastify/dist/index.css"; // toastify 스타일 추가
-
-// 토스트 메시지 옵션 객체
-const toastOptions = {
-  position: toast.POSITION.TOP_CENTER,
-  autoClose: 1000,
-};
+import {
+  showEmailInviteDialog
+} from "@/utils/swalUtils";
 
 export default {
   name: "SurveyCompletion",
 
   setup() {
     const router = useRouter();
+    const route = useRoute();
+    const surveyId = route.params.id;
 
     const goToSurveyList = () => {
       router.push({ name: "SurveyManagement" }).catch((error) => {
@@ -39,22 +39,26 @@ export default {
       });
     };
 
-    const shareLink = () => {
-      // 공유 링크를 복사하는 로직
-      const link = "https://example.com/survey-link"; // 실제 링크로 변경
-      navigator.clipboard
-        .writeText(link)
-        .then(() => {
-          toast.success("링크가 복사되었습니다!", toastOptions);
-        })
-        .catch(() => {
-          toast.error("링크 복사에 실패했습니다.", toastOptions);
-        });
+    const exportSurvey = async (surveyId) => {
+      await showEmailInviteDialog({
+        onConfirm: async (emails) => {
+          try {
+            await surveyAPI.inviteSurvey(surveyId, emails);
+            toast.success('초대 메일이 발송되었습니다.', {
+              position: toast.POSITION.TOP_CENTER,
+              autoClose: 2000,
+            });
+          } catch (error) {
+            throw new Error(error.response?.data?.message || '초대 처리 중 오류가 발생했습니다.');
+          }
+        }
+      });
     };
 
     return {
       goToSurveyList,
-      shareLink,
+      exportSurvey,
+      surveyId,
     };
   },
 };
@@ -129,7 +133,7 @@ export default {
 
 .btn-primary,
 .btn-secondary {
-  margin-top: 30px;
+  margin-top: 40px;
 }
 
 .btn-secondary {

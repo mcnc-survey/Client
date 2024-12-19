@@ -14,47 +14,26 @@
       <div class="content-area">
         <!-- 메인 설문 영역 -->
         <div class="survey-container">
-          <div 
-            class="title-container" 
-            @click="selectTitleContainer" 
-            :class="{ error: showTitleError || showPeriodError, selected: isTitleContainerSelected }"
-          >
+          <div class="title-container" @click="selectTitleContainer"
+            :class="{ error: showTitleError || showPeriodError, selected: isTitleContainerSelected }">
             <!-- 설문 제목 입력 -->
             <div class="input-wrapper">
-              <textarea
-                v-model="title"
-                placeholder="설문 제목 입력"
-                class="title-input"
-                @input="adjustHeight"
-                @focus="titleFocused = true"
-                @blur="titleFocused = false"
-                rows="1"
-              ></textarea>
+              <textarea v-model="title" placeholder="설문 제목 입력" class="title-input" @input="adjustHeight"
+                @focus="titleFocused = true" @blur="titleFocused = false" rows="1"></textarea>
               <div class="underline" :class="{ focused: titleFocused }"></div>
             </div>
 
             <!-- 설명 입력 -->
             <div class="input-wrapper">
-              <textarea
-                v-model="description"
-                placeholder="설문 설명 입력"
-                class="description-input"
-                @input="adjustHeight"
-                @focus="descFocused = true"
-                @blur="descFocused = false"
-                rows="1"
-              ></textarea>
+              <textarea v-model="description" placeholder="설문 설명 입력" class="description-input" @input="adjustHeight"
+                @focus="descFocused = true" @blur="descFocused = false" rows="1"></textarea>
               <div class="underline" :class="{ focused: descFocused }"></div>
             </div>
 
             <!-- 설문 기간 선택 -->
             <div class="survey-period">
               <div class="period-select" @click="openPeriodModal">
-                <img
-                  src="@/assets/images/edit_date.svg"
-                  alt="달력"
-                  class="calendar-icon"
-                />
+                <img src="@/assets/images/edit_date.svg" alt="달력" class="calendar-icon" />
                 {{ formattedPeriod }}
               </div>
             </div>
@@ -65,24 +44,11 @@
 
           <!-- 질문 컨테이너들 -->
           <div class="questions-area">
-            <div
-              v-for="(question, index) in questions"
-              :key="index"
-              class="question-wrapper"
-            >
-              <div
-                ref="questionContainer"
-                class="question-container"
-                @click="selectQuestion(index)"
-                :class="{ selected: selectedQuestionIndex === index, error: questionErrors[index] }"
-              >
-                <component
-                  :is="getQuestionComponent(question.type)"
-                  :question="question"
-                  @update="updateQuestion(index, $event)"
-                  @delete="deleteQuestion(index)"
-                  @copy="copyQuestion(index)"
-                />
+            <div v-for="(question, index) in questions" :key="index" class="question-wrapper">
+              <div ref="questionContainer" class="question-container" @click="selectQuestion(index)"
+                :class="{ selected: selectedQuestionIndex === index, error: questionErrors[index] }">
+                <component :is="getQuestionComponent(question.type)" :question="question"
+                  @update="updateQuestion(index, $event)" @delete="deleteQuestion(index)" @copy="copyQuestion(index)" />
                 <div v-if="questionErrors[index]" class="error-message">
                   {{ getErrorMessage(question.type) }}
                 </div>
@@ -92,31 +58,18 @@
         </div>
 
         <!-- 사이드 영역 -->
-        <div 
-          class="side-container" 
-          :style="{ transform: `translateY(${sideTabTop}px)` }"
-        >
-          <QuestionTypeTab
-            :selected-question-index="selectedQuestionIndex"
-            :is-title-selected="isTitleContainerSelected"
-            @change-type="changeQuestionType"
-            @add-question="addNewQuestion"
-          />
+        <div class="side-container" :style="{ transform: `translateY(${sideTabTop}px)` }">
+          <QuestionTypeTab :selected-question-index="selectedQuestionIndex"
+            :is-title-selected="isTitleContainerSelected" @change-type="changeQuestionType"
+            @add-question="addNewQuestion" />
         </div>
       </div>
     </div>
 
     <!-- 설문 기간 선택 컴포넌트 -->
-    <PeriodModalComponent
-      v-if="showPeriodModal"
-      :show-period-modal="showPeriodModal"
-      :initial-start-date="startDate"
-      :initial-start-time="startTime"
-      :initial-end-date="endDate"
-      :initial-end-time="endTime"
-      @cancel="closePeriodModal"
-      @confirm="confirmPeriod"
-    />
+    <PeriodModalComponent v-if="showPeriodModal" :show-period-modal="showPeriodModal" :initial-start-date="startDate"
+      :initial-start-time="startTime" :initial-end-date="endDate" :initial-end-time="endTime" @cancel="closePeriodModal"
+      @confirm="confirmPeriod" />
   </div>
 </template>
 
@@ -136,361 +89,361 @@ import { surveyAPI } from '@/service/surveyService';
 import { emitter } from "@/eventBus/eventBus";
 
 export default {
- name: 'SurveyEdit',
- 
- components: {
-   BackButton,
-   QuestionTypeTab,
-   SingleChoiceQuestion,
-   MultipleChoiceQuestion,
-   ShortAnswerQuestion,
-   LongAnswerQuestion,
-   PeriodModalComponent
- },
+  name: 'SurveyEdit',
 
- setup() {
-   const router = useRouter();
-   const route = useRoute();
-   const surveyId = ref(route.params.id);
-   const hasUnsavedChanges = ref(false);
-   const originalData = ref(null);
-   const createContainer = ref(null);
-   const questionContainer = ref([]);
+  components: {
+    BackButton,
+    QuestionTypeTab,
+    SingleChoiceQuestion,
+    MultipleChoiceQuestion,
+    ShortAnswerQuestion,
+    LongAnswerQuestion,
+    PeriodModalComponent
+  },
 
-   // Form data
-  const title = ref('');
-  const description = ref('');
-  const titleFocused = ref(false);
-  const descFocused = ref(false);
-  const showTitleError = ref(false);
-  const questionErrors = ref({});
-  const showPeriodError = ref(false);
+  setup() {
+    const router = useRouter();
+    const route = useRoute();
+    const surveyId = ref(route.params.id);
+    const hasUnsavedChanges = ref(false);
+    const originalData = ref(null);
+    const createContainer = ref(null);
+    const questionContainer = ref([]);
 
-  // Period state
-  const startDate = ref('');
-  const startTime = ref('');
-  const endDate = ref('');
-  const endTime = ref('');
-  const showPeriodModal = ref(false);
+    // Form data
+    const title = ref('');
+    const description = ref('');
+    const titleFocused = ref(false);
+    const descFocused = ref(false);
+    const showTitleError = ref(false);
+    const questionErrors = ref({});
+    const showPeriodError = ref(false);
 
-  const questions = ref([]);
-  // API 호출 및 데이터 초기화 함수
-  const fetchSurveyData = async () => {
-    try {
-      const response = await surveyAPI.getSurveyForEdit(surveyId.value);
-      console.log(response);
+    // Period state
+    const startDate = ref('');
+    const startTime = ref('');
+    const endDate = ref('');
+    const endTime = ref('');
+    const showPeriodModal = ref(false);
 
-      // 실패 케이스 먼저 처리
-      if (!response.data.success) {
-        throw new Error(response.data.body || response.data.message);
-      }
+    const questions = ref([]);
+    // API 호출 및 데이터 초기화 함수
+    const fetchSurveyData = async () => {
+      try {
+        const response = await surveyAPI.getSurveyForEdit(surveyId.value);
+        console.log(response);
 
-      if (response.data.resultCode === "200") {
-        const { body } = response.data;
-        
-        // 기본 정보 설정
-        title.value = body.title;
-        description.value = body.description;
-        
-        // 날짜 및 시간 설정
-        startDate.value = formatDateForDisplay(body.startAt.split('T')[0]);
-        startTime.value = body.startAt.split('T')[1];
-        endDate.value = formatDateForDisplay(body.endAt.split('T')[0]);
-        endTime.value = body.endAt.split('T')[1];
+        // 실패 케이스 먼저 처리
+        if (!response.data.success) {
+          throw new Error(response.data.body || response.data.message);
+        }
 
-        // 질문 데이터 변환
-        questions.value = body.question.map(q => {
-          const baseQuestion = {
-            id: q.id,
-            title: q.title,
-            required: q.required,
-            order: q.order
+        if (response.data.resultCode === "200") {
+          const { body } = response.data;
+
+          // 기본 정보 설정
+          title.value = body.title;
+          description.value = body.description;
+
+          // 날짜 및 시간 설정
+          startDate.value = formatDateForDisplay(body.startAt.split('T')[0]);
+          startTime.value = body.startAt.split('T')[1];
+          endDate.value = formatDateForDisplay(body.endAt.split('T')[0]);
+          endTime.value = body.endAt.split('T')[1];
+
+          // 질문 데이터 변환
+          questions.value = body.question.map(q => {
+            const baseQuestion = {
+              id: q.id,
+              title: q.title,
+              required: q.required,
+              order: q.order
+            };
+
+            switch (q.questionType) {
+              case 'SINGLE_CHOICE':
+                return {
+                  ...baseQuestion,
+                  type: 'single',
+                  options: q.columns.split('|`|').map((text, id) => ({
+                    id: Date.now() + id,
+                    text: text.trim(),
+                    isOther: false,
+                    isReadonly: false
+                  })).concat(q.etc ? [{
+                    id: Date.now() + q.columns.split('|`|').length,
+                    text: '기타...',
+                    isOther: true,
+                    isReadonly: true
+                  }] : [])
+                };
+
+              case 'MULTIPLE_CHOICE':
+                return {
+                  ...baseQuestion,
+                  type: 'multiple',
+                  options: q.columns.split('|`|').map((text, id) => ({
+                    id: Date.now() + id,
+                    text: text.trim(),
+                    isOther: false,
+                    isReadonly: false
+                  })).concat(q.etc ? [{
+                    id: Date.now() + q.columns.split('|`|').length,
+                    text: '기타...',
+                    isOther: true,
+                    isReadonly: true
+                  }] : [])
+                };
+
+              case 'SHORT_ANSWER':
+                return {
+                  ...baseQuestion,
+                  type: 'short'
+                };
+
+              case 'LONG_ANSWER':
+                return {
+                  ...baseQuestion,
+                  type: 'long'
+                };
+
+              default:
+                return baseQuestion;
+            }
+          });
+
+          // 초기 데이터 저장 (변경 감지용)
+          originalData.value = {
+            title: title.value,
+            description: description.value,
+            startDate: startDate.value,
+            endDate: endDate.value,
+            startTime: startTime.value,
+            endTime: endTime.value,
+            questions: JSON.parse(JSON.stringify(questions.value))
           };
 
-          switch (q.questionType) {
-            case 'SINGLE_CHOICE':
-              return {
-                ...baseQuestion,
-                type: 'single',
-                options: q.columns.split('|`|').map((text, id) => ({
-                  id: Date.now() + id,
-                  text: text.trim(),
-                  isOther: false,
-                  isReadonly: false
-                })).concat(q.etc ? [{
-                  id: Date.now() + q.columns.split('|`|').length,
-                  text: '기타...',
-                  isOther: true,
-                  isReadonly: true
-                }] : [])
-              };
-              
-            case 'MULTIPLE_CHOICE':
-              return {
-                ...baseQuestion,
-                type: 'multiple',
-                options: q.columns.split('|`|').map((text, id) => ({
-                  id: Date.now() + id,
-                  text: text.trim(),
-                  isOther: false,
-                  isReadonly: false
-                })).concat(q.etc ? [{
-                  id: Date.now() + q.columns.split('|`|').length,
-                  text: '기타...',
-                  isOther: true,
-                  isReadonly: true
-                }] : [])
-              };
-              
-            case 'SHORT_ANSWER':
-              return {
-                ...baseQuestion,
-                type: 'short'
-              };
-              
-            case 'LONG_ANSWER':
-              return {
-                ...baseQuestion,
-                type: 'long'
-              };
-              
-            default:
-              return baseQuestion;
-          }
-        });
-
-        // 초기 데이터 저장 (변경 감지용)
-        originalData.value = {
-          title: title.value,
-          description: description.value,
-          startDate: startDate.value,
-          endDate: endDate.value,
-          startTime: startTime.value,
-          endTime: endTime.value,
-          questions: JSON.parse(JSON.stringify(questions.value))
-        };
-
+        }
+      } catch (error) {
+        console.error('Error fetching survey data:', error);
+        await showErrorAlert("설문 조회 실패", "설문을 불러오는데 실패했습니다.");
+        router.replace({ name: 'SurveyManagement' });
       }
-    } catch (error) {
-      console.error('Error fetching survey data:', error);
-      await showErrorAlert("설문 조회 실패", "설문을 불러오는데 실패했습니다.");
-      router.replace({ name: 'SurveyManagement' });
+    };
+
+    const isTitleContainerSelected = ref(true);
+    const selectedQuestionIndex = ref(null);
+    const sideTabTop = ref(0);
+
+    function formatDateForDisplay(dateStr) {
+      const [year, month, day] = dateStr.split('-');
+      return `${year}. ${month}. ${day}`;
     }
-  };
 
-   const isTitleContainerSelected = ref(true);
-   const selectedQuestionIndex = ref(null);
-   const sideTabTop = ref(0);
+    const formattedPeriod = computed(() => {
+      if (!startDate.value || !endDate.value) {
+        return "시작 날짜 ~ 종료 날짜";
+      }
+      return `${startDate.value} ${startTime.value ? formatDisplayTime(startTime.value) : ""} ~ ${endDate.value} ${endTime.value ? formatDisplayTime(endTime.value) : ""}`.trim();
+    });
 
-   function formatDateForDisplay(dateStr) {
-     const [year, month, day] = dateStr.split('-');
-     return `${year}. ${month}. ${day}`;
-   }
+    const formatDisplayTime = (time) => {
+      if (!time) return "";
+      const [hours, minutes] = time.split(":").map(Number);
+      const ampm = hours < 12 ? "오전" : "오후";
+      const hour = hours % 12 || 12;
+      return `${ampm} ${hour}:${minutes.toString().padStart(2, "0")}`;
+    };
 
-   const formattedPeriod = computed(() => {
-     if (!startDate.value || !endDate.value) {
-       return "시작 날짜 ~ 종료 날짜";
-     }
-     return `${startDate.value} ${startTime.value ? formatDisplayTime(startTime.value) : ""} ~ ${endDate.value} ${endTime.value ? formatDisplayTime(endTime.value) : ""}`.trim();
-   });
+    const adjustHeight = (e) => {
+      const textarea = e.target;
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    };
 
-   const formatDisplayTime = (time) => {
-     if (!time) return "";
-     const [hours, minutes] = time.split(":").map(Number);
-     const ampm = hours < 12 ? "오전" : "오후";
-     const hour = hours % 12 || 12;
-     return `${ampm} ${hour}:${minutes.toString().padStart(2, "0")}`;
-   };
+    const adjustAllTextareas = () => {
+      nextTick(() => {
+        const allTextareas = document.querySelectorAll('textarea');
+        allTextareas.forEach(textarea => {
+          adjustHeight({ target: textarea });
+        });
+      });
+    };
 
-   const adjustHeight = (e) => {
-     const textarea = e.target;
-     textarea.style.height = "auto";
-     textarea.style.height = `${textarea.scrollHeight}px`;
-   };
-
-   const adjustAllTextareas = () => {
-     nextTick(() => {
-       const allTextareas = document.querySelectorAll('textarea');
-       allTextareas.forEach(textarea => {
-         adjustHeight({ target: textarea });
-       });
-     });
-   };
-
-   const updateSideTabPosition = () => {
+    const updateSideTabPosition = () => {
       const scrollContainer = createContainer.value;
       if (!scrollContainer) return;
-      
+
       let targetElement;
-      
+
       if (isTitleContainerSelected.value) {
         targetElement = scrollContainer.querySelector('.title-container');
-      } else if (selectedQuestionIndex.value !== null && 
-                questionContainer.value[selectedQuestionIndex.value]) {
+      } else if (selectedQuestionIndex.value !== null &&
+        questionContainer.value[selectedQuestionIndex.value]) {
         targetElement = questionContainer.value[selectedQuestionIndex.value];
       }
-      
+
       if (targetElement) {
         const containerRect = scrollContainer.getBoundingClientRect();
         const elementRect = targetElement.getBoundingClientRect();
         const scrollTop = scrollContainer.scrollTop;
-        
+
         // 질문 컨테이너와 수평을 맞추기 위한 오프셋 계산
         const offset = 20; // 질문 컨테이너와의 간격
         const relativeTop = elementRect.top - containerRect.top + scrollTop - offset;
         const maxTop = scrollContainer.scrollHeight - 300;
-        
+
         sideTabTop.value = Math.min(Math.max(0, relativeTop), maxTop);
       }
     };
 
-   const debouncedUpdatePosition = debounce(updateSideTabPosition, 100);
+    const debouncedUpdatePosition = debounce(updateSideTabPosition, 100);
 
-   // Period Modal methods
-   const openPeriodModal = () => {
-     showPeriodModal.value = true;
-   };
+    // Period Modal methods
+    const openPeriodModal = () => {
+      showPeriodModal.value = true;
+    };
 
-   const closePeriodModal = () => {
-     showPeriodModal.value = false;
-   };
+    const closePeriodModal = () => {
+      showPeriodModal.value = false;
+    };
 
-   const confirmPeriod = ({ startDate: newStartDate, endDate: newEndDate, startTime: newStartTime, endTime: newEndTime }) => {
-     startDate.value = newStartDate;
-     endDate.value = newEndDate;
-     startTime.value = newStartTime;
-     endTime.value = newEndTime;
-     showPeriodModal.value = false;
-     hasUnsavedChanges.value = true;
-   };
+    const confirmPeriod = ({ startDate: newStartDate, endDate: newEndDate, startTime: newStartTime, endTime: newEndTime }) => {
+      startDate.value = newStartDate;
+      endDate.value = newEndDate;
+      startTime.value = newStartTime;
+      endTime.value = newEndTime;
+      showPeriodModal.value = false;
+      hasUnsavedChanges.value = true;
+    };
 
-  const selectTitleContainer = () => {
-    selectedQuestionIndex.value = null;
-    isTitleContainerSelected.value = true;
-      
-    const containerElement = createContainer.value;
-    if (!containerElement) return;
-      
-    const titleContainer = containerElement.querySelector('.title-container');
-    if (titleContainer) {
-      const containerRect = containerElement.getBoundingClientRect();
-      const rect = titleContainer.getBoundingClientRect();
-      sideTabTop.value = rect.top - containerRect.top;
-        
-      containerElement.scrollTo({
-        top: titleContainer.offsetTop - 20,
-        behavior: 'smooth'
-      });
-    }
-  };
+    const selectTitleContainer = () => {
+      selectedQuestionIndex.value = null;
+      isTitleContainerSelected.value = true;
 
-  const selectQuestion = (index) => {
-    selectedQuestionIndex.value = index;
-    isTitleContainerSelected.value = false;
-      
-    if (questionContainer.value[index] && createContainer.value) {
-      const element = questionContainer.value[index];
       const containerElement = createContainer.value;
-      containerElement.scrollTo({
-        top: element.offsetTop - 20,
-        behavior: 'smooth'
+      if (!containerElement) return;
+
+      const titleContainer = containerElement.querySelector('.title-container');
+      if (titleContainer) {
+        const containerRect = containerElement.getBoundingClientRect();
+        const rect = titleContainer.getBoundingClientRect();
+        sideTabTop.value = rect.top - containerRect.top;
+
+        containerElement.scrollTo({
+          top: titleContainer.offsetTop - 20,
+          behavior: 'smooth'
+        });
+      }
+    };
+
+    const selectQuestion = (index) => {
+      selectedQuestionIndex.value = index;
+      isTitleContainerSelected.value = false;
+
+      if (questionContainer.value[index] && createContainer.value) {
+        const element = questionContainer.value[index];
+        const containerElement = createContainer.value;
+        containerElement.scrollTo({
+          top: element.offsetTop - 20,
+          behavior: 'smooth'
+        });
+
+        setTimeout(() => {
+          updateSideTabPosition();
+        }, 0);
+      }
+    };
+
+    const changeQuestionType = (newType) => {
+      if (selectedQuestionIndex.value !== null) {
+        questions.value[selectedQuestionIndex.value] = {
+          ...questions.value[selectedQuestionIndex.value],
+          type: newType,
+        };
+        nextTick(() => {
+          updateSideTabPosition();
+        });
+      }
+    };
+
+    const addNewQuestion = () => {
+      const newQuestion = {
+        id: Date.now(),
+        type: "single",
+        title: "",
+        required: false,
+      };
+
+      const insertIndex = selectedQuestionIndex.value !== null
+        ? selectedQuestionIndex.value + 1
+        : 0;
+
+      questions.value.splice(insertIndex, 0, newQuestion);
+      nextTick(() => {
+        selectQuestion(insertIndex);
       });
-        
-      setTimeout(() => {
-        updateSideTabPosition();
-      }, 0);
-    }
-  };
+    };
 
-   const changeQuestionType = (newType) => {
-     if (selectedQuestionIndex.value !== null) {
-       questions.value[selectedQuestionIndex.value] = {
-         ...questions.value[selectedQuestionIndex.value],
-         type: newType,
-       };
-       nextTick(() => {
-         updateSideTabPosition();
-       });
-     }
-   };
+    const copyQuestion = (index) => {
+      const copiedQuestion = {
+        ...questions.value[index],
+        id: Date.now(),
+      };
+      questions.value.splice(index + 1, 0, copiedQuestion);
+      nextTick(() => {
+        selectQuestion(index + 1);
+      });
+    };
 
-   const addNewQuestion = () => {
-     const newQuestion = {
-       id: Date.now(),
-       type: "single",
-       title: "",
-       required: false,
-     };
+    const updateQuestion = (index, updatedQuestion) => {
+      questions.value[index] = updatedQuestion;
+    };
 
-     const insertIndex = selectedQuestionIndex.value !== null
-       ? selectedQuestionIndex.value + 1
-       : 0;
+    const deleteQuestion = (index) => {
+      const newIndex = index > 0 ? index - 1 : 0;
 
-     questions.value.splice(insertIndex, 0, newQuestion);
-     nextTick(() => {
-       selectQuestion(insertIndex);
-     });
-   };
+      questions.value.splice(index, 1);
 
-   const copyQuestion = (index) => {
-     const copiedQuestion = {
-       ...questions.value[index],
-       id: Date.now(),
-     };
-     questions.value.splice(index + 1, 0, copiedQuestion);
-     nextTick(() => {
-       selectQuestion(index + 1);
-     });
-   };
+      if (questions.value.length === 0) {
+        addNewQuestion();
+      } else {
+        setTimeout(() => {
+          nextTick(() => {
+            selectQuestion(newIndex);
+          });
+        }, 0);
+      }
+    };
 
-   const updateQuestion = (index, updatedQuestion) => {
-     questions.value[index] = updatedQuestion;
-   };
+    const getQuestionComponent = (type) => {
+      const components = {
+        single: "SingleChoiceQuestion",
+        multiple: "MultipleChoiceQuestion",
+        short: "ShortAnswerQuestion",
+        long: "LongAnswerQuestion",
+      };
+      return components[type] || components.single;
+    };
 
-   const deleteQuestion = (index) => {
-     const newIndex = index > 0 ? index - 1 : 0;
-     
-     questions.value.splice(index, 1);
-     
-     if (questions.value.length === 0) {
-       addNewQuestion();
-     } else {
-       setTimeout(() => {
-         nextTick(() => {
-           selectQuestion(newIndex);
-         });
-       }, 0);
-     }
-   };
+    const openPreview = () => {
+      const previewData = {
+        title: title.value,
+        description: description.value,
+        startDate: startDate.value,
+        endDate: endDate.value,
+        startTime: startTime.value,
+        endTime: endTime.value,
+        questions: questions.value
+      };
 
-   const getQuestionComponent = (type) => {
-     const components = {
-       single: "SingleChoiceQuestion",
-       multiple: "MultipleChoiceQuestion",
-       short: "ShortAnswerQuestion",
-       long: "LongAnswerQuestion",
-     };
-     return components[type] || components.single;
-   };
+      sessionStorage.setItem('surveyPreviewData', JSON.stringify(previewData));
+      const route = router.resolve({ name: 'SurveyPreview' });
+      window.open(route.href, '_blank');
+    };
 
-   const openPreview = () => {
-     const previewData = {
-       title: title.value,
-       description: description.value,
-       startDate: startDate.value,
-       endDate: endDate.value,
-       startTime: startTime.value,
-       endTime: endTime.value,
-       questions: questions.value
-     };
-     
-     sessionStorage.setItem('surveyPreviewData', JSON.stringify(previewData));
-     const route = router.resolve({ name: 'SurveyPreview' });
-     window.open(route.href, '_blank');
-   };
-
-   const getErrorMessage = (type) => {
-      switch(type) {
+    const getErrorMessage = (type) => {
+      switch (type) {
         case 'single':
         case 'multiple':
           return '질문 및 옵션을 모두 입력해주세요.';
@@ -502,165 +455,165 @@ export default {
       }
     };
 
-   const validateAndSave = () => {
-    let isValid = true;
-    
-    showTitleError.value = !title.value.trim();
-    showPeriodError.value = !startDate.value || !endDate.value || !startTime.value || !endTime.value;
-    
-    if (showTitleError.value || showPeriodError.value) {
-      isValid = false;
-    }
+    const validateAndSave = () => {
+      let isValid = true;
 
-    questionErrors.value = {};
-    questions.value.forEach((question, index) => {
-      let hasError = false;
-      
-      if (!question.title.trim()) {
-        hasError = true;
-      }
-
-      if (question.type === 'single' || question.type === 'multiple') {
-        if (!question.options?.length || 
-            question.options.some(opt => !opt.text.trim())) {
-          hasError = true;
-        }
-      }
-
-      if (hasError) {
-        questionErrors.value[index] = true;
-        isValid = false;
-      }
-    });
-
-    if (!isValid) {
-      const containerElement = createContainer.value;
-      if (!containerElement) return;
+      showTitleError.value = !title.value.trim();
+      showPeriodError.value = !startDate.value || !endDate.value || !startTime.value || !endTime.value;
 
       if (showTitleError.value || showPeriodError.value) {
-        const titleElement = containerElement.querySelector('.title-container');
-        if (titleElement) {
-          // 컨테이너 내부에서의 스크롤 처리
-          containerElement.scrollTo({
-            top: titleElement.offsetTop - 20,
-            behavior: 'smooth'
-          });
+        isValid = false;
+      }
+
+      questionErrors.value = {};
+      questions.value.forEach((question, index) => {
+        let hasError = false;
+
+        if (!question.title.trim()) {
+          hasError = true;
         }
-      } else {
-        const firstErrorIndex = Object.keys(questionErrors.value)[0];
-        if (firstErrorIndex !== undefined) {
-          const questionElement = questionContainer.value[firstErrorIndex];
-          if (questionElement) {
+
+        if (question.type === 'single' || question.type === 'multiple') {
+          if (!question.options?.length ||
+            question.options.some(opt => !opt.text.trim())) {
+            hasError = true;
+          }
+        }
+
+        if (hasError) {
+          questionErrors.value[index] = true;
+          isValid = false;
+        }
+      });
+
+      if (!isValid) {
+        const containerElement = createContainer.value;
+        if (!containerElement) return;
+
+        if (showTitleError.value || showPeriodError.value) {
+          const titleElement = containerElement.querySelector('.title-container');
+          if (titleElement) {
             // 컨테이너 내부에서의 스크롤 처리
             containerElement.scrollTo({
-              top: questionElement.offsetTop - 20,
+              top: titleElement.offsetTop - 20,
               behavior: 'smooth'
             });
           }
+        } else {
+          const firstErrorIndex = Object.keys(questionErrors.value)[0];
+          if (firstErrorIndex !== undefined) {
+            const questionElement = questionContainer.value[firstErrorIndex];
+            if (questionElement) {
+              // 컨테이너 내부에서의 스크롤 처리
+              containerElement.scrollTo({
+                top: questionElement.offsetTop - 20,
+                behavior: 'smooth'
+              });
+            }
+          }
         }
+        return;
       }
-      return;
-    }
 
-    saveSurvey();
-  };
+      saveSurvey();
+    };
 
-  const saveSurvey = async () => {
-    try {
-      // 날짜 포맷 변환
-      const formatDateTime = (date, time) => {
-        const [year, month, day] = date.replaceAll('. ', '-').split('-');
-        return `${year}-${month}-${day}T${time}`;
-      };
+    const saveSurvey = async () => {
+      try {
+        // 날짜 포맷 변환
+        const formatDateTime = (date, time) => {
+          const [year, month, day] = date.replaceAll('. ', '-').split('-');
+          return `${year}-${month}-${day}T${time}`;
+        };
 
-      // API 요청 데이터 구성
-      const updateData = {
+        // API 요청 데이터 구성
+        const updateData = {
+          title: title.value,
+          description: description.value,
+          startAt: formatDateTime(startDate.value, startTime.value),
+          endAt: formatDateTime(endDate.value, endTime.value),
+          updateQuestionList: questions.value.map((q, index) => {
+            let questionType, columns = null;
+
+            switch (q.type) {
+              case 'single':
+                questionType = 'SINGLE_CHOICE';
+                columns = q.options
+                  .filter(opt => !opt.isOther)
+                  .map(opt => opt.text)
+                  .join('|`|');
+                break;
+              case 'multiple':
+                questionType = 'MULTIPLE_CHOICE';
+                columns = q.options
+                  .filter(opt => !opt.isOther)
+                  .map(opt => opt.text)
+                  .join('|`|');
+                break;
+              case 'short':
+                questionType = 'SHORT_ANSWER';
+                break;
+              case 'long':
+                questionType = 'LONG_ANSWER';
+                break;
+            }
+
+            return {
+              title: q.title,
+              questionType: questionType,
+              order: index + 1,
+              columns: columns,
+              rows: null,
+              required: q.required || false,
+              etc: q.options ? q.options.some(opt => opt.isOther) : false
+            };
+          })
+        };
+
+        const response = await surveyAPI.updateSurvey(surveyId.value, updateData);
+
+        if (response.data.resultCode === "200") {
+          hasUnsavedChanges.value = false;
+          router.push({ name: "SurveyCompletion", params: { id: surveyId.value } });
+          emitter.emit('updateBookmarks');
+        } else {
+          throw new Error(response.data.message || "설문 수정에 실패했습니다.");
+        }
+      } catch (error) {
+        console.error('Error saving survey:', error);
+        showErrorAlert("설문조사 수정 실패", "설문조사 수정 중 오류가 발생했습니다.");
+      }
+    };
+
+    // 변경 감지 함수
+    const checkChanges = () => {
+      if (!originalData.value) return;
+
+      const currentData = {
         title: title.value,
         description: description.value,
-        startAt: formatDateTime(startDate.value, startTime.value),
-        endAt: formatDateTime(endDate.value, endTime.value),
-        updateQuestionList: questions.value.map((q, index) => {
-          let questionType, columns = null;
-
-          switch (q.type) {
-            case 'single':
-              questionType = 'SINGLE_CHOICE';
-              columns = q.options
-                .filter(opt => !opt.isOther)
-                .map(opt => opt.text)
-                .join('|`|');
-              break;
-            case 'multiple':
-              questionType = 'MULTIPLE_CHOICE';
-              columns = q.options
-                .filter(opt => !opt.isOther)
-                .map(opt => opt.text)
-                .join('|`|');
-              break;
-            case 'short':
-              questionType = 'SHORT_ANSWER';
-              break;
-            case 'long':
-              questionType = 'LONG_ANSWER';
-              break;
-          }
-
-          return {
-            title: q.title,
-            questionType: questionType,
-            order: index + 1,
-            columns: columns,
-            rows: null,
-            required: q.required || false,
-            etc: q.options ? q.options.some(opt => opt.isOther) : false
-          };
-        })
+        startDate: startDate.value,
+        endDate: endDate.value,
+        startTime: startTime.value,
+        endTime: endTime.value,
+        questions: questions.value
       };
 
-      const response = await surveyAPI.updateSurvey(surveyId.value, updateData);
+      hasUnsavedChanges.value =
+        JSON.stringify(currentData) !== JSON.stringify(originalData.value);
+    };
 
-      if (response.data.resultCode === "200") {
-        hasUnsavedChanges.value = false;
-        router.push({ name: "SurveyCompletion" });
-        emitter.emit('updateBookmarks');
-      } else {
-        throw new Error(response.data.message || "설문 수정에 실패했습니다.");
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges.value) {
+        e.preventDefault();
+        e.returnValue = '';
       }
-    } catch (error) {
-      console.error('Error saving survey:', error);
-      showErrorAlert( "설문조사 수정 실패", "설문조사 수정 중 오류가 발생했습니다." );
-    }
-  };
+    };
 
-   // 변경 감지 함수
-   const checkChanges = () => {
-     if (!originalData.value) return;
-     
-     const currentData = {
-       title: title.value,
-       description: description.value,
-       startDate: startDate.value,
-       endDate: endDate.value,
-       startTime: startTime.value,
-       endTime: endTime.value,
-       questions: questions.value
-     };
-
-     hasUnsavedChanges.value = 
-       JSON.stringify(currentData) !== JSON.stringify(originalData.value);
-   };
-
-   const handleBeforeUnload = (e) => {
-     if (hasUnsavedChanges.value) {
-       e.preventDefault();
-       e.returnValue = '';
-     }
-   };
-
-   // Lifecyle hooks
-   onMounted(async () => {
+    // Lifecyle hooks
+    onMounted(async () => {
       await fetchSurveyData();
-      
+
       // 데이터 변경 감지를 위한 watch 설정
       watch([title, description, startDate, endDate, startTime, endTime], checkChanges);
       watch(questions, checkChanges, { deep: true });
@@ -677,7 +630,7 @@ export default {
       // 제목과 기간 입력 감시
       watch([title, startDate, startTime, endDate, endTime], () => {
         hasUnsavedChanges.value = true;
-        
+
         // 에러 상태 실시간 업데이트
         if (showTitleError.value || showPeriodError.value) {
           showTitleError.value = !title.value.trim();
@@ -693,14 +646,14 @@ export default {
           if (questionErrors.value[index]) {
             const question = newQuestions[index];
             let hasError = false;
-            
+
             if (!question.title.trim()) {
               hasError = true;
             }
 
             if (question.type === 'single' || question.type === 'multiple') {
-              if (!question.options || question.options.length === 0 || 
-                  question.options.some(opt => !opt.text.trim())) {
+              if (!question.options || question.options.length === 0 ||
+                question.options.some(opt => !opt.text.trim())) {
                 hasError = true;
               }
             }
@@ -714,7 +667,7 @@ export default {
       }, { deep: true });
 
       adjustAllTextareas();
-      
+
       nextTick(() => {
         selectTitleContainer();
         updateSideTabPosition();
@@ -726,27 +679,27 @@ export default {
       });
     });
 
-   onBeforeRouteLeave((to, from, next) => {
-     if (!hasUnsavedChanges.value) {
-       next();
-       return;
-     }
-     
-     showConfirmAlert({
-       html: '정말로 나가시겠습니까?',
-       subMessage: '* 작성 중인 내용이 저장되지 않습니다.',
-       confirmText: '나가기',
-       cancelText: '취소',
-       onConfirm: () => {
-         next();
-       },
-       onCancel: () => {
-         next(false);
-       }
-     });
-   });
+    onBeforeRouteLeave((to, from, next) => {
+      if (!hasUnsavedChanges.value) {
+        next();
+        return;
+      }
 
-   onBeforeUnmount(() => {
+      showConfirmAlert({
+        html: '정말로 나가시겠습니까?',
+        subMessage: '* 작성 중인 내용이 저장되지 않습니다.',
+        confirmText: '나가기',
+        cancelText: '취소',
+        onConfirm: () => {
+          next();
+        },
+        onCancel: () => {
+          next(false);
+        }
+      });
+    });
+
+    onBeforeUnmount(() => {
       window.removeEventListener('resize', debouncedUpdatePosition);
       if (createContainer.value) {
         createContainer.value.removeEventListener("scroll", debouncedUpdatePosition);
@@ -820,8 +773,8 @@ export default {
   font-weight: 700;
   margin: 0;
   padding: 0 0 0 30px;
-  flex: 1; 
-  text-align: left; 
+  flex: 1;
+  text-align: left;
 }
 
 .header-buttons {
