@@ -53,6 +53,18 @@ export const authAPI = {
   // 관리자 로그인
   doLogin: (data) => axios.post("/auth/sign-in", data),
 
-  //관리자 로그아웃
-  doLogout: () => axios.delete("/auth/sign-out")
+  // 관리자 로그아웃
+  doLogout: () => axios.delete("/auth/sign-out"),
+
+  // 관리자 비밀번호 찾기 
+  requestPasswordChange: (email) => axios.get("/auth/password-change", { params: { email } }),
+
+  // 관리자 비밀번호 변경
+  changePassword: (data) => axios.post("/auth/password-change", data),
+
+  //이메일 인증 요청
+  sendVerificationEmail: (data) => axios.post("/auth/email-verify", data),
+
+  //이메일 인증 코드 검증
+  verifyEmailCode: (data) => axios.post("/auth/email-verify/check", data)
 };
