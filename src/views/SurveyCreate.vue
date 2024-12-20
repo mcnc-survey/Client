@@ -18,14 +18,14 @@
             <!-- 설문 제목 입력 -->
             <div class="input-wrapper">
               <textarea v-model="title" placeholder="설문 제목 입력" class="title-input" @input="adjustHeight"
-                @focus="titleFocused = true" @blur="titleFocused = false" rows="1"></textarea>
+                @focus="titleFocused = true" @blur="titleFocused = false" rows="1" maxlength="100"></textarea>
               <div class="underline" :class="{ focused: titleFocused }"></div>
             </div>
 
             <!-- 설명 입력 -->
             <div class="input-wrapper">
               <textarea v-model="description" placeholder="설문 설명 입력" class="description-input" @input="adjustHeight"
-                @focus="descFocused = true" @blur="descFocused = false" rows="1"></textarea>
+                @focus="descFocused = true" @blur="descFocused = false" rows="1" maxlength="255"></textarea>
               <div class="underline" :class="{ focused: descFocused }"></div>
             </div>
 
@@ -47,7 +47,7 @@
               <div ref="questionContainer" class="question-container" @click="selectQuestion(index)"
                 :class="{ selected: selectedQuestionIndex === index, error: questionErrors[index] }">
                 <component :is="getQuestionComponent(question.type)" :question="question"
-                  @update="updateQuestion(index, $event)" @delete="deleteQuestion(index)" @copy="copyQuestion(index)" />
+                  @update="updateQuestion(index, $event)" @delete="deleteQuestion(index)" @copy="copyQuestion(index, $event)" />
                 <div v-if="questionErrors[index]" class="error-message">
                   {{ getErrorMessage(question.type) }}
                 </div>
@@ -74,7 +74,7 @@
 
 <script>
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
-import { ref, computed, nextTick, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, computed, nextTick, onMounted, onBeforeUnmount, watch, provide } from "vue";
 import { debounce } from 'lodash';
 import BackButton from "../components/BackButton.vue";
 import QuestionTypeTab from "@/components/QuestionTypeTab.vue";
@@ -85,6 +85,7 @@ import LongAnswerQuestion from "@/components/DescriptiveAnswerQuestion.vue";
 import PeriodModalComponent from "@/components/PeriodModalComponent.vue";
 import { showConfirmAlert, showErrorAlert } from '@/utils/swalUtils';
 import { surveyAPI } from '@/service/surveyService';
+import { emitter } from '@/eventBus/eventBus';
 
 export default {
   name: 'SurveyCreate',
@@ -102,6 +103,7 @@ export default {
   setup() {
     const router = useRouter();
     const hasUnsavedChanges = ref(false);
+    provide('hasUnsavedChanges', hasUnsavedChanges);
     // Refs for template elements
     const createContainer = ref(null);
     const questionContainer = ref([]);
@@ -222,6 +224,10 @@ export default {
     };
 
     const selectQuestion = (index) => {
+      // 이미 선택된 질문을 다시 클릭한 경우 스크롤 동작을 하지 않음
+      if (selectedQuestionIndex.value === index) {
+        return;
+      }
       selectedQuestionIndex.value = index;
       isTitleContainerSelected.value = false;
 
@@ -270,6 +276,12 @@ export default {
     };
 
     const copyQuestion = (index) => {
+      // 텍스트가 선택되어 있거나 입력 요소에 포커스가 있는 경우 복사 기능 막기
+      if (window.getSelection().toString() || 
+          document.activeElement.tagName === 'INPUT' || 
+          document.activeElement.tagName === 'TEXTAREA') {
+        return;
+      }
       const copiedQuestion = {
         ...questions.value[index],
         id: Date.now(),
@@ -479,6 +491,7 @@ export default {
         console.log(surveyId)
 
         hasUnsavedChanges.value = false;
+        emitter.emit('updateUnsavedChanges', false);
 
         // 설문 생성 후 'SurveyCompletion' 페이지로 이동하며 surveyId 전달
         router.push({ name: "SurveyCompletion", params: { id: surveyId } });
@@ -516,6 +529,8 @@ export default {
     };
 
     onMounted(() => {
+      hasUnsavedChanges.value = false;
+      emitter.emit('updateUnsavedChanges', false);
       nextTick(() => {
         selectTitleContainer();
         updateSideTabPosition();
@@ -528,14 +543,17 @@ export default {
 
       watch([title, description], () => {
         hasUnsavedChanges.value = true;
+        emitter.emit('updateUnsavedChanges', true);
       });
 
       watch(questions, () => {
         hasUnsavedChanges.value = true;
+        emitter.emit('updateUnsavedChanges', true);
       }, { deep: true });
 
       watch([startDate, startTime, endDate, endTime], () => {
         hasUnsavedChanges.value = true;
+        emitter.emit('updateUnsavedChanges', true);
       });
 
       // 제목과 기간 입력 감시
@@ -576,6 +594,11 @@ export default {
           }
         });
       }, { deep: true });
+
+      // 로그아웃 이벤트 리스너 추가
+      emitter.on('clearUnsavedChanges', () => {
+        hasUnsavedChanges.value = false;
+      });
     });
 
     onBeforeUnmount(() => {
@@ -584,6 +607,7 @@ export default {
         createContainer.value.removeEventListener("scroll", debouncedUpdatePosition);
       }
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      emitter.off('clearUnsavedChanges');
     });
 
     return {
@@ -694,6 +718,7 @@ export default {
   margin-bottom: 20px;
   overflow-y: auto;
   min-height: 80vh;
+  position: relative;
 }
 
 .content-area {
@@ -705,7 +730,8 @@ export default {
 .survey-container {
   width: 60%;
   height: 100%;
-  display: block;
+  display: block; /* 수정 */
+  flex-direction: column; /* 추가 */
   margin-right: 100px;
   position: relative;
 }
@@ -713,7 +739,7 @@ export default {
 .side-container {
   width: 120px;
   position: absolute;
-  left: 73%;
+  left: 77%;
   top: 20px;
   height: fit-content;
   transition: transform 0.3s ease;
@@ -721,7 +747,7 @@ export default {
 }
 
 .title-container {
-  width: 95%;
+  width: 100%;
   min-height: 20%;
   background-color: #ffffff;
   border-radius: 23.38px;
@@ -730,13 +756,19 @@ export default {
 }
 
 .question-container {
-  width: 95%;
+  width: 100%;
   min-height: 20%;
   background-color: #ffffff;
   border-radius: 23.38px;
   margin-top: 15px;
   padding: 20px;
   transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.question-wrapper {
+  width: 100%;
+  margin-bottom: 10px;
 }
 
 .question-container.selected {

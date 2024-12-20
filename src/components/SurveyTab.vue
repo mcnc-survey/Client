@@ -29,7 +29,7 @@
                                 type="radio"
                                 :name="'question-' + index"
                                 :id="'option-' + index + '-' + optIndex"
-                                :value="option"
+                                :value="optIndex" 
                                 v-model="answers[index].selectedOption"
                             >
                             <label :for="'option-' + index + '-' + optIndex">{{ option }}</label>
@@ -68,7 +68,7 @@
                             <input
                                 type="checkbox"
                                 :id="'option-' + index + '-' + optIndex"
-                                :value="option"
+                                :value="optIndex"  
                                 v-model="answers[index].selectedOptions"
                             >
                             <label :for="'option-' + index + '-' + optIndex">{{ option }}</label>
@@ -163,7 +163,7 @@ export default {
         const initializeAnswer = (questionType) => {
             switch(questionType) {
                 case 'SINGLE_CHOICE':
-                    return { selectedOption: '', otherText: '' };
+                    return { selectedOption: null, otherText: '' };  // '' 대신 null
                 case 'MULTIPLE_CHOICE':
                     return { selectedOptions: [], hasOther: false, otherText: '' };
                 case 'SHORT_ANSWER':
@@ -291,7 +291,7 @@ export default {
 
 .option-item {
     display: flex;
-    align-items: center;
+    align-items: center;  /* flex-start에서 center로 변경 */
     gap: 8px;
 }
 
@@ -299,7 +299,18 @@ export default {
 .option-item input[type="checkbox"] {
     width: 16px;
     height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    margin: 0;           /* margin-top 제거 */
     accent-color: steelblue;
+    flex-shrink: 0;
+}
+
+.option-item label {
+    word-break: break-all;
+    line-height: 1.4;
+    display: flex;      /* 레이블도 flex로 */
+    align-items: center; /* 레이블 내용 중앙 정렬 */
 }
 
 .text-answer input,
