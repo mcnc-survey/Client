@@ -112,6 +112,9 @@ export default {
   computed: {
     hasOtherOption() {
       return this.questionData.options.some(option => option.isOther);
+    },
+    hasReachedMaxOptions() {
+      return this.questionData.options.length >= 20;
     }
   },
 
@@ -147,6 +150,14 @@ export default {
     },
 
     addOption() {
+      if (this.hasReachedMaxOptions) {
+        showErrorAlert(
+          "옵션 개수 초과",
+          "옵션은 최대 20개까지만 추가할 수 있습니다."
+        );
+        return;
+      }
+
       const otherOptionIndex = this.questionData.options.findIndex(
         option => option.isOther
       );
@@ -168,6 +179,14 @@ export default {
     },
 
     addOtherOption() {
+      if (this.hasReachedMaxOptions) {
+        showErrorAlert(
+          "옵션 개수 초과",
+          "옵션은 최대 20개까지만 추가할 수 있습니다."
+        );
+        return;
+      }
+      
       if (!this.hasOtherOption) {
         this.questionData.options.push({
           id: Date.now(),
