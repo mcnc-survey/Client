@@ -19,14 +19,14 @@
             <!-- 설문 제목 입력 -->
             <div class="input-wrapper">
               <textarea v-model="title" placeholder="설문 제목 입력" class="title-input" @input="adjustHeight"
-                @focus="titleFocused = true" @blur="titleFocused = false" rows="1"></textarea>
+                @focus="titleFocused = true" @blur="titleFocused = false" rows="1" maxlength="100"></textarea>
               <div class="underline" :class="{ focused: titleFocused }"></div>
             </div>
 
             <!-- 설명 입력 -->
             <div class="input-wrapper">
               <textarea v-model="description" placeholder="설문 설명 입력" class="description-input" @input="adjustHeight"
-                @focus="descFocused = true" @blur="descFocused = false" rows="1"></textarea>
+                @focus="descFocused = true" @blur="descFocused = false" rows="1" maxlength="255"></textarea>
               <div class="underline" :class="{ focused: descFocused }"></div>
             </div>
 
@@ -48,7 +48,7 @@
               <div ref="questionContainer" class="question-container" @click="selectQuestion(index)"
                 :class="{ selected: selectedQuestionIndex === index, error: questionErrors[index] }">
                 <component :is="getQuestionComponent(question.type)" :question="question"
-                  @update="updateQuestion(index, $event)" @delete="deleteQuestion(index)" @copy="copyQuestion(index)" />
+                  @update="updateQuestion(index, $event)" @delete="deleteQuestion(index)" @copy="copyQuestion(index, $event)" />
                 <div v-if="questionErrors[index]" class="error-message">
                   {{ getErrorMessage(question.type) }}
                 </div>
@@ -338,6 +338,10 @@ export default {
     };
 
     const selectQuestion = (index) => {
+      // 이미 선택된 질문을 다시 클릭한 경우 스크롤 동작을 하지 않음
+      if (selectedQuestionIndex.value === index) {
+            return;
+      }
       selectedQuestionIndex.value = index;
       isTitleContainerSelected.value = false;
 
@@ -386,6 +390,12 @@ export default {
     };
 
     const copyQuestion = (index) => {
+      // 텍스트가 선택되어 있거나 입력 요소에 포커스가 있는 경우 복사 기능 막기
+      if (window.getSelection().toString() || 
+          document.activeElement.tagName === 'INPUT' || 
+          document.activeElement.tagName === 'TEXTAREA') {
+            return;
+      }  
       const copiedQuestion = {
         ...questions.value[index],
         id: Date.now(),
@@ -574,6 +584,7 @@ export default {
 
         if (response.data.resultCode === "200") {
           hasUnsavedChanges.value = false;
+          emitter.emit('updateUnsavedChanges', false);
           router.push({ name: "SurveyCompletion", params: { id: surveyId.value } });
           emitter.emit('updateBookmarks');
         } else {
@@ -612,11 +623,24 @@ export default {
 
     // Lifecyle hooks
     onMounted(async () => {
+      hasUnsavedChanges.value = false;
+      emitter.emit('updateUnsavedChanges', false);
       await fetchSurveyData();
 
       // 데이터 변경 감지를 위한 watch 설정
-      watch([title, description, startDate, endDate, startTime, endTime], checkChanges);
-      watch(questions, checkChanges, { deep: true });
+      // watch([title, description, startDate, endDate, startTime, endTime], checkChanges);
+      // watch(questions, checkChanges, { deep: true });
+
+      // 데이터 변경 감지를 위한 watch 설정
+      watch([title, description, startDate, endDate, startTime, endTime], () => {
+        checkChanges();
+        emitter.emit('updateUnsavedChanges', hasUnsavedChanges.value);
+      });
+
+      watch(questions, () => {
+        checkChanges();
+        emitter.emit('updateUnsavedChanges', hasUnsavedChanges.value);
+      }, { deep: true });
 
       // textarea 높이 조절 및 이벤트 리스너 등록
       watch(questions, () => {
@@ -666,6 +690,11 @@ export default {
         });
       }, { deep: true });
 
+      // 로그아웃 이벤트 리스너 추가
+      emitter.on('clearUnsavedChanges', () => {
+        hasUnsavedChanges.value = false;
+      });
+
       adjustAllTextareas();
 
       nextTick(() => {
@@ -705,6 +734,7 @@ export default {
         createContainer.value.removeEventListener("scroll", debouncedUpdatePosition);
       }
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      emitter.off('clearUnsavedChanges');
     });
 
     return {
@@ -813,6 +843,7 @@ export default {
   margin-bottom: 20px;
   overflow-y: auto;
   min-height: 80vh;
+  position: relative;
 }
 
 .content-area {
@@ -825,6 +856,7 @@ export default {
   width: 60%;
   height: 100%;
   display: block;
+  flex-direction: column;
   margin-right: 100px;
   position: relative;
 }
@@ -832,7 +864,7 @@ export default {
 .side-container {
   width: 120px;
   position: absolute;
-  left: 73%;
+  left: 77%;
   top: 20px;
   height: fit-content;
   transition: transform 0.3s ease;
@@ -840,7 +872,7 @@ export default {
 }
 
 .title-container {
-  width: 95%;
+  width: 100%;
   min-height: 20%;
   background-color: #ffffff;
   border-radius: 23.38px;
@@ -849,13 +881,19 @@ export default {
 }
 
 .question-container {
-  width: 95%;
+  width: 100%;
   min-height: 20%;
   background-color: #ffffff;
   border-radius: 23.38px;
   margin-top: 15px;
   padding: 20px;
   transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.question-wrapper {
+  width: 100%;
+  margin-bottom: 10px;
 }
 
 .question-container.selected {

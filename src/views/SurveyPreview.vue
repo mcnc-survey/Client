@@ -332,21 +332,27 @@ export default {
 }
 
 .option-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+    display: flex;
+    align-items: center;  /* flex-start에서 center로 변경 */
+    gap: 8px;
 }
 
 .option-item input[type="radio"],
 .option-item input[type="checkbox"] {
-  accent-color: steelblue;
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    margin: 0;           /* margin-top 제거 */
+    accent-color: steelblue;
+    flex-shrink: 0;
 }
 
 .option-item label {
-  cursor: pointer;
+    word-break: break-all;
+    line-height: 1.4;
+    display: flex;      /* 레이블도 flex로 */
+    align-items: center; /* 레이블 내용 중앙 정렬 */
 }
 
 .other-input-container {

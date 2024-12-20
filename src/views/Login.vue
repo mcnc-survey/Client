@@ -69,7 +69,7 @@
             />
           </div>
           <span v-if="passwordError && passwordTouched" class="error-message"
-            >비밀번호는 영문, 숫자, 특수문자를 포함한 8자 이상입니다.</span
+            >비밀번호는 영문, 숫자, 특수문자를 포함한 8~20자입니다.</span
           >
         </div>
 
@@ -189,9 +189,10 @@ export default {
       this.passwordTouched = true;
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(this.password);
       const hasMinLength = this.password.length >= 8;
+      const hasMaxLength = this.password.length <= 20;
       const hasLetter = /[A-Za-z]/.test(this.password);  // 영문 포함
       const hasNumber = /[0-9]/.test(this.password);     // 숫자 포함
-      this.passwordError = !(hasSpecialChar && hasMinLength && hasLetter && hasNumber);
+      this.passwordError = !(hasSpecialChar && hasMinLength && hasMaxLength && hasLetter && hasNumber);
     },
     async handleLogin() {
       // 이메일과 비밀번호가 모두 비어있는 경우

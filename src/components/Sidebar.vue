@@ -50,6 +50,10 @@ export default {
       type: Boolean,
       required: true,
     },
+    hasUnsavedChanges: {
+      type: Boolean,
+      default: false
+    }
   },
   data() {
     return {
@@ -57,6 +61,7 @@ export default {
       isFavoritesHovered: false,
       favorites: [],
       userName: localStorage.getItem('userName') || '사용자',
+      localHasUnsavedChanges: false
     };
   },
   computed: {
@@ -86,41 +91,74 @@ export default {
       }
     },
     async handleLogout() {
-      showConfirmAlert({
-        title: '로그아웃',
-        html: '정말 로그아웃 하시겠습니까?',
-        confirmText: '확인',
-        cancelText: '취소',
-        subMessage: '', // 삭제 관련 메시지를 표시하지 않기 위해 빈 문자열로 설정
-        onConfirm: async () => {
-          try {
-            const response = await authAPI.doLogout();
-            
-            if (response.data.success) {
+      const isSurveyPage = ['SurveyCreate', 'SurveyEdit'].includes(this.$route.name);
+      if (isSurveyPage && this.localHasUnsavedChanges ) {
+        // 저장되지 않은 내용이 있는 경우
+        showConfirmAlert({
+          html: '저장되지 않은 내용이 있습니다. <br>로그아웃 하시겠습니까?',
+          subMessage: '* 작성 중인 내용이 저장되지 않습니다.',
+          confirmText: '로그아웃',
+          cancelText: '취소',
+          onConfirm: async () => {
+            emitter.emit('clearUnsavedChanges');
+            try {
+              const response = await authAPI.doLogout();
+              
+              if (response.data.success) {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('userName');
+                this.$router.push('/');
+              }
+            } catch (error) {
+              console.error('로그아웃 에러:', error);
+              showErrorAlert('로그아웃 실패', '로그아웃 처리 중 오류가 발생했습니다.');
               localStorage.removeItem('accessToken');
               localStorage.removeItem('userName');
               this.$router.push('/');
             }
-          } catch (error) {
-            console.error('로그아웃 에러:', error);
-            showErrorAlert('로그아웃 실패', '로그아웃 처리 중 오류가 발생했습니다.');
-            // 에러가 발생하더라도 로컬 데이터 삭제 및 리다이렉트
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('userName');
-            this.$router.push('/');
           }
-        }
-      });
-    },
+        });
+      } else {
+        // 저장되지 않은 내용이 없는 경우
+        showConfirmAlert({
+          title: '로그아웃',
+          html: '정말 로그아웃 하시겠습니까?',
+          subMessage: '',
+          confirmText: '확인',
+          cancelText: '취소',
+          onConfirm: async () => {
+            try {
+              const response = await authAPI.doLogout();
+              
+              if (response.data.success) {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('userName');
+                this.$router.push('/');
+              }
+            } catch (error) {
+              console.error('로그아웃 에러:', error);
+              showErrorAlert('로그아웃 실패', '로그아웃 처리 중 오류가 발생했습니다.');
+              localStorage.removeItem('accessToken');
+              localStorage.removeItem('userName');
+              this.$router.push('/');
+            }
+          }
+        });
+      }
+    }
   },
   created() {
     this.fetchFavorites();
     emitter.on('updateBookmarks', () => {
       this.fetchFavorites();
     });
+    emitter.on('updateUnsavedChanges', (value) => {
+      this.localHasUnsavedChanges  = value;
+    });
   },
   unmounted() {
     emitter.off('updateBookmarks');
+    emitter.off('updateUnsavedChanges');
   },
 };
 </script>

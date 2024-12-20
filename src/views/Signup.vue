@@ -15,11 +15,49 @@
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': emailError && emailTouched }">
-          <input type="email" id="email" class="input-field peer"
-            :class="{ 'error-border': emailError && emailTouched }" v-model="email" @input="validateEmail"
-            placeholder=" " ref="emailInput" />
-          <label for="email" class="floating-label" :class="{ 'error-label': emailError && emailTouched }">이메일</label>
+          <div class="email-verification-container">
+            <div class="email-input-wrapper">
+              <input type="email" id="email" class="input-field peer email-input"
+                :class="{ 'error-border': emailError && emailTouched }" 
+                v-model="email" 
+                @input="validateEmail"
+                :disabled="isEmailVerified"
+                placeholder=" " 
+                ref="emailInput" />
+              <label for="email" class="floating-label" :class="{ 'error-label': emailError && emailTouched }">이메일</label>
+            </div>
+            <button 
+              class="verify-button" 
+              @click="sendVerificationEmail"
+              :disabled="!email || emailError || isEmailVerified"
+            >
+              {{ isEmailVerified ? '인증완료' : '이메일 인증' }}
+            </button>
+          </div>
           <span v-if="emailError && emailTouched" class="error-message">잘못된 이메일 형식입니다</span>
+
+          <!-- 인증 코드 입력 UI -->
+          <div v-if="showVerificationInput && !isEmailVerified" class="verification-container">
+            <div class="verification-input-wrapper">
+              <div class="code-input-container">
+                <input 
+                  type="text"
+                  v-model="verificationCode"
+                  class="verification-code-input"
+                  maxlength="6"
+                  placeholder="인증코드 6자리 입력"
+                />
+                <span class="timer">{{ formatTime(timeLeft) }}</span>
+              </div>
+              <button 
+                class="verification-submit-button"
+                :disabled="verificationCode.length !== 6"
+                @click="verifyCode"
+              >
+                입력
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': phoneError && phoneTouched }">
@@ -40,7 +78,7 @@
               :src="showPassword ? require('../assets/images/eye_hide.svg') : require('../assets/images/eye_show.svg')"
               :alt="showPassword ? '비밀번호 숨기기' : '비밀번호 표시'" class="eye-icon" />
           </div>
-          <span v-if="passwordError && passwordTouched" class="error-message">비밀번호는 영문, 숫자, 특수문자를 포함한 8자 이상입니다.</span>
+          <span v-if="passwordError && passwordTouched" class="error-message">비밀번호는 영문, 숫자, 특수문자를 포함한 8~20자입니다.</span>
         </div>
 
         <div class="form-field relative" :class="{ 'has-error': confirmPasswordError && confirmPasswordTouched }">
@@ -91,13 +129,23 @@ export default {
       confirmPasswordTouched: false,
 
       showPassword: false,
-      showConfirmPassword: false
+      showConfirmPassword: false,
+
+      // 이메일 인증 관련 상태
+      isEmailVerified: false,
+      showVerificationInput: false,
+      verificationCode: '',
+
+      // 타이머 관련 상태
+      timeLeft: 300,
+      timerInterval: null
     }
   },
   computed: {
     isFormValid() {
       return this.userName &&
         this.email && !this.emailError &&
+        this.isEmailVerified &&
         this.phone && !this.phoneError &&
         this.password && !this.passwordError &&
         this.confirmPassword && !this.confirmPasswordError;
@@ -131,9 +179,10 @@ export default {
       this.passwordTouched = true;
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(this.password);
       const hasMinLength = this.password.length >= 8;
+      const hasMaxLength = this.password.length <= 20;
       const hasLetter = /[A-Za-z]/.test(this.password);  // 영문 포함
       const hasNumber = /[0-9]/.test(this.password);     // 숫자 포함
-      this.passwordError = !(hasSpecialChar && hasMinLength && hasLetter && hasNumber);
+      this.passwordError = !(hasSpecialChar && hasMinLength && hasMaxLength && hasLetter && hasNumber);
 
       // 비밀번호가 변경되면 비밀번호 확인도 재검증
       if (this.confirmPasswordTouched) {
@@ -147,6 +196,54 @@ export default {
       }
       this.confirmPasswordTouched = true;
       this.confirmPasswordError = this.password !== this.confirmPassword;
+    },
+    async sendVerificationEmail() {
+      try {
+        const response = await authAPI.sendVerificationEmail({
+          email: this.email
+        });
+        
+        if (response.data.success) {
+          this.showVerificationInput = true;
+          this.verificationCode = '';
+          this.startTimer();
+          showNavigateAlert({
+            html: "인증 메일 발송",
+            subMessage: "입력하신 이메일로 인증코드가 발송되었습니다.",
+            confirmText: "확인"
+          });
+        }
+      } catch (error) {
+        if (error.response?.data?.resultCode === 'A003') {
+          showErrorAlert("이메일 전송 실패", "이미 가입된 이메일입니다.");
+        } else {
+          showErrorAlert("이메일 전송 실패", "인증 이메일 전송에 실패했습니다.");
+        }
+      }
+    },
+
+    async verifyCode() {
+      try {
+        const response = await authAPI.verifyEmailCode({
+          email: this.email,
+          code: this.verificationCode
+        });
+        
+        if (response.data.success && response.data.body.isValid) {
+          this.isEmailVerified = true;
+          this.showVerificationInput = false;
+          this.stopTimer();
+          showNavigateAlert({
+            html: "인증 완료",
+            subMessage: "이메일 인증이 완료되었습니다.",
+            confirmText: "확인"
+          });
+        } else {
+          showErrorAlert("인증 실패", "잘못된 인증번호입니다.");
+        }
+      } catch (error) {
+        showErrorAlert("인증 실패", "인증 처리 중 오류가 발생했습니다.");
+      }
     },
     async doSignup() {
       // 이름 체크
@@ -216,7 +313,11 @@ export default {
           // 400 Bad Request이고 에러 코드가 A003인 경우
           if (error.response?.status === 400 && error.response?.data?.resultCode === 'A003') {
             showErrorAlert("회원가입 실패", "이미 존재하는 이메일입니다.");
-          } else {
+          }
+          else if(error.response?.status === 400 && error.response?.data?.resultCode === 'A005') {
+            showErrorAlert("회원가입 실패", "인증되지 않은 이메일입니다.");
+          }
+          else {
             showErrorAlert("회원가입 실패", "회원가입 중 오류가 발생했습니다.");
           }
         }
@@ -234,8 +335,43 @@ export default {
     },
     toggleConfirmPassword() {
       this.showConfirmPassword = !this.showConfirmPassword;
+    },
+    startTimer() {
+      // 이미 실행 중인 타이머가 있다면 초기화
+      if (this.timerInterval) {
+        clearInterval(this.timerInterval);
+      }
+      
+      this.timeLeft = 300; // 5분으로 초기화
+      this.timerInterval = setInterval(() => {
+        if (this.timeLeft > 0) {
+          this.timeLeft--;
+        } else {
+          this.stopTimer();
+          // 시간 초과이고 아직 인증이 안된 경우에만 경고창 표시
+          if (!this.isEmailVerified) {
+            this.showVerificationInput = false;
+            showErrorAlert("인증 시간 만료", "인증 시간이 만료되었습니다. 다시 시도해주세요.");
+          }
+        }
+      }, 1000);
+    },
+
+    stopTimer() {
+      if (this.timerInterval) {
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+      }
+    },
+    formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
-  }
+  },
+  beforeDestroy() {
+    this.stopTimer();
+  },
 }
 </script>
 
@@ -440,6 +576,107 @@ input[type="text"] {
   max-width: 80%;
   max-height: 80%;
   object-fit: contain;
+}
+
+.email-verification-container {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.email-input-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.email-input {
+  width: 100%;
+}
+
+.verify-button {
+  width: 90px;
+  height: 48px;
+  background-color: #A8C5DA;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.verify-button:disabled {
+  background-color: #A8C5DA;
+  cursor: default;
+}
+
+/* 이메일 인증 완료 시 입력 필드 스타일 */
+input:disabled {
+  background-color: #f5f5f5;
+  cursor: default
+}
+
+.signup-button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
+.verification-container {
+  margin-top: 10px;
+}
+
+.verification-input-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.code-input-container {
+  position: relative;
+  flex: 1;
+}
+
+.verification-code-input {
+  width: 100%;
+  padding: 15px 60px 12px 15px; /* 오른쪽 패딩을 늘려서 타이머 공간 확보 */
+  font-size: 0.9rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+  letter-spacing: 4px;
+}
+
+.verification-code-input:focus {
+  outline: none;
+  border-color: #A8C5DA;
+  border-width: 2px;
+}
+
+.verification-submit-button {
+  width: 90px;
+  height: 45px;
+  background-color: #A8C5DA;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.verification-submit-button:disabled {
+  background-color: #ddd;
+  cursor: default;
+}
+
+.timer {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #FF6B6B;
+  font-size: 0.9rem;
+  font-weight: bold;
 }
 
 /* 브라우저 자동완성 배경색 제거 */

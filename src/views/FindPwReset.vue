@@ -34,7 +34,7 @@
             </div>
             
             <div v-if="isPasswordInvalid" class="error-container">
-                <p class="error-message">비밀번호는 영문, 숫자, 특수문자를 포함한 8자 이상입니다.</p>
+                <p class="error-message">비밀번호는 영문, 숫자, 특수문자를 포함한 8~20자입니다.</p>
             </div>
             
             <div class="form-field">
@@ -82,6 +82,9 @@
 </template>
   
 <script>
+import { authAPI } from '@/service/surveyService';
+import { showErrorAlert } from '@/utils/swalUtils';
+
 export default {
     name: 'FindPwResetPage',
     data() {
@@ -101,7 +104,7 @@ export default {
     },
     methods: {
         validatePassword() {
-            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$/
             this.isPasswordInvalid = this.password.length > 0 && !passwordRegex.test(this.password)
             
             if (this.passwordConfirm) {
@@ -117,7 +120,7 @@ export default {
         togglePasswordConfirm() {
             this.showPasswordConfirm = !this.showPasswordConfirm
         },
-        handleResetPassword() {
+        async handleResetPassword() {
             // 입력창 2개 다 비어있을 경우
             if(!this.password && !this.passwordConfirm) {
                 this.$refs.resetPasswordInput.focus();
@@ -140,7 +143,37 @@ export default {
             this.validatePasswordMatch();
 
             if(!this.isPasswordInvalid && !this.isConfirmInvalid) {
-                this.$router.push("/help/complete");
+                try {
+                    // URL에서 token 파라미터 가져오기
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const token = urlParams.get('accessToken');
+                    
+                    if (!token) {
+                        showErrorAlert("오류 발생", "유효하지 않은 접근입니다.");
+                        this.$router.push('/');
+                        return;
+                    }
+
+                    const data = {
+                        token,
+                        newPassword: this.password
+                    };
+
+                    const response = await authAPI.changePassword(data);
+                    
+                    if (response.data.success) {
+                        this.$router.push("/help/complete");
+                    } else {
+                        showErrorAlert("비밀번호 변경 실패", response.data.body || "비밀번호 변경에 실패했습니다.");
+                    }
+                } catch (error) {
+                    if (error.response && error.response.status === 400) {
+                        showErrorAlert("비밀번호 변경 실패", "유효하지 않은 토큰이거나 만료된 토큰입니다.");
+                    } else {
+                        showErrorAlert("오류 발생", "서비스 접속에 실패했습니다. 잠시 후 다시 시도해주세요.");
+                    }
+                    console.error('Password reset failed:', error);
+                }
             }
         },
         backToLogin() {
@@ -151,18 +184,6 @@ export default {
 </script>
 
 <style scoped>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-  
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    overflow: hidden;
-}
 
 .reset-container {
     display: flex;
