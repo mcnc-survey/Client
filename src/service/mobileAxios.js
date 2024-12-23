@@ -5,7 +5,7 @@ const mobileInstance = axios.create({
   baseURL: "https://mobile.mcnc-survey.store", // 모바일 서버 주소
   timeout: 15000, // 타임아웃 설정
   headers: {
-    "Content-Type": "application/json;charset=UTF-8",
+    "Content-Type": "application/json",
   },
   withCredentials: true, // 이 옵션 추가
 });

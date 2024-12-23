@@ -105,39 +105,78 @@ export default {
         return;
       }
 
-      // 주석 처리된 API 호출
-      // API.sendVerificationCode(this.email)
-      //   .then(() => {
+      // 인증 코드 요청 API 호출
+      API.sendVerificationCode({ email: this.email })
+        .then(() => {
+          // 인증 성공을 가정한 코드
+          Swal.fire({
+            title: "인증번호를 입력해주세요",
+            input: "text",
+            inputPlaceholder: "인증번호를 입력하세요",
+            showCancelButton: true,
+            confirmButtonText: "확인",
+            cancelButtonText: "취소",
+            inputValidator: (value) => {
+              if (!value) {
+                return "인증번호를 입력해주세요.";
+              }
+            },
+          }).then((result) => {
+            if (result.isConfirmed) {
+              this.verificationCode = result.value;
+              // 인증 코드 검증
+              this.verifyVerificationCode();
+            }
+          });
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: "error",
+            title: "인증 코드 요청 실패",
+            text: error.response?.data?.message || "다시 시도해주세요.",
+            confirmButtonText: "확인",
+          });
+        });
+    },
+    verifyVerificationCode() {
+      if (!this.verificationCode) {
+        Swal.fire({
+          icon: "error",
+          title: "인증번호를 입력해주세요.",
+          confirmButtonText: "확인",
+        });
+        return;
+      }
 
-      // 인증 성공을 가정한 코드
-      Swal.fire({
-        title: "인증번호를 입력해주세요",
-        input: "text",
-        inputPlaceholder: "인증번호를 입력하세요",
-        showCancelButton: true,
-        confirmButtonText: "확인",
-        cancelButtonText: "취소",
-        inputValidator: (value) => {
-          if (!value) {
-            return "인증번호를 입력해주세요.";
+      // 이메일 인증 코드 검증 API 호출
+      API.checkVerificationCode({
+        email: this.email,
+        code: this.verificationCode,
+      })
+        .then((response) => {
+          if (response.data.body.isValid) {
+            // 인증 성공
+            Swal.fire("인증 성공", "인증번호가 확인되었습니다.", "success");
+          } else {
+            // 인증 실패
+            Swal.fire({
+              icon: "error",
+              title: "인증 실패",
+              text: "인증번호가 일치하지 않습니다.",
+              confirmButtonText: "확인",
+            });
           }
-        },
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.verificationCode = result.value;
-          Swal.fire("인증 성공", "인증번호가 확인되었습니다.", "success");
-        }
-      });
-
-      // })
-      // .catch((error) => {
-      //   Swal.fire({
-      //     icon: "error",
-      //     title: "인증 코드 요청 실패",
-      //     text: error.response?.data?.message || "다시 시도해주세요.",
-      //     confirmButtonText: "확인",
-      //   });
-      // });
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: "error",
+            title: "오류 발생",
+            text:
+              error.response?.data?.message ||
+              "인증 과정에서 문제가 발생했습니다.",
+            confirmButtonText: "확인",
+          });
+        });
     },
     submitForm() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -221,7 +260,6 @@ export default {
       switch (platform) {
         case "kakao":
           window.location.href = `${baseUrl}/kakao?surveyId=${this.token}`;
-
           break;
         case "google":
           window.location.href = `${baseUrl}/google?surveyId=${this.token}`;
