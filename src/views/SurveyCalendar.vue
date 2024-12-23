@@ -91,8 +91,8 @@ export default {
 /* FullCalendar 기본 스타일 수정 */
 .fc {
   width: 100%;
-  max-width: 1000px;
-  max-height: 560px;
+  max-width: 1100px;
+  max-height: 800px;
   margin: 0 auto;
 }
 
@@ -116,7 +116,6 @@ export default {
   padding: 10px 14px 10px 24px;
   font-size: 12px;
   font-weight: 500;
-  margin-top: 6.6px;
   background: #DFE7EF;
   border-radius: 16px;
 }
