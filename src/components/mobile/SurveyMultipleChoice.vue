@@ -35,11 +35,21 @@ export default {
       type: Boolean,
       default: false,
     },
+    initSelected: {
+      // 초기값을 위한 prop 추가
+      type: Array,
+      default: () => [],
+    },
   },
   data() {
     return {
-      selectedOptions: [],
+      selectedOptions: [...this.initSelected],
     };
+  },
+  watch: {
+    initSelected(newVal) {
+      this.selectedOptions = [...newVal]; // 초기 선택값 변경 시 업데이트
+    },
   },
   methods: {
     toggleOption(option) {

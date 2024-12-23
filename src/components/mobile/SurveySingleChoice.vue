@@ -26,8 +26,6 @@
 </template>
 
 <script>
-import { get } from "lodash";
-
 export default {
   props: {
     question: String,
@@ -37,11 +35,21 @@ export default {
       type: Boolean,
       default: false,
     },
+    initSelected: {
+      // 초기값을 위한 prop 추가
+      type: String,
+      default: null,
+    },
   },
   data() {
     return {
-      selectedOption: null,
+      selectedOption: this.initSelected, // 초기 선택값을 설정
     };
+  },
+  watch: {
+    initSelected(newVal) {
+      this.selectedOption = newVal; // 초기 선택값 변경 시 업데이트
+    },
   },
   methods: {
     toggleOption(option) {
@@ -53,10 +61,6 @@ export default {
       // 라디오 버튼 변경 이벤트 처리
       this.selectedOption = option;
       this.$emit("update:selected", this.selectedOption); // 부모에게 선택된 값 전달
-    },
-    getResponse() {
-      // 선택된 옵션 반환
-      return this.selectedOption;
     },
   },
 };

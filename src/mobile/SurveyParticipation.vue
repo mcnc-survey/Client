@@ -12,6 +12,7 @@
         :options="question.columns"
         :name="`question${question.id}`"
         :required="question.required"
+        :initSelected="question.prevAnswer"
         @update:selected="updateSelected(index, $event)"
       />
 
@@ -21,6 +22,7 @@
         :options="question.columns"
         :name="`question${question.id}`"
         :required="question.required"
+        :initSelected="question.prevAnswer"
         @update:selected="updateSelected(index, $event)"
       />
 
@@ -30,6 +32,7 @@
         :name="`question${question.id}`"
         :required="question.required"
         type="LONG_ANSWER"
+        :initAnswer="question.prevAnswer"
         @update:selected="updateSelected(index, $event)"
       />
 
@@ -39,6 +42,7 @@
         :name="`question${question.id}`"
         :required="question.required"
         type="SHORT_ANSWER"
+        :initAnswer="question.prevAnswer"
         @update:selected="updateSelected(index, $event)"
       />
     </div>
@@ -69,6 +73,7 @@ export default {
       },
       responses: [], // 질문 ID를 키로 하고 응답 데이터를 값으로 저장
       token: localStorage.getItem("surveyId"),
+      prevResult: {},
     };
   },
   methods: {
@@ -81,10 +86,23 @@ export default {
         const response = await API.getSurvey();
 
         const surveyData = response.data.body.surveySnippet;
+        const prevData = response.data.body.responseResult || {}; // 안전한 기본값
+        console.log("fetch:::", prevData);
+        const prevResultArray = Object.values(prevData).map(
+          (item) => item.response
+        );
 
+        this.prevResult = prevData;
         this.survey.title = surveyData.title;
         this.survey.description = surveyData.description;
-        this.survey.question = surveyData.question;
+
+        // 질문과 이전 응답을 매핑
+        this.survey.question = surveyData.question.map((question, index) => {
+          return {
+            ...question,
+            prevAnswer: prevResultArray[index] || "", // 이전 응답값이 없으면 빈 문자열
+          };
+        });
       } catch (error) {
         console.error("설문 데이터를 가져오는 중 오류 발생:", error);
       }
@@ -94,41 +112,67 @@ export default {
     },
     async submitForm() {
       try {
-        // `responses` 배열을 생성
-        const formattedResponses = this.survey.question.map(
-          (question, index) => {
-            const responseValue = this.responses[index]; // 해당 질문의 응답 데이터 가져오기
-            let response = "";
+        if (Object.keys(this.prevResult).length > 0) {
+          // prevResult 데이터를 기반으로 payload 생성
+          // JSON 형태의 prevResult를 배열로 변환
+          const prevResultArray = Object.values(this.prevResult);
 
-            // MULTIPLE_CHOICE의 경우 배열 값을 `|`로 구분된 문자열로 변환
-            if (Array.isArray(responseValue)) {
-              response = responseValue.join("|");
-            } else {
-              response = responseValue;
-            }
-
+          // survey.question에서 각 질문의 required 값을 가져와 prevResult에 추가
+          const updatedPrevResult = prevResultArray.map((item, index) => {
             return {
-              questionId: question.id,
-              questionType: question.questionType,
-              orderNumber: question.order,
-              response,
+              ...item,
+              isRequired: this.survey.question[index]?.required || false, // question.required를 가져와 추가
+              response: this.responses[index] || item.response,
             };
-          }
-        );
+          });
 
-        // 최종 payload 구조
-        const payload = {
-          responses: formattedResponses,
-        };
+          const editPayload = { responses: updatedPrevResult };
 
-        console.log("최종 payload:", JSON.stringify(payload, null, 2));
+          console.log("editAnswer API payload:", editPayload);
 
-        // API 요청
-        const response = await API.submitSurvey(payload);
+          // editAnswer API 호출
+          const editResponse = await API.editAnswer(editPayload);
+          console.log("editAnswer API 호출 성공:", editResponse);
+        } else {
+          // 새 응답 저장을 위한 `responses` 배열 생성
+          const formattedResponses = this.survey.question.map(
+            (question, index) => {
+              const responseValue = this.responses[index]; // 해당 질문의 응답 데이터 가져오기
+              let response = "";
 
-        console.log("응답 전송 성공:", response.data);
+              // MULTIPLE_CHOICE의 경우 배열 값을 `|`로 구분된 문자열로 변환
+              if (Array.isArray(responseValue)) {
+                response = responseValue.join("|");
+              } else {
+                response = responseValue;
+              }
+
+              return {
+                questionId: question.id,
+                questionType: question.questionType,
+                orderNumber: question.order,
+                isRequired: question.required,
+                response,
+              };
+            }
+          );
+
+          // submitSurvey용 최종 payload
+          const submitPayload = {
+            responses: formattedResponses,
+          };
+
+          console.log(
+            "submitSurvey API payload:",
+            JSON.stringify(submitPayload, null, 2)
+          );
+
+          // submitSurvey API 호출
+          const submitResponse = await API.submitSurvey(submitPayload);
+          console.log("submitSurvey API 호출 성공:", submitResponse.data);
+        }
       } catch (error) {
-        console.error("응답 전송 중 오류 발생:", error);
+        console.error("응답 처리 중 오류 발생:", error);
       }
     },
   },

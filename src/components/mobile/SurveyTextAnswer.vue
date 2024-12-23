@@ -28,10 +28,14 @@ export default {
       type: String,
       default: "LONG_ANSWER", // 기본값: LONG_ANSWER
     },
+    initAnswer: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {
-      answer: "",
+      answer: this.initAnswer,
     };
   },
   computed: {
