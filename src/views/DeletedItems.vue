@@ -104,7 +104,7 @@ export default {
 
       try {
         const response = await surveyAPI.restoreSurvey({
-          surveyIds: selectedSurveys.value // 선택된 설문 ID 배열
+          surveyIdList: selectedSurveys.value // 선택된 설문 ID 배열
         });
         // console.log("복구 응답:", response);
 
