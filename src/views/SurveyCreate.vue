@@ -47,7 +47,8 @@
               <div ref="questionContainer" class="question-container" @click="selectQuestion(index)"
                 :class="{ selected: selectedQuestionIndex === index, error: questionErrors[index] }">
                 <component :is="getQuestionComponent(question.type)" :question="question"
-                  @update="updateQuestion(index, $event)" @delete="deleteQuestion(index)" @copy="copyQuestion(index, $event)" />
+                  @update="updateQuestion(index, $event)" @delete="deleteQuestion(index)"
+                  @copy="copyQuestion(index, $event)" />
                 <div v-if="questionErrors[index]" class="error-message">
                   {{ getErrorMessage(question.type) }}
                 </div>
@@ -277,9 +278,9 @@ export default {
 
     const copyQuestion = (index) => {
       // 텍스트가 선택되어 있거나 입력 요소에 포커스가 있는 경우 복사 기능 막기
-      if (window.getSelection().toString() || 
-          document.activeElement.tagName === 'INPUT' || 
-          document.activeElement.tagName === 'TEXTAREA') {
+      if (window.getSelection().toString() ||
+        document.activeElement.tagName === 'INPUT' ||
+        document.activeElement.tagName === 'TEXTAREA') {
         return;
       }
       const copiedQuestion = {
@@ -665,8 +666,8 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding: 10px 10px 0 4px;
+  margin: -8px 0 20px 0;
+  padding: 0 10px 0 4px;
   background-color: white;
   position: sticky;
   top: 0;
@@ -697,7 +698,6 @@ export default {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 5px;
 }
 
 .preview-btn {
@@ -721,6 +721,31 @@ export default {
   position: relative;
 }
 
+/* 스크롤바 스타일링 */
+.create-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.create-container::-webkit-scrollbar-button:vertical:start:decrement,
+.create-container::-webkit-scrollbar-button:vertical:start:increment {
+  display: block;
+  height: 10px;
+}
+
+.create-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.create-container::-webkit-scrollbar-thumb {
+  background: #E8EAEC;
+  border-radius: 4px;
+}
+
+.create-container::-webkit-scrollbar-thumb:hover {
+  background: #D1D5D9;
+}
+
 .content-area {
   display: flex;
   justify-content: center;
@@ -730,8 +755,10 @@ export default {
 .survey-container {
   width: 60%;
   height: 100%;
-  display: block; /* 수정 */
-  flex-direction: column; /* 추가 */
+  display: block;
+  /* 수정 */
+  flex-direction: column;
+  /* 추가 */
   margin-right: 100px;
   position: relative;
 }

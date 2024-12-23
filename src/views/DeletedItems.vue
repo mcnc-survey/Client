@@ -143,15 +143,27 @@ export default {
         return;
       }
 
+      const surveyInfo = selectedSurveys.value.map((surveyId) => {
+        const survey = deletedSurveys.value.find((s) => s.id === surveyId);
+        return {
+          surveyId: survey.id,
+          title: survey.title, // 설문 제목을 name에 포함
+        };
+      });
+
+      console.log(surveyInfo);
+
       showConfirmAlert({
         html: "설문을 삭제하면 모든 응답 데이터도 함께 삭제됩니다.",
         subMessage: "* 삭제 후에는 복구할 수 없습니다.",
         onConfirm: async () => {
           try {
-            const payload = { surveyIds: selectedSurveys.value };
+            const payload = {
+              surveyInfos: surveyInfo,
+            };
 
             // API 호출
-            await surveyAPI.hardDeleteSurvey(payload);
+            const response = await surveyAPI.hardDeleteSurvey(payload);
 
             // 삭제된 설문조사 항목을 리스트에서 제외
             deletedSurveys.value = deletedSurveys.value.filter(
@@ -161,11 +173,15 @@ export default {
             selectedSurveys.value = []; // 선택 초기화
             isAllSelected.value = false; // 전체 선택 해제
 
-            // 성공 알림
-            showSuccessAlert(
-              "삭제 완료",
-              "선택된 설문조사가 성공적으로 삭제되었습니다."
-            );
+            if (response.data.resultCode === "204") {
+              // 성공 알림
+              showSuccessAlert(
+                "삭제 완료",
+                "선택된 설문조사가 성공적으로 삭제되었습니다."
+              );
+            } else {
+              throw new Error('설문조사를 삭제하는 데 실패했습니다.');
+            }
           } catch (error) {
             // 실패 알림
             showErrorAlert(
