@@ -80,7 +80,6 @@
 <script>
 import Swal from "sweetalert2";
 import { API } from "../service/mobileService";
-
 export default {
   data() {
     return {
@@ -88,8 +87,15 @@ export default {
       name: "",
       phone: "",
       verificationCode: "",
-      token: this.$route.query.t,
+      token: this.$route.query.t || "",
+      accessToken: this.$route.query.token || "",
     };
+  },
+  beforeMount() {
+    if (this.accessToken) {
+      localStorage.setItem("accessToken", `${this.accessToken}`);
+      this.$router.push("/mobile/survey");
+    }
   },
   methods: {
     focusInput(field) {
