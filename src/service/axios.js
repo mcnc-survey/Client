@@ -6,7 +6,7 @@ const instance = axios.create({
     headers: {
         'Content-Type': 'application/json;charset=UTF-8',
     },
-    withCredentials: true  // 이 옵션 추가
+    withCredentials: true 
 });
 
 // 요청 인터셉터
@@ -42,10 +42,7 @@ instance.interceptors.response.use(
 
             try {
                 // 현재 가지고 있는 만료된 accessToken과 함께 재발급 요청
-                const response = await instance.post('/token/reissue', {
-                    accessToken: localStorage.getItem('accessToken')
-                });
-                
+                const response = await instance.post('/token/reissue');
                 if (response.data.success) {
                     // 새로운 accessToken 저장
                     const newAccessToken = response.data.body.accessToken;
