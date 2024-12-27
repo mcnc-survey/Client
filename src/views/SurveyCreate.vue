@@ -658,7 +658,7 @@ export default {
 .survey-create {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 95vh;
   padding: 0 10px 10px;
 }
 
@@ -717,7 +717,8 @@ export default {
   padding: 20px;
   margin-bottom: 20px;
   overflow-y: auto;
-  min-height: 80vh;
+  /* min-height: 80%; */
+  height: 85%;
   position: relative;
 }
 
