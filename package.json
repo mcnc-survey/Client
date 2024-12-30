@@ -15,6 +15,7 @@
     "axios": "^1.7.9",
     "chart.js": "^4.4.6",
     "core-js": "^3.8.3",
+    "event-source-polyfill": "^1.0.31",
     "jspdf": "^2.5.2",
     "jspdf-html2canvas": "^1.5.2",
     "lodash": "^4.17.21",

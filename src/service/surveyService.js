@@ -68,3 +68,15 @@ export const authAPI = {
   //이메일 인증 코드 검증
   verifyEmailCode: (data) => axios.post("/auth/email-verify/check", data)
 };
+
+export const notificationAPI = {
+
+  // 모든 알림 조회
+  getNotifications: () => axios.get("/notifications"),
+  
+  // 알림 온 설문으로 이동
+  getNotificationDetail: (notificationId) => axios.patch(`/notifications/read/${notificationId}`),
+  
+  // 알림 삭제
+  deleteNotification: (notificationId) => axios.delete(`/notifications/delete/${notificationId}`),
+};
