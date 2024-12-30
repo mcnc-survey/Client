@@ -13,6 +13,7 @@
         :name="`question${question.id}`"
         :required="question.required"
         :initSelected="question.prevAnswer"
+        :etc="question.etc"
         @update:selected="updateSelected(index, $event)"
       />
 
@@ -23,6 +24,7 @@
         :name="`question${question.id}`"
         :required="question.required"
         :initSelected="question.prevAnswer"
+        :etc="question.etc"
         @update:selected="updateSelected(index, $event)"
       />
 
@@ -79,6 +81,8 @@ export default {
   methods: {
     updateSelected(index, selectedOption) {
       // 자식의 응답을 responses[index]에 저장
+      console.log(selectedOption);
+
       this.responses[index] = selectedOption;
     },
     async fetchSurveyData() {
@@ -87,7 +91,6 @@ export default {
 
         const surveyData = response.data.body.surveySnippet;
         const prevData = response.data.body.responseResult || {}; // 안전한 기본값
-        console.log("fetch:::", prevData);
         const prevResultArray = Object.values(prevData).map(
           (item) => item.response
         );
@@ -119,10 +122,17 @@ export default {
 
           // survey.question에서 각 질문의 required 값을 가져와 prevResult에 추가
           const updatedPrevResult = prevResultArray.map((item, index) => {
+            let responseValue = this.responses[index] || item.response;
+
+            // MULTIPLE_CHOICE의 경우 배열을 `|`로 구분된 문자열로 변환
+            if (Array.isArray(responseValue)) {
+              responseValue = responseValue.join("|`|");
+            }
+
             return {
               ...item,
               isRequired: this.survey.question[index]?.required || false, // question.required를 가져와 추가
-              response: this.responses[index] || item.response,
+              response: responseValue,
             };
           });
 
@@ -142,7 +152,7 @@ export default {
 
               // MULTIPLE_CHOICE의 경우 배열 값을 `|`로 구분된 문자열로 변환
               if (Array.isArray(responseValue)) {
-                response = responseValue.join("|");
+                response = responseValue.join("|`|");
               } else {
                 response = responseValue;
               }

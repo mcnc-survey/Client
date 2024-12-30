@@ -19,9 +19,26 @@
         />
         <span class="custom-radio"></span>
       </label>
+
+      <label :class="{ selected: selectedOption === etcValue }" v-if="etc">
+        <input
+          type="text"
+          placeholder="기타"
+          class="etc-input"
+          maxlength="100"
+          v-model="etcValue"
+          @input="handleEtcInput"
+        />
+        <input
+          type="radio"
+          class="radio-input"
+          :checked="selectedOption === etcValue"
+          @change="selectOption(etcValue)"
+        />
+        <span class="custom-radio"></span>
+      </label>
     </div>
     <p v-if="required" class="required-text">* 필수 선택</p>
-    <!-- Conditionally render the required text -->
   </div>
 </template>
 
@@ -31,36 +48,51 @@ export default {
     question: String,
     options: Array,
     name: String,
+    etc: Boolean,
     required: {
       type: Boolean,
       default: false,
     },
     initSelected: {
-      // 초기값을 위한 prop 추가
       type: String,
       default: null,
     },
   },
   data() {
     return {
-      selectedOption: this.initSelected, // 초기 선택값을 설정
+      selectedOption: this.initSelected || "", // 초기 선택된 옵션
+      etcValue:
+        this.initSelected && !this.options.includes(this.initSelected)
+          ? this.initSelected
+          : "", // 기타 값 초기화
     };
   },
   watch: {
     initSelected(newVal) {
-      this.selectedOption = newVal; // 초기 선택값 변경 시 업데이트
+      if (this.options.includes(newVal)) {
+        this.selectedOption = newVal;
+        this.etcValue = "";
+      } else {
+        this.selectedOption = "";
+        this.etcValue = newVal || "";
+      }
     },
   },
   methods: {
     toggleOption(option) {
-      // 두 번째 클릭 시 선택 해제
-      this.selectedOption = this.selectedOption === option ? null : option;
-      this.$emit("update:selected", this.selectedOption); // 부모에게 선택된 값 전달
+      // 옵션 선택/해제 로직
+      this.selectedOption = this.selectedOption === option ? "" : option;
+      this.$emit("update:selected", this.selectedOption);
     },
     selectOption(option) {
       // 라디오 버튼 변경 이벤트 처리
       this.selectedOption = option;
-      this.$emit("update:selected", this.selectedOption); // 부모에게 선택된 값 전달
+      this.$emit("update:selected", this.selectedOption);
+    },
+    handleEtcInput() {
+      // 기타 입력 시 selectedOption 동기화
+      this.selectedOption = this.etcValue;
+      this.$emit("update:selected", this.selectedOption);
     },
   },
 };
@@ -96,6 +128,14 @@ export default {
 
 .options label.selected {
   background: #bfd0e0; /* 선택된 상태 배경색 */
+}
+
+.etc-input {
+  width: 100%;
+  outline: none;
+  border: none;
+  background: none;
+  color: peru;
 }
 
 .options .radio-input {

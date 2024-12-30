@@ -29,6 +29,14 @@ body {
   overflow: hidden;
   box-sizing: border-box; /* 여백 및 패딩 포함 크기 조정 */
 }
+input {
+  font-family: "Pretendard", Arial, sans-serif;
+  font-weight: normal;
+}
+textarea {
+  font-family: "Pretendard", Arial, sans-serif;
+  font-weight: normal;
+}
 #app {
   width: 100vw;
   height: 100vh;
