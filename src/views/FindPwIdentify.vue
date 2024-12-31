@@ -89,7 +89,7 @@ methods: {
           showErrorAlert("이메일 전송 실패", response.data.body || "이메일 전송에 실패했습니다.");
         }
         } catch (error) {
-          this.isLoading = true;
+          this.isLoading = false;
           // API 응답에서 가입되지 않은 이메일 에러를 확인
           if (error.response && error.response.data) {
             const errorMessage = error.response.data.body || error.response.data.message;
@@ -100,7 +100,7 @@ methods: {
               }
           } else {
             showErrorAlert("오류 발생", "서비스 접속에 실패했습니다. 잠시 후 다시 시도해주세요.");
-          }
+        }
       }
   },
   backToLogin() {
