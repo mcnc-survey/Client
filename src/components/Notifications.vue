@@ -30,6 +30,7 @@
 import { defineComponent, ref, onMounted, onUnmounted } from 'vue'
 import { EventSourcePolyfill } from 'event-source-polyfill'
 import { notificationAPI } from '@/service/surveyService'
+import instance from '@/service/axios'
 
 export default defineComponent({
   name: 'Notifications',
@@ -90,73 +91,95 @@ export default defineComponent({
       }
     }
 
-    const connectEventSource = () => {
+    const connectEventSource = async () => {
       if (eventSource) {
         eventSource.close()
         eventSource = null
       }
 
-      const token = localStorage.getItem('accessToken')
+      let token = localStorage.getItem('accessToken')
       if (!token) {
         console.error('No access token found in localStorage')
         return
       }
 
-      const eventSourceOptions = {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        withCredentials: true,
-        heartbeatTimeout: 30000
-      }
-
-      try {
-        console.log('Starting EventSource connection...', new Date().toISOString())
-        
-        eventSource = new EventSourcePolyfill(
-          'https://web.mcnc-survey.store/notifications/subscribe',
-          eventSourceOptions
-        )
-
-        eventSource.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data)
-            console.log('Received notification:', data)
-            
-            // 이미 존재하는 알림인지 확인
-            const existingIndex = notifications.value.findIndex(
-              notification => notification.id === data.id
-            )
-            
-            if (existingIndex === -1) {
-              // 새로운 알림인 경우에만 추가
-              // notifications.value = [data, ...notifications.value]
-              notifications.value = [data, ...notifications.value].slice(0, 30)
-            }
-          } catch (error) {
-            console.error('Failed to parse notification:', error)
-          }
+      const connectWithToken = (currentToken) => {
+        const eventSourceOptions = {
+          headers: {
+            'Authorization': `Bearer ${currentToken}`
+          },
+          withCredentials: true,
+          heartbeatTimeout: 30000
         }
 
-        eventSource.onopen = (event) => {
-          console.log('EventSource connection established', new Date().toISOString())
-        }
-
-        eventSource.onerror = (error) => {
-          console.error('EventSource error:', error)
+        try {
+          console.log('Starting EventSource connection...', new Date().toISOString())
           
-          if (eventSource.readyState === EventSourcePolyfill.CLOSED || 
-              eventSource.readyState === EventSourcePolyfill.CONNECTING) {
-            console.log('Connection lost or error occurred, reconnecting...')
-            setTimeout(() => {
-              connectEventSource()
-            }, 1000)
+          eventSource = new EventSourcePolyfill(
+            'https://web.mcnc-survey.store/notifications/subscribe',
+            eventSourceOptions
+          )
+
+          eventSource.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data)
+              console.log('Received notification:', data)
+              
+              const existingIndex = notifications.value.findIndex(
+                notification => notification.id === data.id
+              )
+              
+              if (existingIndex === -1) {
+                notifications.value = [data, ...notifications.value].slice(0, 30)
+              }
+            } catch (error) {
+              console.error('Failed to parse notification:', error)
+            }
           }
+
+          eventSource.onopen = (event) => {
+            console.log('EventSource connection established', new Date().toISOString())
+          }
+
+          eventSource.onerror = async (error) => {
+            console.error('EventSource error:', error)
+            
+            // 401 에러 처리
+            if (error.status === 401) {
+              try {
+                console.log('Attempting to refresh token for EventSource...')
+                const response = await instance.post('/token/reissue')
+                if (response.data.success) {
+                  const newToken = response.data.body.accessToken
+                  localStorage.setItem('accessToken', newToken)
+                  
+                  // 새 토큰으로 EventSource 재연결
+                  eventSource.close()
+                  connectWithToken(newToken)
+                }
+              } catch (refreshError) {
+                console.error('Token refresh failed:', refreshError)
+                localStorage.removeItem('accessToken')
+                window.location.href = '/'
+              }
+            } 
+            // 다른 에러나 연결 끊김 처리
+            else if (eventSource.readyState === EventSourcePolyfill.CLOSED || 
+                    eventSource.readyState === EventSourcePolyfill.CONNECTING) {
+              console.log('Connection lost or error occurred, reconnecting...')
+              setTimeout(() => {
+                connectEventSource()
+              }, 1000)
+            }
+          }
+        } catch (error) {
+          console.error('Failed to create EventSource:', error)
+          setTimeout(connectEventSource, 1000)
         }
-      } catch (error) {
-        console.error('Failed to create EventSource:', error)
-        setTimeout(connectEventSource, 1000)
       }
+
+      // 초기 연결 시도
+      connectWithToken(token)
     }
 
     const checkConnection = () => {

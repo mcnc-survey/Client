@@ -1,41 +1,54 @@
 <template>
   <nav v-if="isSidebarOpen" class="sidebar">
-    <div class="user-info">
-      <h>안녕하세요, <span class="user-name">{{ userName }}</span>님!</h>
+    <div class="sidebar-content">
+      <div class="menu-top">
+        <div class="user-info">
+          <h>안녕하세요, <span class="user-name">{{ userName }}</span>님!</h>
+        </div>
+        <br />
+        <!-- 즐겨찾기 헤더 -->
+        <div @click="toggleFavoritesList" class="favorites-header" :class="{
+          active: isFavoritesActive,
+          hover: isFavoritesHovered,
+        }" @mouseenter="isFavoritesHovered = true" @mouseleave="isFavoritesHovered = false">
+          <button class="toggle-btn">
+            <img :src="isFavoritesOpen ? require('@/assets/images/bookmark-open.svg') : require('@/assets/images/bookmark-close.svg')"
+              alt="toggle-icon" class="toggle-icon" />
+          </button>
+          <p>즐겨찾기</p>
+        </div>
+        <!-- 즐겨찾기 목록 -->
+        <transition name="fade">
+          <ul v-if="isFavoritesOpen" class="favorites-list">
+            <template v-if="favorites.length > 0">
+              <li v-for="item in favorites" :key="item.id" :class="{
+                active: isActiveRoute(`/web/stats/${item.id}`),
+              }">
+                <router-link :to="`/web/stats/${item.id}`">{{ item.title }}</router-link>
+              </li>
+            </template>
+            <li v-else class="favorites-list-item empty-favorites">
+              <span>즐겨찾기를 추가해주세요!</span>
+            </li>
+          </ul>
+        </transition>
+        <router-link to="/web/management" class="menu-item">
+          설문조사 목록
+        </router-link>
+        <router-link to="/web/calendar" class="menu-item">캘린더</router-link>
+        <router-link to="/web/recycle" class="menu-item">삭제된 항목</router-link>
+      </div>
+      
+      <!-- 로그아웃 버튼 -->
+      <div class="logout-section">
+        <a @click="handleLogout" class="menu-item">
+          <div class="logout-content">
+            <img src="@/assets/images/logout_image.svg" alt="로그아웃" class="logout-icon" />
+            <span>로그아웃</span>
+          </div>
+        </a>
+      </div>
     </div>
-    <br />
-    <!-- 즐겨찾기 헤더 -->
-    <div @click="toggleFavoritesList" class="favorites-header" :class="{
-      active: isFavoritesActive,
-      hover: isFavoritesHovered,
-    }" @mouseenter="isFavoritesHovered = true" @mouseleave="isFavoritesHovered = false">
-      <button class="toggle-btn">
-        <img :src="isFavoritesOpen ? require('@/assets/images/bookmark-open.svg') : require('@/assets/images/bookmark-close.svg')"
-          alt="toggle-icon" class="toggle-icon" />
-      </button>
-      <p>즐겨찾기</p>
-    </div>
-    <!-- 즐겨찾기 목록 -->
-    <transition name="fade">
-      <ul v-if="isFavoritesOpen" class="favorites-list">
-        <template v-if="favorites.length > 0">
-          <li v-for="item in favorites" :key="item.id" :class="{
-            active: isActiveRoute(`/web/stats/${item.id}`),
-          }">
-            <router-link :to="`/web/stats/${item.id}`">{{ item.title }}</router-link>
-          </li>
-        </template>
-        <li v-else class="favorites-list-item empty-favorites">
-          <span>즐겨찾기를 추가해주세요!</span>
-        </li>
-      </ul>
-    </transition>
-    <router-link to="/web/management" class="menu-item">
-      설문조사 목록
-    </router-link>
-    <router-link to="/web/calendar" class="menu-item">캘린더</router-link>
-    <router-link to="/web/recycle" class="menu-item">삭제된 항목</router-link>
-    <a @click="handleLogout" class="menu-item">로그아웃</a>
   </nav>
 </template>
 
@@ -153,7 +166,7 @@ export default {
       this.fetchFavorites();
     });
     emitter.on('updateUnsavedChanges', (value) => {
-      this.localHasUnsavedChanges  = value;
+      this.localHasUnsavedChanges = value;
     });
   },
   unmounted() {
@@ -171,6 +184,19 @@ export default {
   transition: transform 0.3s ease;
   transform: translateX(0);
   border-right: 2px solid #E8E8E8;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.menu-top {
+  flex-grow: 1;
 }
 
 .sidebar.collapsed {
@@ -318,5 +344,22 @@ export default {
 
 .empty-favorites:hover {
   background-color: #ddd;
+}
+
+.logout-section .logout-content {
+  display: flex;
+  align-items: center;
+  gap: 8px; 
+  cursor: pointer;
+}
+
+.logout-section .menu-item {
+  color: #000;
+  font-weight: bold;
+}
+
+.logout-icon {
+  width: 16px;
+  height: 16px;
 }
 </style>
