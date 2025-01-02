@@ -20,7 +20,11 @@
         <span class="custom-radio"></span>
       </label>
 
-      <label :class="{ selected: selectedOption === etcValue }" v-if="etc">
+      <label
+        :class="{ selected: selectedOption === etcValue }"
+        v-if="etc"
+        @click.prevent="toggleOption(etcValue)"
+      >
         <input
           type="text"
           placeholder="기타"

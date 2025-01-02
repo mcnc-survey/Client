@@ -81,8 +81,6 @@ export default {
   methods: {
     updateSelected(index, selectedOption) {
       // 자식의 응답을 responses[index]에 저장
-      console.log(selectedOption);
-
       this.responses[index] = selectedOption;
     },
     async fetchSurveyData() {
@@ -98,7 +96,6 @@ export default {
         this.prevResult = prevData;
         this.survey.title = surveyData.title;
         this.survey.description = surveyData.description;
-
         // 질문과 이전 응답을 매핑
         this.survey.question = surveyData.question.map((question, index) => {
           return {

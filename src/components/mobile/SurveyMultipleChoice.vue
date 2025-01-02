@@ -15,13 +15,32 @@
           :value="option"
           class="checkbox-input"
           :checked="selectedOptions.includes(option)"
-          @change="selectOption(option)"
+        />
+        <span class="custom-checkbox"></span>
+      </label>
+
+      <label
+        :class="{ selected: selectedOptions.includes(etcValue) }"
+        v-if="etc"
+        @click.prevent="toggleOption(etcValue)"
+      >
+        <input
+          type="text"
+          placeholder="기타"
+          class="etc-input"
+          maxlength="100"
+          v-model="etcValue"
+          @input="handleEtcInput"
+        />
+        <input
+          type="checkbox"
+          class="checkbox-input"
+          :checked="selectedOptions.includes(etcValue)"
         />
         <span class="custom-checkbox"></span>
       </label>
     </div>
     <p v-if="required" class="required-text">* 필수 선택</p>
-    <!-- Conditionally render the required text -->
   </div>
 </template>
 
@@ -31,29 +50,24 @@ export default {
     question: String,
     options: Array,
     name: String,
+    etc: Boolean,
     required: {
       type: Boolean,
       default: false,
     },
     initSelected: {
-      // 초기값을 위한 prop 추가
       type: Array,
       default: () => [],
     },
   },
   data() {
     return {
-      selectedOptions: [...this.initSelected],
+      selectedOptions: [...this.initSelected].map((option) => option.trim()), // 초기 선택된 옵션 배열에서 공백을 제거
+      etcValue: this.initSelected.includes("test") ? "test" : "", // "test"가 있으면 `etcValue`를 "test"로 설정
     };
-  },
-  watch: {
-    initSelected(newVal) {
-      this.selectedOptions = [...newVal]; // 초기 선택값 변경 시 업데이트
-    },
   },
   methods: {
     toggleOption(option) {
-      // 선택한 옵션이 이미 존재하면 제거, 아니면 추가
       if (this.selectedOptions.includes(option)) {
         this.selectedOptions = this.selectedOptions.filter(
           (item) => item !== option
@@ -61,18 +75,24 @@ export default {
       } else {
         this.selectedOptions.push(option);
       }
-      this.$emit("update:selected", this.selectedOptions.join("|`|"));
+      this.$emit("update:selected", this.selectedOptions);
     },
-    selectOption(option) {
-      // 체크박스 변경 이벤트 처리
-      if (this.selectedOptions.includes(option)) {
-        this.selectedOptions = this.selectedOptions.filter(
-          (item) => item !== option
-        );
-      } else {
-        this.selectedOptions.push(option);
+    handleEtcInput() {
+      const updatedOptions = this.selectedOptions.filter(
+        (option) => option !== this.etcValue.trim()
+      );
+
+      const trimmedValue = this.etcValue.trim();
+
+      // "test"가 포함되어 있다면 해당 값을 선택 상태로 추가
+      if (trimmedValue && trimmedValue === "test") {
+        if (!updatedOptions.includes(trimmedValue)) {
+          updatedOptions.push(trimmedValue);
+        }
       }
-      this.$emit("update:selected", this.selectedOptions.join("|`|"));
+
+      // 변경된 배열을 부모 컴포넌트로 전달
+      this.$emit("update:selected", updatedOptions);
     },
   },
 };
@@ -94,7 +114,7 @@ export default {
   margin-bottom: 15px;
 }
 
-.options label {
+label {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -106,12 +126,20 @@ export default {
   position: relative;
 }
 
-.options label.selected {
+label.selected {
   background: #bfd0e0; /* 선택된 상태 배경색 */
 }
 
-.options .checkbox-input {
+.checkbox-input {
   display: none; /* 기본 체크박스 숨김 */
+}
+
+.etc-input {
+  width: 100%;
+  outline: none;
+  border: none;
+  background: none;
+  color: peru;
 }
 
 .custom-checkbox {
