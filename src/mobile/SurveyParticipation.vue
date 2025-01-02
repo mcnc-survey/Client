@@ -58,6 +58,7 @@ import SurveyTitle from "../components/mobile/SurveyTitle.vue";
 import SurveySingleChoice from "../components/mobile/SurveySingleChoice.vue";
 import SurveyMultipleChoice from "../components/mobile/SurveyMultipleChoice.vue";
 import SurveyTextAnswer from "@/components/mobile/SurveyTextAnswer.vue";
+import Swal from "sweetalert2"; // SweetAlert2 임포트
 
 export default {
   components: {
@@ -73,14 +74,13 @@ export default {
         description: "",
         question: {},
       },
-      responses: [], // 질문 ID를 키로 하고 응답 데이터를 값으로 저장
+      responses: [],
       token: localStorage.getItem("surveyId"),
       prevResult: {},
     };
   },
   methods: {
     updateSelected(index, selectedOption) {
-      // 자식의 응답을 responses[index]에 저장
       this.responses[index] = selectedOption;
     },
     async fetchSurveyData() {
@@ -88,7 +88,7 @@ export default {
         const response = await API.getSurvey();
 
         const surveyData = response.data.body.surveySnippet;
-        const prevData = response.data.body.responseResult || {}; // 안전한 기본값
+        const prevData = response.data.body.responseResult || {};
         const prevResultArray = Object.values(prevData).map(
           (item) => item.response
         );
@@ -96,58 +96,72 @@ export default {
         this.prevResult = prevData;
         this.survey.title = surveyData.title;
         this.survey.description = surveyData.description;
-        // 질문과 이전 응답을 매핑
         this.survey.question = surveyData.question.map((question, index) => {
           return {
             ...question,
-            prevAnswer: prevResultArray[index] || "", // 이전 응답값이 없으면 빈 문자열
+            prevAnswer: prevResultArray[index] || "",
           };
         });
       } catch (error) {
         console.error("설문 데이터를 가져오는 중 오류 발생:", error);
       }
     },
-    submitForm() {
-      console.log("응답 데이터:", this.responses);
-    },
     async submitForm() {
       try {
+        const isSubmitSuccessful = false;
+
+        // 응답 값이 비어 있지 않은지 확인
+        const emptyResponses = this.responses.some(
+          (response) =>
+            response === "" || response === undefined || response === null
+        );
+
+        if (emptyResponses) {
+          Swal.fire({
+            title: "응답이 비어 있습니다",
+            text: "모든 필수 질문에 응답해 주세요.",
+            icon: "warning",
+            confirmButtonText: "확인",
+          });
+          return; // 빈 응답이 있을 경우 제출을 중단
+        }
+
         if (Object.keys(this.prevResult).length > 0) {
-          // prevResult 데이터를 기반으로 payload 생성
-          // JSON 형태의 prevResult를 배열로 변환
           const prevResultArray = Object.values(this.prevResult);
 
-          // survey.question에서 각 질문의 required 값을 가져와 prevResult에 추가
           const updatedPrevResult = prevResultArray.map((item, index) => {
             let responseValue = this.responses[index] || item.response;
-
-            // MULTIPLE_CHOICE의 경우 배열을 `|`로 구분된 문자열로 변환
             if (Array.isArray(responseValue)) {
               responseValue = responseValue.join("|`|");
             }
 
             return {
               ...item,
-              isRequired: this.survey.question[index]?.required || false, // question.required를 가져와 추가
+              isRequired: this.survey.question[index]?.required || false,
               response: responseValue,
             };
           });
 
           const editPayload = { responses: updatedPrevResult };
-
-          console.log("editAnswer API payload:", editPayload);
-
-          // editAnswer API 호출
           const editResponse = await API.editAnswer(editPayload);
-          console.log("editAnswer API 호출 성공:", editResponse);
+
+          if (editResponse.data.success) {
+            isSubmitSuccessful = true;
+          } else {
+            Swal.fire({
+              title: "응답 제출 실패",
+              text: editResponse.data.message,
+              icon: "error",
+              confirmButtonText: "확인",
+            });
+            isSubmitSuccessful = false; // 실패 시 false로 설정
+          }
         } else {
-          // 새 응답 저장을 위한 `responses` 배열 생성
           const formattedResponses = this.survey.question.map(
             (question, index) => {
-              const responseValue = this.responses[index]; // 해당 질문의 응답 데이터 가져오기
+              const responseValue = this.responses[index];
               let response = "";
 
-              // MULTIPLE_CHOICE의 경우 배열 값을 `|`로 구분된 문자열로 변환
               if (Array.isArray(responseValue)) {
                 response = responseValue.join("|`|");
               } else {
@@ -164,25 +178,27 @@ export default {
             }
           );
 
-          // submitSurvey용 최종 payload
-          const submitPayload = {
-            responses: formattedResponses,
-          };
-
-          console.log(
-            "submitSurvey API payload:",
-            JSON.stringify(submitPayload, null, 2)
-          );
-
-          // submitSurvey API 호출
+          const submitPayload = { responses: formattedResponses };
           const submitResponse = await API.submitSurvey(submitPayload);
-          console.log("submitSurvey API 호출 성공:", submitResponse.data);
+
+          if (submitResponse.data.success) {
+            isSubmitSuccessful = true;
+          } else {
+            Swal.fire({
+              title: "응답 제출 실패",
+              text: submitResponse.data.message,
+              icon: "error",
+              confirmButtonText: "확인",
+            });
+            isSubmitSuccessful = false; // 실패 시 false로 설정
+          }
         }
-        // 제출 후 확인 페이지로 이동
-        this.$router.push("/mobile/confirmation");
+
+        if (isSubmitSuccessful) {
+          this.$router.push("/mobile/confirmation"); // 응답 제출 성공 시 확인 페이지로 이동
+        }
       } catch (error) {
         console.error("응답 처리 중 오류 발생:", error);
-        // 실패 시 SweetAlert2로 경고 띄우기
         Swal.fire({
           title: "응답 제출 실패",
           text: "응답 제출 중 오류가 발생했습니다. 다시 시도해 주세요.",
