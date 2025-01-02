@@ -60,7 +60,7 @@
                 <div v-else class="subjective-responses">
                     <div v-for="(response, index) in question.responses" :key="index" class="response-item">
                         <span class="response-number">{{ index + 1 }}</span>
-                        <p class="response-text">{{ response.columns }}</p>
+                        <p class="response-text">{{ response }}</p>
                     </div>
                 </div>
             </template>

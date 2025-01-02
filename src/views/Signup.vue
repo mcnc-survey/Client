@@ -337,19 +337,18 @@ export default {
       this.showConfirmPassword = !this.showConfirmPassword;
     },
     startTimer() {
-      // 이미 실행 중인 타이머가 있다면 초기화
       if (this.timerInterval) {
         clearInterval(this.timerInterval);
       }
       
-      this.timeLeft = 300; // 5분으로 초기화
+      this.timeLeft = 300;
       this.timerInterval = setInterval(() => {
         if (this.timeLeft > 0) {
           this.timeLeft--;
         } else {
           this.stopTimer();
-          // 시간 초과이고 아직 인증이 안된 경우에만 경고창 표시
-          if (!this.isEmailVerified) {
+          // 컴포넌트가 마운트된 상태일 때만 경고창 표시
+          if (!this.isEmailVerified && this.$el && document.body.contains(this.$el)) {
             this.showVerificationInput = false;
             showErrorAlert("인증 시간 만료", "인증 시간이 만료되었습니다. 다시 시도해주세요.");
           }
@@ -362,12 +361,19 @@ export default {
         clearInterval(this.timerInterval);
         this.timerInterval = null;
       }
+      this.showVerificationInput = false;
+      this.timeLeft = 0;
     },
     formatTime(seconds) {
       const minutes = Math.floor(seconds / 60);
       const remainingSeconds = seconds % 60;
       return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
+  },
+  beforeRouteLeave(to, from, next) {
+    this.stopTimer();
+    this.showVerificationInput = false;
+    next();
   },
   beforeDestroy() {
     this.stopTimer();
