@@ -108,7 +108,7 @@ export default {
     },
     async submitForm() {
       try {
-        const isSubmitSuccessful = false;
+        let isSubmitSuccessful = false;
 
         // 응답 값이 비어 있지 않은지 확인
         const emptyResponses = this.responses.some(
@@ -154,7 +154,6 @@ export default {
               icon: "error",
               confirmButtonText: "확인",
             });
-            isSubmitSuccessful = false; // 실패 시 false로 설정
           }
         } else {
           const formattedResponses = this.survey.question.map(
@@ -190,7 +189,6 @@ export default {
               icon: "error",
               confirmButtonText: "확인",
             });
-            isSubmitSuccessful = false; // 실패 시 false로 설정
           }
         }
 
