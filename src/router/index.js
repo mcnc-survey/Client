@@ -11,6 +11,7 @@ import SurveyCalendar from "../views/SurveyCalendar.vue";
 import DeletedItems from "../views/DeletedItems.vue";
 import ParticipantInfo from "../mobile/ParticipantInfo.vue";
 import SurveyParticipation from "../mobile/SurveyParticipation.vue";
+import SurveyConfirmation from "../mobile/SurveyConfirmation.vue";
 import FindPwIdentify from "@/views/FindPwIdentify.vue";
 import FindPwVerify from "@/views/FindPwVerify.vue";
 import FindPwReset from "@/views/FindPwReset.vue";
@@ -111,8 +112,8 @@ const routes = [
         component: ParticipantInfo,
       },
       {
-        path: "completion",
-        component: SurveyCompletion,
+        path: "confirmation",
+        component: SurveyConfirmation,
       },
       {
         path: "survey",

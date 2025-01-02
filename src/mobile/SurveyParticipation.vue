@@ -178,8 +178,17 @@ export default {
           const submitResponse = await API.submitSurvey(submitPayload);
           console.log("submitSurvey API 호출 성공:", submitResponse.data);
         }
+        // 제출 후 확인 페이지로 이동
+        this.$router.push("/mobile/confirmation");
       } catch (error) {
         console.error("응답 처리 중 오류 발생:", error);
+        // 실패 시 SweetAlert2로 경고 띄우기
+        Swal.fire({
+          title: "응답 제출 실패",
+          text: "응답 제출 중 오류가 발생했습니다. 다시 시도해 주세요.",
+          icon: "error",
+          confirmButtonText: "확인",
+        });
       }
     },
   },
