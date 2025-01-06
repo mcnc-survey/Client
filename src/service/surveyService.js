@@ -74,8 +74,11 @@ export const notificationAPI = {
   // 모든 알림 조회
   getNotifications: () => axios.get("/notifications"),
   
-  // 알림 온 설문으로 이동
-  getNotificationDetail: (notificationId) => axios.patch(`/notifications/read/${notificationId}`),
+  // 알림 읽기
+  readNotification: (notificationId) => axios.patch(`/notifications/read/${notificationId}`),
+
+  // 알림 클릭 시 설문 존재 여부 확인
+  checkNotification: (surveyId) => axios.get(`/surveys/survey-id/${surveyId}/check`),
   
   // 알림 삭제
   deleteNotification: (notificationId) => axios.delete(`/notifications/delete/${notificationId}`),
