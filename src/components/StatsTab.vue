@@ -190,8 +190,23 @@ export default {
                     unit: 'mm',
                     format: 'a4'
                 });
-
                 const element = document.querySelector('.questions-stats-container');
+
+                const subjResponseElements = element.querySelectorAll('.subjective-responses');
+                const originalStyles = [];
+
+                // 스크롤된 요소들의 스타일을 임시로 수정
+                subjResponseElements.forEach(el => {
+                    originalStyles.push({
+                        element: el,
+                        maxHeight: el.style.maxHeight,
+                        overflow: el.style.overflow
+                    });
+
+                    el.style.maxHeight = 'none';
+                    el.style.overflow = 'visible';
+                });
+
                 const margin = 10;
                 const pageWidth = pdf.internal.pageSize.getWidth();
                 const pageHeight = pdf.internal.pageSize.getHeight();
@@ -207,7 +222,7 @@ export default {
                         useCORS: true,
                         logging: false,
                         width: questionEl.scrollWidth,
-                        height: questionEl.scrollHeight
+                        height: questionEl.scrollHeight,
                     });
 
                     const imgData = canvas.toDataURL('image/png');
@@ -226,9 +241,13 @@ export default {
                     yPosition += imgHeight + 10; // 질문 사이 여백 추가
                 }
 
-                const sanitizedFileName = (surveySummary.value.title || '설문조사').replace(/[\\/\\?%*:|"<>]/g, '_');
-                pdf.save(`${sanitizedFileName}.pdf`);
+                originalStyles.forEach(style => {
+                    style.element.style.maxHeight = style.maxHeight;
+                    style.element.style.overflow = style.overflow;
+                });
 
+                const sanitizedFileName = (surveySummary.value.title || '설문조사').replace(/[\/\\?%*:|"<>]/g, '_');
+                pdf.save(`${sanitizedFileName}.pdf`);
             } catch (error) {
                 console.error('PDF 생성 오류:', error);
                 alert('PDF 파일을 생성하는 중 오류가 발생했습니다.');

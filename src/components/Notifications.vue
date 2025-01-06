@@ -7,7 +7,7 @@
           <div class="icon-wrapper">
             <img src="@/assets/images/notification.svg" alt="알림" class="notification-icon">
           </div>
-          <span class="notification-text" @click="readNotification(notification.id)">{{ notification.message }}</span>
+          <span class="notification-text" :class="{ 'unread': !notification.isRead }" @click="readNotification(notification)">{{ notification.message }}</span>
           <div class="notification-meta">
             <span class="notification-time">{{ formatDate(notification.createdAt) }}</span>
             <button 
@@ -31,6 +31,8 @@ import { defineComponent, ref, onMounted, onUnmounted } from 'vue'
 import { EventSourcePolyfill } from 'event-source-polyfill'
 import { notificationAPI } from '@/service/surveyService'
 import instance from '@/service/axios'
+import { useRouter } from 'vue-router';
+import { showErrorAlert } from '@/utils/swalUtils';
 
 export default defineComponent({
   name: 'Notifications',
@@ -43,6 +45,7 @@ export default defineComponent({
   },
 
   setup() {
+    const router = useRouter();
     const notifications = ref([])
     let eventSource = null
 
@@ -65,17 +68,34 @@ export default defineComponent({
       }
     }
 
-    const readNotification = async (notificationId) => {
+    const readNotification = async (notification) => {
       try {
-        const response = await notificationAPI.getNotificationDetail(notificationId)
+        // 알림 읽음 처리
+        await notificationAPI.readNotification(notification.id);
+        // 설문 존재 여부 확인
+        const checkResponse = await notificationAPI.checkNotification(notification.surveyId);
+
+        // 현재 알림의 isRead 상태를 먼저 업데이트
+        notifications.value = notifications.value.map(item => {
+          if (item.id === notification.id) {
+            return { ...item, isRead: true };
+          }
+          return item;
+        });
         
-        if (response.status === 200 || response.status === 204) {
-          console.log('Notification read successfully:', notificationId)
-        } else {
-          console.error('Failed to read notification:', response)
+        if (!checkResponse.data.body) {
+          await showErrorAlert('알림', '존재하지 않는 설문입니다.');
+          return;
         }
+        
+        await router.push({
+          name: 'SurveyStats',
+          params: {
+            id: notification.surveyId
+          }
+        });
       } catch (error) {
-        console.error('Error reading notification:', error)
+        await showErrorAlert('알림', '존재하지 않는 알림입니다.');
       }
     }
 
@@ -282,7 +302,12 @@ export default defineComponent({
 .notification-text {
   font-size: 14px;
   padding-left: 35px;
+  color: #000; /* 읽은 알림의 텍스트 색상 */
   /* 텍스트가 여러 줄일 때를 대비한 여백 확보 */
+}
+
+.notification-text.unread {
+  color: #1f67a7; /* 읽지 않은 알림의 텍스트 색상 */
 }
 
 .notification-meta {

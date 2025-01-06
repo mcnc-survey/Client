@@ -569,7 +569,10 @@ export default {
                 break;
             }
 
+            const isTemporaryId = typeof q.id === 'number'; // Date.now()로 생성된 임시 id는 서버에 보내지 않도록 함함
+
             return {
+              id: isTemporaryId ? null : q.id,  // 임시 id인 경우 null로 변환
               title: q.title,
               questionType: questionType,
               order: index + 1,

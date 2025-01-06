@@ -62,6 +62,20 @@ const statusOrder = {
   END: 3,
 };
 
+// toast 옵션
+const toastConfig = {
+  position: toast.POSITION.TOP_CENTER,
+  autoClose: 1000,
+  hideProgressBar: true,
+  closeOnClick: true,
+  pauseOnHover: false,
+  draggable: true,
+  limit: 5,
+  transition: "slide",
+  containerId: "toast-container",
+  enableMultiContainer: true
+};
+
 export default {
   name: "SurveyManagement",
   setup() {
@@ -131,33 +145,52 @@ export default {
       }
     };
 
+    let latestRequestTimestamp = 0;
+
     const toggleBookmark = async (surveyId) => {
+      const currentRequestTimestamp = Date.now();
+      latestRequestTimestamp = currentRequestTimestamp;
+
       const survey = surveys.value.find((s) => s.id === surveyId);
       if (survey) {
-
         try {
-          await surveyAPI.bookmarkSurvey(surveyId);
-          survey.isLike = !survey.isLike;
+          // 중복 알림 방지
+          const toastId = `bookmark-${surveyId}`;
+          if (!toast.isActive(toastId)) {
+            toast.info("북마크 처리 중...", {
+              ...toastConfig,
+              autoClose: false, // 처리 중에는 자동 닫힘 비활성화
+              toastId,
+            });
+          }
 
-          // 북마크 상태 변경 후 이벤트 발생
-          emitter.emit('updateBookmarks');
+          await surveyAPI.bookmarkSurvey(surveyId);
+
+          // 마지막 요청인지 확인
+          if (currentRequestTimestamp !== latestRequestTimestamp) return;
+
+          survey.isLike = !survey.isLike;
+          emitter.emit("updateBookmarks");
 
           const message = survey.isLike
-            ? "즐겨찾기에 추가되었습니다."
-            : "즐겨찾기에서 제거되었습니다.";
-          const toastType = survey.isLike ? toast.success : toast.info;
-          toastType(message, {
-            position: toast.POSITION.TOP_CENTER,
-            autoClose: 1000,
-            hideProgressBar: true
+            ? `[${survey.title}] 설문이 즐겨찾기에 추가되었습니다.`
+            : `[${survey.title}] 설문이 즐겨찾기에서 제거되었습니다.`;
 
+          // 기존 알림 업데이트
+          toast.update(`bookmark-${surveyId}`, {
+            render: message,
+            type: survey.isLike ? "success" : "info",
+            autoClose: 2000, // 처리 후 2초 후 닫힘
           });
         } catch (error) {
+          // 마지막 요청인지 확인
+          if (currentRequestTimestamp !== latestRequestTimestamp) return;
+
           console.error("북마크 토글 실패:", error);
-          toast.error("북마크 상태를 변경하지 못했습니다.", {
-            position: toast.POSITION.TOP_CENTER,
-            autoClose: 1000,
-            hideProgressBar: true
+          toast.update(`bookmark-${surveyId}`, {
+            render: "북마크 상태를 변경하지 못했습니다.",
+            type: "error",
+            autoClose: 2000,
           });
         }
       }
