@@ -101,6 +101,9 @@ export default {
     focusInput(field) {
       this.$refs[field].focus();
     },
+
+    //-----------------------------------------------
+
     requestVerificationCode() {
       if (!this.email) {
         Swal.fire({
@@ -114,23 +117,158 @@ export default {
       // 인증 코드 요청 API 호출
       API.sendVerificationCode({ email: this.email })
         .then(() => {
-          // 인증 성공을 가정한 코드
           Swal.fire({
             title: "인증번호를 입력해주세요",
-            input: "text",
-            inputPlaceholder: "인증번호를 입력하세요",
+            html: `
+         <div class="verification-inputs">
+           <input type="text" maxlength="1" class="verification-input" data-index="0">
+           <input type="text" maxlength="1" class="verification-input" data-index="1">
+           <input type="text" maxlength="1" class="verification-input" data-index="2">
+           <input type="text" maxlength="1" class="verification-input" data-index="3">
+           <input type="text" maxlength="1" class="verification-input" data-index="4">
+           <input type="text" maxlength="1" class="verification-input" data-index="5">
+         </div>
+         <style>
+           .swal2-popup {
+             padding-top: 2.5em !important;
+           }
+           .verification-inputs {
+             display: flex;
+             justify-content: center;
+             gap: 8px;
+             margin: 20px 0;
+           }
+           .verification-input {
+             width: 40px;
+             height: 48px;
+             text-align: center;
+             font-size: 20px;
+             font-weight: bold;
+             border: 2px solid #ddd;
+             border-radius: 8px;
+             outline: none;
+           }
+           .verification-input:focus {
+             border-color: #4A90E2;
+           }
+           .swal2-title {
+             font-size: 16px !important;
+             font-weight: 500 !important;
+             color: #333 !important;
+             margin-top: 20px !important;
+           }
+           .swal2-actions {
+             gap: 16px !important;
+           }
+           .swal2-confirm {
+             background-color: #dae8f4 !important;
+             color: #1c1d22 !important;
+             font-size: 16px !important;
+             font-weight: 700 !important;
+             border-radius: 24px !important;
+             padding: 12px 32px !important;
+             border: none !important;
+             box-shadow: none !important;
+           }
+           .swal2-cancel {
+             background-color: #f5f5f5 !important;
+             color: #666 !important;
+             font-size: 16px !important;
+             font-weight: 700 !important;
+             border-radius: 24px !important;
+             padding: 12px 32px !important;
+             border: none !important;
+             box-shadow: none !important;
+           }
+           .swal2-confirm:focus,
+           .swal2-cancel:focus {
+             box-shadow: none !important;
+           }
+         </style>
+       `,
             showCancelButton: true,
             confirmButtonText: "확인",
             cancelButtonText: "취소",
-            inputValidator: (value) => {
-              if (!value) {
-                return "인증번호를 입력해주세요.";
+            didOpen: () => {
+              const inputs = document.querySelectorAll(".verification-input");
+              inputs[0].focus();
+
+              // 입력 처리
+              inputs.forEach((input) => {
+                input.addEventListener("input", function (e) {
+                  const value = e.target.value;
+                  const index = parseInt(this.getAttribute("data-index"));
+
+                  // 영문자와 숫자만 허용
+                  if (!/^[A-Za-z0-9]$/.test(value)) {
+                    this.value = "";
+                    return;
+                  }
+
+                  // 대문자로 변환
+                  this.value = value.toUpperCase();
+
+                  // 다음 입력창으로 포커스 이동
+                  if (value && index < 5) {
+                    inputs[index + 1].focus();
+                  }
+                });
+
+                // 백스페이스 처리
+                input.addEventListener("keydown", function (e) {
+                  const index = parseInt(this.getAttribute("data-index"));
+                  if (e.key === "Backspace" && !this.value && index > 0) {
+                    inputs[index - 1].focus();
+                  }
+                });
+
+                // 붙여넣기 처리
+                input.addEventListener("paste", function (e) {
+                  e.preventDefault();
+                  const paste = (
+                    e.clipboardData || window.clipboardData
+                  ).getData("text");
+                  const filtered = paste
+                    .replace(/[^A-Za-z0-9]/g, "")
+                    .slice(0, 6)
+                    .toUpperCase();
+
+                  if (filtered) {
+                    // 각 문자를 input에 분배
+                    filtered.split("").forEach((char, i) => {
+                      if (i < inputs.length) {
+                        inputs[i].value = char;
+                      }
+                    });
+
+                    // 마지막으로 입력된 칸 다음으로 포커스 이동
+                    const lastIndex = Math.min(
+                      filtered.length,
+                      inputs.length - 1
+                    );
+                    inputs[lastIndex].focus();
+                  }
+                });
+              });
+            },
+            preConfirm: () => {
+              const inputs = document.querySelectorAll(".verification-input");
+              const code = Array.from(inputs)
+                .map((input) => input.value.toLowerCase())
+                .join("");
+
+              if (code.length !== 6) {
+                Swal.showValidationMessage(
+                  "인증번호 6자리를 모두 입력해주세요."
+                );
+                return false;
               }
+
+              return code;
             },
           }).then((result) => {
             if (result.isConfirmed) {
               this.verificationCode = result.value;
-              // 인증 코드 검증
               this.verifyVerificationCode();
             }
           });
@@ -144,6 +282,7 @@ export default {
           });
         });
     },
+    //-------------------------------------------
     verifyVerificationCode() {
       if (!this.verificationCode) {
         Swal.fire({

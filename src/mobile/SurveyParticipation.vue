@@ -25,6 +25,7 @@
         :required="question.required"
         :initSelected="question.prevAnswer"
         :etc="question.etc"
+        :sdf="getEtc(index)"
         @update:selected="updateSelected(index, $event)"
       />
 
@@ -77,10 +78,20 @@ export default {
       responses: [],
       token: localStorage.getItem("surveyId"),
       prevResult: {},
+      value: null,
     };
   },
   methods: {
+    getEtc(index) {
+      return (v) => {
+        this.value = v;
+        console.log("getEtc: ", this.value);
+      };
+    },
+    useValue() {},
     updateSelected(index, selectedOption) {
+      console.log(this.value);
+      console.log("selectOptions: ", selectedOption);
       this.responses[index] = selectedOption;
     },
     async fetchSurveyData() {
@@ -110,10 +121,12 @@ export default {
       try {
         let isSubmitSuccessful = false;
 
-        // 응답 값이 비어 있지 않은지 확인
-        const emptyResponses = this.responses.some(
-          (response) =>
-            response === "" || response === undefined || response === null
+        const emptyResponses = this.survey.question.some(
+          (question, index) =>
+            question.required &&
+            (this.responses[index] === "" ||
+              this.responses[index] === undefined ||
+              this.responses[index] === null)
         );
 
         if (emptyResponses) {
@@ -138,6 +151,7 @@ export default {
             return {
               ...item,
               isRequired: this.survey.question[index]?.required || false,
+              questionType: this.survey.question[index]?.questionType,
               response: responseValue,
             };
           });

@@ -59,11 +59,14 @@ export default {
       type: Array,
       default: () => [],
     },
+    sdf: {
+      type: Function, // 함수 타입 지정
+      required: true, // 반드시 전달되어야 함
+    },
   },
   data() {
     return {
-      selectedOptions: [...this.initSelected].map((option) => option.trim()), // 초기 선택된 옵션 배열에서 공백을 제거
-      etcValue: this.initSelected.includes("test") ? "test" : "", // "test"가 있으면 `etcValue`를 "test"로 설정
+      selectedOptions: [...this.initSelected], // 초기 선택된 옵션 배열에서 공백을 제거
     };
   },
   methods: {
@@ -78,21 +81,10 @@ export default {
       this.$emit("update:selected", this.selectedOptions);
     },
     handleEtcInput() {
-      const updatedOptions = this.selectedOptions.filter(
-        (option) => option !== this.etcValue.trim()
-      );
-
-      const trimmedValue = this.etcValue.trim();
-
-      // "test"가 포함되어 있다면 해당 값을 선택 상태로 추가
-      if (trimmedValue && trimmedValue === "test") {
-        if (!updatedOptions.includes(trimmedValue)) {
-          updatedOptions.push(trimmedValue);
-        }
-      }
-
-      // 변경된 배열을 부모 컴포넌트로 전달
-      this.$emit("update:selected", updatedOptions);
+      this.invokeSdf(this.etcValue);
+    },
+    invokeSdf(value) {
+      this.sdf(value); // 전달받은 함수 호출
     },
   },
 };
