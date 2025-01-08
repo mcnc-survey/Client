@@ -9,7 +9,6 @@
         <button class="save-btn" @click="validateAndSave">수정</button>
       </div>
     </div>
-
     <div class="create-container" ref="createContainer">
       <div class="content-area">
         <!-- 메인 설문 영역 -->
@@ -56,13 +55,13 @@
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 사이드 영역 -->
-        <div class="side-container" :style="{ transform: `translateY(${sideTabTop}px)` }">
-          <QuestionTypeTab :selected-question-index="selectedQuestionIndex"
-            :is-title-selected="isTitleContainerSelected" @change-type="changeQuestionType"
-            @add-question="addNewQuestion" />
+          <!-- 사이드 영역 -->
+          <div class="side-container" :style="{ transform: `translateY(${sideTabTop}px)` }">
+            <QuestionTypeTab :selected-question-index="selectedQuestionIndex"
+              :is-title-selected="isTitleContainerSelected" @change-type="changeQuestionType"
+              @add-question="addNewQuestion" />
+          </div>
         </div>
       </div>
     </div>
@@ -290,9 +289,9 @@ export default {
         const scrollTop = scrollContainer.scrollTop;
 
         // 질문 컨테이너와 수평을 맞추기 위한 오프셋 계산
-        const offset = 20; // 질문 컨테이너와의 간격
+        const offset = 40; // 질문 컨테이너와의 간격
         const relativeTop = elementRect.top - containerRect.top + scrollTop - offset;
-        const maxTop = scrollContainer.scrollHeight - 300;
+        const maxTop = scrollContainer.scrollHeight - 280;
 
         sideTabTop.value = Math.min(Math.max(0, relativeTop), maxTop);
       }
@@ -319,6 +318,9 @@ export default {
     };
 
     const selectTitleContainer = () => {
+      if (isTitleContainerSelected.value) {
+        return;
+      }
       selectedQuestionIndex.value = null;
       isTitleContainerSelected.value = true;
 
@@ -327,14 +329,14 @@ export default {
 
       const titleContainer = containerElement.querySelector('.title-container');
       if (titleContainer) {
-        const containerRect = containerElement.getBoundingClientRect();
-        const rect = titleContainer.getBoundingClientRect();
-        sideTabTop.value = rect.top - containerRect.top;
-
         containerElement.scrollTo({
           top: titleContainer.offsetTop - 20,
           behavior: 'smooth'
         });
+
+        setTimeout(() => {
+          updateSideTabPosition();  // 질문 컨테이너와 동일하게 updateSideTabPosition 사용
+        }, 0);
       }
     };
 
@@ -814,7 +816,6 @@ export default {
 .header-buttons {
   display: flex;
   gap: 10px;
-  padding-bottom: 5px;
 }
 
 .preview-btn,
@@ -893,7 +894,8 @@ export default {
 .side-container {
   width: 120px;
   position: absolute;
-  left: 77%;
+  left: 100%;
+  margin-left: 15px;
   top: 20px;
   height: fit-content;
   transition: transform 0.3s ease;
