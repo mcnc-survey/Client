@@ -137,6 +137,9 @@ export default {
             if (Array.isArray(responseValue)) {
               responseValue = responseValue.join("|`|");
             }
+            if (responseValue === "") {
+              responseValue = null;
+            }
 
             return {
               ...item,
@@ -170,6 +173,10 @@ export default {
                 response = responseValue.join("|`|");
               } else {
                 response = responseValue;
+              }
+
+              if (responseValue === "") {
+                responseValue = null;
               }
 
               return {
