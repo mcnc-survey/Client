@@ -20,15 +20,8 @@
         </div>
 
         <div class="stats-content">
-            <!-- 데이터가 없을 때 -->
-            <template v-if="!hasResponses">
-                <div class="no-responses">
-                    <p>아직 응답이 없어요!</p>
-                </div>
-            </template>
-
-            <!-- 객관식 질문 (단일/다중 선택) -->
-            <template v-else-if="isChartableQuestion">
+            <!-- 객관식 응답 -->
+            <template v-if="isChartableQuestion && hasResponses">
                 <div class="chart-container">
                     <div v-show="chartType === 'doughnut'" class="chart-wrapper">
                         <canvas ref="doughnutCanvas"></canvas>
@@ -52,18 +45,35 @@
                 </div>
             </template>
 
-            <!-- 주관식 질문 -->
-            <template v-else>
-                <div v-if="!hasResponses" class="no-responses">
-                    <p>아직 응답이 없어요!</p>
-                </div>
-                <div v-else class="subjective-responses">
+            <!-- 주관식 응답 -->
+            <template v-else-if="!isChartableQuestion && hasResponses">
+                <div class="subjective-responses">
                     <div v-for="(response, index) in question.responses" :key="index" class="response-item">
                         <span class="response-number">{{ index + 1 }}</span>
                         <p class="response-text">{{ response }}</p>
                     </div>
                 </div>
             </template>
+
+            <!-- 응답 없음 -->
+            <template v-else>
+                <div class="no-responses">
+                    <p>아직 응답이 없어요!</p>
+                </div>
+            </template>
+        </div>
+
+        <!-- 기타 응답 섹션 -->
+        <div v-if="hasEtcResponses" class="etc-section">
+            <div class="etc-header">
+                <h5 class="section-title">기타 의견</h5>
+            </div>
+            <div class="subjective-responses">
+                <div v-for="(response, index) in question.etc" :key="index" class="response-item">
+                    <span class="response-number">{{ index + 1 }}</span>
+                    <p class="response-text">{{ response }}</p>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -94,6 +104,9 @@ export default {
     computed: {
         hasResponses() {
             return this.question.responses && this.question.responses.length > 0;
+        },
+        hasEtcResponses() {
+            return this.question.etc && this.question.etc.length > 0;
         },
         isChartableQuestion() {
             return ['SINGLE_CHOICE', 'MULTIPLE_CHOICE'].includes(this.question.questionType);
@@ -416,7 +429,14 @@ export default {
     font-size: 14px;
 }
 
-/* 주관식 응답 */
+/* 섹션 타이틀 스타일 */
+.section-title {
+    font-size: 18px;
+    color: #333;
+    margin: 0 0 20px 10px;
+}
+
+/* 주관식 응답 & 기타 의견 공통 스타일 */
 .subjective-responses {
     width: 100%;
     display: flex;
@@ -484,5 +504,14 @@ export default {
     border-radius: 8px;
     color: #666;
     font-size: 18px;
+}
+
+/* 기타 의견 섹션 */
+.etc-section {
+    margin-top: 20px;
+}
+
+.etc-header {
+    margin-bottom: 20px;
 }
 </style>
