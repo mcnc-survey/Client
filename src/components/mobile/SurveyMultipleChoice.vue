@@ -20,9 +20,9 @@
       </label>
 
       <label
-        :class="{ selected: selectedOptions.includes(etcValue) }"
         v-if="etc"
-        @click.prevent="toggleOption(etcValue)"
+        :class="{ selected: isEtcSelected }"
+        @click.prevent="toggleEtc"
       >
         <input
           type="text"
@@ -35,7 +35,7 @@
         <input
           type="checkbox"
           class="checkbox-input"
-          :checked="selectedOptions.includes(etcValue)"
+          :checked="isEtcSelected"
         />
         <span class="custom-checkbox"></span>
       </label>
@@ -59,14 +59,21 @@ export default {
       type: Array,
       default: () => [],
     },
-    sdf: {
-      type: Function, // 함수 타입 지정
-      required: true, // 반드시 전달되어야 함
+    setEtc: {
+      type: Function,
+      required: true,
+    },
+    initEtc: {
+      type: String,
+      default: "",
     },
   },
   data() {
     return {
-      selectedOptions: [...this.initSelected], // 초기 선택된 옵션 배열에서 공백을 제거
+      selectedOptions: [...this.initSelected],
+
+      etcValue: this.initEtc,
+      isEtcSelected: !!this.initEtc,
     };
   },
   methods: {
@@ -80,11 +87,18 @@ export default {
       }
       this.$emit("update:selected", this.selectedOptions);
     },
-    handleEtcInput() {
-      this.invokeSdf(this.etcValue);
+    toggleEtc() {
+      this.isEtcSelected = !this.isEtcSelected;
+      if (!this.isEtcSelected) {
+        this.etcValue = "";
+        this.setEtc("");
+      }
     },
-    invokeSdf(value) {
-      this.sdf(value); // 전달받은 함수 호출
+    handleEtcInput() {
+      if (this.etcValue && !this.isEtcSelected) {
+        this.isEtcSelected = true;
+      }
+      this.setEtc(this.etcValue);
     },
   },
 };
@@ -110,20 +124,21 @@ label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f7f9fb; /* 기본 배경색 */
-  border-radius: 13.94px; /* 라운드 처리 */
+  background: #f7f9fb;
+  border-radius: 13.94px;
   padding: 10px 15px;
   margin-bottom: 10px;
   font-size: 14px;
   position: relative;
+  cursor: pointer;
 }
 
 label.selected {
-  background: #bfd0e0; /* 선택된 상태 배경색 */
+  background: #bfd0e0;
 }
 
 .checkbox-input {
-  display: none; /* 기본 체크박스 숨김 */
+  display: none;
 }
 
 .etc-input {
@@ -144,13 +159,13 @@ label.selected {
 }
 
 .checkbox-input:checked + .custom-checkbox {
-  background-image: url("../../assets/images/selected.svg"); /* 이미지 경로 */
+  background-image: url("../../assets/images/selected.svg");
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .checkbox-input:checked + .custom-checkbox::after {
-  content: none; /* 기본 동그라미 제거 */
+  content: none;
 }
 
 .option-text {

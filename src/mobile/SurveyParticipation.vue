@@ -24,8 +24,9 @@
         :name="`question${question.id}`"
         :required="question.required"
         :initSelected="question.prevAnswer"
+        :initEtc="question.prevEtc"
         :etc="question.etc"
-        :sdf="getEtc(index)"
+        :setEtc="getEtc(index)"
         @update:selected="updateSelected(index, $event)"
       />
 
@@ -78,17 +79,16 @@ export default {
       responses: [],
       token: localStorage.getItem("surveyId"),
       prevResult: {},
-      value: null,
+      etcValue: [],
     };
   },
   methods: {
     getEtc(index) {
       return (v) => {
-        this.value = v;
-        console.log("getEtc: ", this.value);
+        this.etcValue[index] = v;
+        console.log(this.etcValue, "");
       };
     },
-    useValue() {},
     updateSelected(index, selectedOption) {
       console.log(this.value);
       console.log("selectOptions: ", selectedOption);
@@ -111,6 +111,7 @@ export default {
           return {
             ...question,
             prevAnswer: prevResultArray[index] || "",
+            prevEtc: prevData[index + 1].etc,
           };
         });
       } catch (error) {
@@ -120,14 +121,6 @@ export default {
     async submitForm() {
       try {
         let isSubmitSuccessful = false;
-
-        const emptyResponses = this.survey.question.some(
-          (question, index) =>
-            question.required &&
-            (this.responses[index] === "" ||
-              this.responses[index] === undefined ||
-              this.responses[index] === null)
-        );
 
         if (Object.keys(this.prevResult).length > 0) {
           const prevResultArray = Object.values(this.prevResult);
@@ -140,12 +133,11 @@ export default {
             if (responseValue === "") {
               responseValue = null;
             }
-
             return {
               ...item,
               isRequired: this.survey.question[index]?.required || false,
               questionType: this.survey.question[index]?.questionType,
-
+              etc: this.etcValue[index],
               response: responseValue,
             };
           });
@@ -185,6 +177,7 @@ export default {
                 orderNumber: question.order,
                 isRequired: question.required,
                 response,
+                etc: this.etcValue[index],
               };
             }
           );
