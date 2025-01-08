@@ -129,16 +129,6 @@ export default {
               this.responses[index] === null)
         );
 
-        if (emptyResponses) {
-          Swal.fire({
-            title: "응답이 비어 있습니다",
-            text: "모든 필수 질문에 응답해 주세요.",
-            icon: "warning",
-            confirmButtonText: "확인",
-          });
-          return; // 빈 응답이 있을 경우 제출을 중단
-        }
-
         if (Object.keys(this.prevResult).length > 0) {
           const prevResultArray = Object.values(this.prevResult);
 
@@ -152,6 +142,7 @@ export default {
               ...item,
               isRequired: this.survey.question[index]?.required || false,
               questionType: this.survey.question[index]?.questionType,
+
               response: responseValue,
             };
           });
