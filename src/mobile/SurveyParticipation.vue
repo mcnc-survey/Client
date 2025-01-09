@@ -12,6 +12,7 @@
         :options="question.columns"
         :name="`question${question.id}`"
         :required="question.required"
+        :initEtc="question.prevEtc"
         :initSelected="question.prevAnswer"
         :etc="question.etc"
         :setEtc="getEtc(index)"
@@ -131,6 +132,13 @@ export default {
             if (responseValue === "") {
               responseValue = null;
             }
+            if (
+              this.survey.question[index]?.questionType === "SINGLE_CHOICE" &&
+              this.etcValue[index] &&
+              this.etcValue[index].length > 0
+            ) {
+              responseValue = null;
+            }
             return {
               ...item,
               isRequired: this.survey.question[index]?.required || false,
@@ -157,16 +165,16 @@ export default {
           const formattedResponses = this.survey.question.map(
             (question, index) => {
               const responseValue = this.responses[index];
-              let response = "";
+              let response = responseValue; // 기본값으로 responseValue 할당
 
+              // 배열인 경우 join 처리
               if (Array.isArray(responseValue)) {
                 response = responseValue.join("|`|");
-              } else {
-                response = responseValue;
               }
 
-              if (responseValue === "") {
-                responseValue = null;
+              // 빈 문자열이면 null로 변환
+              if (response === "") {
+                response = null;
               }
 
               return {

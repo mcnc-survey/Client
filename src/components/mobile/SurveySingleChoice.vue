@@ -15,15 +15,14 @@
           :value="option"
           class="radio-input"
           :checked="selectedOption === option"
-          @change="selectOption(option)"
         />
         <span class="custom-radio"></span>
       </label>
 
       <label
-        :class="{ selected: selectedOption === etcValue }"
         v-if="etc"
-        @click.prevent="toggleOption(etcValue)"
+        :class="{ selected: isEtcSelected }"
+        @click.prevent="toggleEtc"
       >
         <input
           type="text"
@@ -33,12 +32,7 @@
           v-model="etcValue"
           @input="handleEtcInput"
         />
-        <input
-          type="radio"
-          class="radio-input"
-          :checked="selectedOption === etcValue"
-          @change="selectOption(etcValue)"
-        />
+        <input type="radio" class="radio-input" :checked="isEtcSelected" />
         <span class="custom-radio"></span>
       </label>
     </div>
@@ -59,68 +53,88 @@ export default {
     },
     initSelected: {
       type: String,
-      default: null,
-    },
-    initEtc: {
-      // 새로 추가된 prop
-      type: String,
       default: "",
     },
     setEtc: {
-      // 새로 추가된 prop
       type: Function,
-      default: () => {},
+      required: true,
+    },
+    initEtc: {
+      type: String,
+      default: "",
     },
   },
   data() {
     return {
-      selectedOption: "",
-      etcValue: this.initEtc || "", // initEtc로 초기화
+      selectedOption: this.initSelected || "",
+      etcValue: this.initEtc || "",
+      isEtcSelected: !!this.initEtc,
     };
-  },
-  created() {
-    // 컴포넌트 생성 시 초기값 설정
-    if (this.initSelected) {
-      this.selectedOption = this.initSelected;
-      if (this.initEtc) {
-        this.etcValue = this.initEtc;
-      }
-    }
-  },
-  watch: {
-    initSelected(newVal) {
-      this.selectedOption = newVal || "";
-    },
-    initEtc(newVal) {
-      this.etcValue = newVal || "";
-    },
   },
   methods: {
     toggleOption(option) {
-      this.selectedOption = this.selectedOption === option ? "" : option;
-      if (this.selectedOption === "") {
+      if (this.selectedOption === option) {
+        // 같은 옵션을 다시 클릭하면 선택 해제
+        this.selectedOption = "";
+        this.$emit("update:selected", "");
+      } else {
+        // 새로운 옵션 선택
+        this.selectedOption = option;
+        this.isEtcSelected = false;
         this.etcValue = "";
-        this.setEtc(""); // etc 값이 변경될 때마다 부모에게 알림
+        this.setEtc("");
+        this.$emit("update:selected", option);
       }
-      this.$emit("update:selected", this.selectedOption);
     },
-    selectOption(option) {
-      this.selectedOption = option;
-      if (this.selectedOption === "") {
+    toggleEtc() {
+      this.isEtcSelected = !this.isEtcSelected;
+
+      if (!this.isEtcSelected) {
+        // 기타 선택 해제
+        this.selectedOption = "";
         this.etcValue = "";
-        this.setEtc(""); // etc 값이 변경될 때마다 부모에게 알림
+        this.setEtc("");
+        this.$emit("update:selected", "");
+      } else {
+        // 기타 선택
+        this.selectedOption = "";
+        this.setEtc(this.etcValue);
+        this.$emit("update:selected", "");
       }
-      this.$emit("update:selected", this.selectedOption);
     },
     handleEtcInput() {
       if (this.etcValue.trim()) {
-        this.selectedOption = this.etcValue;
-        this.setEtc(this.etcValue); // etc 값이 변경될 때마다 부모에게 알림
-      } else {
+        this.isEtcSelected = true;
         this.selectedOption = "";
-        this.setEtc(""); // etc 값이 변경될 때마다 부모에게 알림
+        this.setEtc(this.etcValue);
+        this.$emit("update:selected", null);
+      } else {
+        this.setEtc("");
+        this.$emit("update:selected", "");
       }
-      this.$emit("update:selected", this.selectedOption);
+    },
+  },
+  watch: {
+    initSelected: {
+      handler(newVal) {
+        if (this.options.includes(newVal)) {
+          this.selectedOption = newVal;
+          this.isEtcSelected = false;
+          this.etcValue = "";
+          this.setEtc("");
+        }
+      },
+      immediate: true,
+    },
+    initEtc: {
+      handler(newVal) {
+        this.etcValue = newVal || "";
+        this.isEtcSelected = !!newVal;
+        if (newVal) {
+          this.selectedOption = "";
+        }
+      },
+      immediate: true,
     },
   },
 };
@@ -142,20 +156,25 @@ export default {
   margin-bottom: 15px;
 }
 
-.options label {
+label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f7f9fb; /* 기본 배경색 */
-  border-radius: 13.94px; /* 라운드 처리 */
+  background: #f7f9fb;
+  border-radius: 13.94px;
   padding: 10px 15px;
   margin-bottom: 10px;
   font-size: 14px;
   position: relative;
+  cursor: pointer;
 }
 
-.options label.selected {
-  background: #bfd0e0; /* 선택된 상태 배경색 */
+label.selected {
+  background: #bfd0e0;
+}
+
+.radio-input {
+  display: none;
 }
 
 .etc-input {
@@ -164,10 +183,6 @@ export default {
   border: none;
   background: none;
   color: peru;
-}
-
-.options .radio-input {
-  display: none; /* 기본 라디오 버튼 숨김 */
 }
 
 .custom-radio {
@@ -180,13 +195,13 @@ export default {
 }
 
 .radio-input:checked + .custom-radio {
-  background-image: url("../../assets/images/selected.svg"); /* 이미지 경로 */
+  background-image: url("../../assets/images/selected.svg");
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .radio-input:checked + .custom-radio::after {
-  content: none; /* 기본 동그라미 제거 */
+  content: none;
 }
 
 .option-text {
