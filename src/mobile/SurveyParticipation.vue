@@ -137,7 +137,7 @@ export default {
               ...item,
               isRequired: this.survey.question[index]?.required || false,
               questionType: this.survey.question[index]?.questionType,
-              etc: this.etcValue[index],
+              etc: this.etcValue[index] === "" ? null : this.etcValue[index],
               response: responseValue,
             };
           });
@@ -177,7 +177,7 @@ export default {
                 orderNumber: question.order,
                 isRequired: question.required,
                 response,
-                etc: this.etcValue[index],
+                etc: this.etcValue[index] === "" ? null : this.etcValue[index],
               };
             }
           );
