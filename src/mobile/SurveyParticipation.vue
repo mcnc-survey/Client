@@ -14,6 +14,7 @@
         :required="question.required"
         :initSelected="question.prevAnswer"
         :etc="question.etc"
+        :setEtc="getEtc(index)"
         @update:selected="updateSelected(index, $event)"
       />
 
@@ -97,21 +98,18 @@ export default {
     async fetchSurveyData() {
       try {
         const response = await API.getSurvey();
-
         const surveyData = response.data.body.surveySnippet;
         const prevData = response.data.body.responseResult || {};
-        const prevResultArray = Object.values(prevData).map(
-          (item) => item.response
-        );
 
         this.prevResult = prevData;
         this.survey.title = surveyData.title;
         this.survey.description = surveyData.description;
         this.survey.question = surveyData.question.map((question, index) => {
+          const prevResponse = prevData[index + 1] || {};
           return {
             ...question,
-            prevAnswer: prevResultArray[index] || "",
-            prevEtc: prevData[index + 1].etc,
+            prevAnswer: prevResponse.response || "",
+            prevEtc: prevResponse.etc || "", // etc 값을 별도로 저장
           };
         });
       } catch (error) {

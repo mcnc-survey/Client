@@ -61,41 +61,65 @@ export default {
       type: String,
       default: null,
     },
+    initEtc: {
+      // 새로 추가된 prop
+      type: String,
+      default: "",
+    },
+    setEtc: {
+      // 새로 추가된 prop
+      type: Function,
+      default: () => {},
+    },
   },
   data() {
     return {
-      selectedOption: this.initSelected || "", // 초기 선택된 옵션
-      etcValue:
-        this.initSelected && !this.options.includes(this.initSelected)
-          ? this.initSelected
-          : "", // 기타 값 초기화
+      selectedOption: "",
+      etcValue: this.initEtc || "", // initEtc로 초기화
     };
+  },
+  created() {
+    // 컴포넌트 생성 시 초기값 설정
+    if (this.initSelected) {
+      this.selectedOption = this.initSelected;
+      if (this.initEtc) {
+        this.etcValue = this.initEtc;
+      }
+    }
   },
   watch: {
     initSelected(newVal) {
-      if (this.options.includes(newVal)) {
-        this.selectedOption = newVal;
-        this.etcValue = "";
-      } else {
-        this.selectedOption = "";
-        this.etcValue = newVal || "";
-      }
+      this.selectedOption = newVal || "";
+    },
+    initEtc(newVal) {
+      this.etcValue = newVal || "";
     },
   },
   methods: {
     toggleOption(option) {
-      // 옵션 선택/해제 로직
       this.selectedOption = this.selectedOption === option ? "" : option;
+      if (this.selectedOption === "") {
+        this.etcValue = "";
+        this.setEtc(""); // etc 값이 변경될 때마다 부모에게 알림
+      }
       this.$emit("update:selected", this.selectedOption);
     },
     selectOption(option) {
-      // 라디오 버튼 변경 이벤트 처리
       this.selectedOption = option;
+      if (this.selectedOption === "") {
+        this.etcValue = "";
+        this.setEtc(""); // etc 값이 변경될 때마다 부모에게 알림
+      }
       this.$emit("update:selected", this.selectedOption);
     },
     handleEtcInput() {
-      // 기타 입력 시 selectedOption 동기화
-      this.selectedOption = this.etcValue;
+      if (this.etcValue.trim()) {
+        this.selectedOption = this.etcValue;
+        this.setEtc(this.etcValue); // etc 값이 변경될 때마다 부모에게 알림
+      } else {
+        this.selectedOption = "";
+        this.setEtc(""); // etc 값이 변경될 때마다 부모에게 알림
+      }
       this.$emit("update:selected", this.selectedOption);
     },
   },

@@ -7,7 +7,7 @@
       :maxlength="isLongAnswer ? 2000 : 100"
       placeholder="답변을 입력하세요."
       v-model="answer"
-      value="answer"
+      value=""
       @input="handleInput"
       @focusout="getAnswer(answer)"
     ></textarea>
