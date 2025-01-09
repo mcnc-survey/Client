@@ -92,6 +92,7 @@ export default {
     };
   },
   beforeMount() {
+    localStorage.setItem("surveyId", this.token);
     if (this.accessToken) {
       localStorage.setItem("accessToken", `${this.accessToken}`);
       this.$router.push("/mobile/survey");
