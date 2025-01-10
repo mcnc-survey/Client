@@ -1,3 +1,8 @@
+/**  
+Author : 한채영
+Description : Axios 인스턴스 설정 및 인터셉터 구현
+*/
+
 import axios from 'axios';
 
 const instance = axios.create({

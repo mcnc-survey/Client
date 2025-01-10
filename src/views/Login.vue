@@ -1,3 +1,9 @@
+<!-- 
+  Author : 한채영
+  Description : 관리자 로그인 페이지
+  - 이메일 로그인, 소셜로그인 기능
+-->
+
 <template>
   <div class="login-container" @keyup.enter="handleLogin">
     <div class="left-bg">

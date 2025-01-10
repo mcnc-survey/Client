@@ -1,3 +1,10 @@
+<!-- 
+  Author : 한채영
+  Description : 설문조사 기간 설정 모달 컴포넌트
+  - 날짜, 시간 선택
+  - 유효성 검사 (필수 입력 검사, 종료 시간과 시작 시간 검사)
+-->
+
 <template>
   <div class="period-modal">
     <div class="modal-content">

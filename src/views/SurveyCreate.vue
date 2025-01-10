@@ -1,3 +1,14 @@
+<!-- 
+  Author : 한채영
+  Description : 설문조사 생성 페이지
+  - 설문 제목 및 설명 입력
+  - 설문 기간 설정
+  - 질문 필수 여부 설정/ 질문 복사/ 질문 삭제
+  - 옵션 추가 및 삭제
+  - 다양한 유형의 질문 추가/수정/삭제
+  - 미리보기 및 저장 기능
+-->
+
 <template>
   <div class="survey-create">
     <div class="header">
@@ -103,13 +114,16 @@ export default {
 
   setup() {
     const router = useRouter();
+
+    // 변경사항 추적을 위한 상태
     const hasUnsavedChanges = ref(false);
     provide('hasUnsavedChanges', hasUnsavedChanges);
-    // Refs for template elements
+    
+    // DOM 참조를 위한 ref
     const createContainer = ref(null);
     const questionContainer = ref([]);
 
-    // Form data
+    // 기본 상태 관리
     const title = ref("");
     const description = ref("");
     const titleFocused = ref(false);
@@ -118,18 +132,19 @@ export default {
     const questionErrors = ref({});
     const showPeriodError = ref(false);
 
-    // Period modal state
+    // 기간 선택 관련 상태
     const showPeriodModal = ref(false);
     const startDate = ref("");
     const startTime = ref("");
     const endDate = ref("");
     const endTime = ref("");
 
+    // 선택 상태 관리
     const isTitleContainerSelected = ref(true);
-
-    // Question data
     const selectedQuestionIndex = ref(null);
     const sideTabTop = ref(0);
+
+    // 초기 질문 설정
     const questions = ref([
       {
         id: Date.now(),
@@ -139,7 +154,7 @@ export default {
       },
     ]);
 
-    // Computed
+    // 설문 기간 표시 형식
     const formattedPeriod = computed(() => {
       if (!startDate.value || !endDate.value) {
         return "시작 날짜 ~ 종료 날짜";
@@ -147,6 +162,7 @@ export default {
       return `${startDate.value} ${startTime.value ? formatDisplayTime(startTime.value) : ''} ~ ${endDate.value} ${endTime.value ? formatDisplayTime(endTime.value) : ''}`;
     });
 
+    // 시간 형식 변환 함수
     const formatDisplayTime = (time) => {
       if (!time) return "";
       const [hours, minutes] = time.split(":").map(Number);
@@ -155,20 +171,7 @@ export default {
       return `${ampm} ${hour}:${minutes.toString().padStart(2, "0")}`;
     };
 
-    const formatDateTime = (datetime) => {
-      if (!datetime) return '';
-      const date = new Date(datetime);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hour = date.getHours();
-      const minute = String(date.getMinutes()).padStart(2, '0');
-      const ampm = hour < 12 ? '오전' : '오후';
-      const hour12 = hour % 12 || 12;
-
-      return `${year}. ${month}. ${day} ${ampm} ${hour12}:${minute}`;
-    };
-
+    // 사이드탭 위치 업데이트 함수
     const updateSideTabPosition = () => {
       const scrollContainer = createContainer.value;
       if (!scrollContainer) return;
@@ -198,12 +201,14 @@ export default {
 
     const debouncedUpdatePosition = debounce(updateSideTabPosition, 100);
 
+    // textarea 높이 자동 조절 함수
     const adjustHeight = (e) => {
       const textarea = e.target;
       textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
+    // 제목 컨테이너 선택 함수
     const selectTitleContainer = () => {
       if (isTitleContainerSelected.value) {
         return;
@@ -227,6 +232,7 @@ export default {
       }
     };
 
+    // 질문 컨테이너 선택 함수
     const selectQuestion = (index) => {
       // 이미 선택된 질문을 다시 클릭한 경우 스크롤 동작을 하지 않음
       if (selectedQuestionIndex.value === index) {
@@ -249,6 +255,7 @@ export default {
       }
     };
 
+    // 질문 유형 변경 함수
     const changeQuestionType = (newType) => {
       if (selectedQuestionIndex.value !== null) {
         questions.value[selectedQuestionIndex.value] = {
@@ -261,6 +268,7 @@ export default {
       }
     };
 
+    // 새 질문 추가 함수
     const addNewQuestion = () => {
       const newQuestion = {
         id: Date.now(),
@@ -279,6 +287,7 @@ export default {
       });
     };
 
+    // 질문 복사 함수
     const copyQuestion = (index) => {
       // 텍스트가 선택되어 있거나 입력 요소에 포커스가 있는 경우 복사 기능 막기
       if (window.getSelection().toString() ||
@@ -296,10 +305,12 @@ export default {
       });
     };
 
+    // 질문 업데이트 함수
     const updateQuestion = (index, updatedQuestion) => {
       questions.value[index] = updatedQuestion;
     };
 
+    // 질문 삭제 함수
     const deleteQuestion = (index) => {
       const newIndex = index > 0 ? index - 1 : 0;
 
@@ -316,6 +327,7 @@ export default {
       }
     };
 
+    // 질문 컴포넌트 타입 반환 함수
     const getQuestionComponent = (type) => {
       const components = {
         single: "SingleChoiceQuestion",
@@ -326,7 +338,7 @@ export default {
       return components[type] || components.single;
     };
 
-    // Period related methods
+    // 기간 선택 모달 관련 함수들
     const openPeriodModal = () => {
       showPeriodModal.value = true;
     };
@@ -343,6 +355,7 @@ export default {
       showPeriodModal.value = false;
     };
 
+    // 설문 미리보기 함수
     const openPreview = () => {
       const previewData = {
         title: title.value,
@@ -359,6 +372,7 @@ export default {
       window.open(route.href, '_blank');
     };
 
+    // 질문 타입별 에러 메시지
     const getErrorMessage = (type) => {
       switch (type) {
         case 'single':
@@ -372,6 +386,7 @@ export default {
       }
     };
 
+    // 유효성 검사 및 저장 함수
     const validateAndSave = () => {
       let isValid = true;
 
@@ -435,6 +450,7 @@ export default {
       saveSurvey();
     };
 
+    // 설문 저장 함수
     const saveSurvey = async () => {
       try {
         const formatDateTime = (date, time) => {
@@ -505,6 +521,7 @@ export default {
       }
     };
 
+    // 페이지 이탈 시 처리
     onBeforeRouteLeave((to, from, next) => {
       if (!hasUnsavedChanges.value) {
         next();
@@ -525,6 +542,7 @@ export default {
       });
     });
 
+    // 브라우저 새로고침/닫기 시 경고
     const handleBeforeUnload = (e) => {
       if (hasUnsavedChanges.value) {
         e.preventDefault();
@@ -532,6 +550,7 @@ export default {
       }
     };
 
+    // 컴포넌트 마운트 시 초기화
     onMounted(() => {
       hasUnsavedChanges.value = false;
       emitter.emit('updateUnsavedChanges', false);
@@ -599,12 +618,13 @@ export default {
         });
       }, { deep: true });
 
-      // 로그아웃 이벤트 리스너 추가
+      // 로그아웃 이벤트 리스너
       emitter.on('clearUnsavedChanges', () => {
         hasUnsavedChanges.value = false;
       });
     });
 
+    // 컴포넌트 언마운트 시 정리
     onBeforeUnmount(() => {
       window.removeEventListener("resize", debouncedUpdatePosition);
       if (createContainer.value) {

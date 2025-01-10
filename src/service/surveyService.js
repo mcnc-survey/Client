@@ -1,3 +1,8 @@
+/**  
+Author : 한채영, 이새롬
+Description : API 엔드포인트 정의
+*/
+
 import axios from "./axios";
 
 export const surveyAPI = {

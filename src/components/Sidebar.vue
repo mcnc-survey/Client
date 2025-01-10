@@ -1,3 +1,12 @@
+<!-- 
+  Author : 한채영
+  Description : 사이드바 네비게이션 컴포넌트
+  - 사용자 이름 표시
+  - 즐겨찾기 관리 (즐겨찾기 목록 표시/숨김, 실시간 업데이트)
+  - 네비게이션 (즐겨찾기, 캘린더, 삭제된 항목)
+  - 로그아웃 처리
+-->
+
 <template>
   <nav v-if="isSidebarOpen" class="sidebar">
     <div class="sidebar-content">

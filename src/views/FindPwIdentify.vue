@@ -1,3 +1,9 @@
+<!-- 
+  Author : 한채영
+  Description : 비밀번호 찾기 - 이메일 입력 페이지 
+  - 이메일 전송
+-->
+
 <template>
   <div class="identify-container">
       <div class="identify-content">

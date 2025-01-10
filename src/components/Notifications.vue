@@ -1,3 +1,10 @@
+<!-- 
+  Author : 한채영
+  Description : 실시간 알림 컴포넌트
+  - 설문 시작/종료/생성/수정/삭제 알림 서비스
+  - 알림 삭제 가능
+-->
+
 <template>
   <div class="notifications" v-if="isNotificationsOpen">
     <h3>알림</h3>

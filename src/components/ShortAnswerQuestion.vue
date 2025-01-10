@@ -1,3 +1,9 @@
+<!-- 
+  Author : 한채영
+  Description : 주관식(단답형) 질문 컴포넌트
+  - 필수 응답 여부 선택, 복사, 삭제 관리
+-->
+
 <template>
   <div class="question">
     <!-- 질문 제목 -->

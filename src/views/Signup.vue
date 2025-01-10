@@ -1,3 +1,9 @@
+<!-- 
+  Author : 한채영
+  Description : 관리자 회원가입 페이지 
+  - 이메일 유효성 검사
+-->
+
 <template>
   <div class="container">
     <div class="left-bg">

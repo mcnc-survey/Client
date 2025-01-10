@@ -1,3 +1,9 @@
+<!-- 
+  Author : 한채영
+  Description : 설문조사 미리보기 페이지
+  - sessionStorage에서 미리보기 데이터 로드
+-->
+
 <template>
   <div class="survey-preview">
     <div class="header">
@@ -168,7 +174,6 @@ export default {
 
       // 체크박스 질문에서 기타 옵션이 선택되었을 때 처리
       const handleMultipleChoice = (questionIndex, optionIndex) => {
-        // 선택된 옵션들
         const options = selectedOptions.value[questionIndex] || [];
 
         if (options.includes(optionIndex)) {

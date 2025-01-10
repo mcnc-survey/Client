@@ -1,3 +1,9 @@
+<!-- 
+  Author : 한채영
+  Description : 비밀번호 찾기 - 이메일 인증 안내 페이지 
+  - 이메일 재전송 기능
+-->
+
 <template>
     <div class="verify-container">
         <div class="verify-content">

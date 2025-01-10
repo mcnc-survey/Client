@@ -1,3 +1,8 @@
+<!-- 
+  Author : 한채영
+  Description : 비밀번호 찾기 - 비밀번호 재설정 페이지
+-->
+
 <template>
     <div class="reset-container">
         <div class="reset-content">

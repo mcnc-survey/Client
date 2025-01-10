@@ -1,3 +1,11 @@
+<!-- 
+  Author : 한채영
+  Description : 설문조사 사이드탭 컴포넌트
+  - 질문 유형 선택 (단일 선택, 중복 선택, 단답형, 장문형)
+  - 새로운 질문 추가
+  - 제목 영역 선택 시 질문 타입 변경 비활성화
+-->
+
 <template>
   <div class="question-type-tab" :style="tabStyle">
     <div class="tab-items">
