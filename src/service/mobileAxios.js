@@ -1,16 +1,11 @@
 import axios from "axios";
 
-// Chrome의 User-Agent 문자열
-const chromeUserAgent =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
 // 모바일 전용 axios 인스턴스 생성
 const mobileInstance = axios.create({
   baseURL: "https://mobile.mcnc-survey.store", // 모바일 서버 주소
   timeout: 15000, // 타임아웃 설정
   headers: {
     "Content-Type": "application/json;charset=UTF-8",
-    "User-Agent": chromeUserAgent, // Chrome User-Agent 추가
   },
   withCredentials: true, // 이 옵션 추가
 });
