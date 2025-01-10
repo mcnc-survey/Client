@@ -1,3 +1,10 @@
+<!-- 
+  Author: 이새롬
+  Description: 설문조사 통계 및 관리 페이지 
+  - 설문 통계 보기 및 설문 관리(삭제 및 링크 공유) 기능 제공
+  - 설문 및 통계 탭 간 전환 기능 포함
+-->
+
 <template>
   <div class="survey-stats">
     <div class="header">
@@ -20,7 +27,7 @@
       </div>
     </div>
 
-    <component :is="currentTabComponent" :surveyId="surveyId"/>
+    <component :is="currentTabComponent" :surveyId="surveyId" />
   </div>
 </template>
 

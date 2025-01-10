@@ -1,3 +1,10 @@
+<!-- 
+  Author: 이새롬
+  Description: 설문조사 질문 탭 컴포넌트 
+  - 설문조사 데이터를 로드하여 제목, 설명, 기간, 질문, 응답 렌더링
+  - 질문 유형(단일 선택, 다중 선택, 단답형, 장문형)에 따라 동적 렌더링
+-->
+
 <template>
     <div class="survey-tab">
         <div v-if="surveyData" class="preview-container">
@@ -24,38 +31,24 @@
 
                     <!-- 객관식 단일 선택 -->
                     <div v-if="question.questionType === 'SINGLE_CHOICE'" class="options-container">
-                        <div v-for="(option, optIndex) in question.columns?.split('|`|')" :key="optIndex" class="option-item">
-                            <input
-                                type="radio"
-                                :name="'question-' + index"
-                                :id="'option-' + index + '-' + optIndex"
-                                :value="optIndex" 
-                                v-model="answers[index].selectedOption"
-                            >
+                        <div v-for="(option, optIndex) in question.columns?.split('|`|')" :key="optIndex"
+                            class="option-item">
+                            <input type="radio" :name="'question-' + index" :id="'option-' + index + '-' + optIndex"
+                                :value="optIndex" v-model="answers[index].selectedOption">
                             <label :for="'option-' + index + '-' + optIndex">{{ option }}</label>
                         </div>
                         <!-- 기타 옵션 (etc가 true일 때만 표시) -->
                         <template v-if="question.etc">
                             <div class="option-item">
-                                <input
-                                    type="radio"
-                                    :name="'question-' + index"
-                                    :id="'option-' + index + '-other'"
-                                    value="other"
-                                    v-model="answers[index].selectedOption"
-                                >
+                                <input type="radio" :name="'question-' + index" :id="'option-' + index + '-other'"
+                                    value="other" v-model="answers[index].selectedOption">
                                 <label :for="'option-' + index + '-other'">기타...</label>
                             </div>
                             <!-- 기타 텍스트 입력 -->
                             <div v-if="answers[index].selectedOption === 'other'" class="other-input-container">
                                 <div class="input-wrapper">
-                                    <textarea
-                                        v-model="answers[index].otherText"
-                                        placeholder="기타 내용을 입력해주세요"
-                                        class="other-input"
-                                        rows="1"
-                                        @input="adjustHeight"
-                                    ></textarea>
+                                    <textarea v-model="answers[index].otherText" placeholder="기타 내용을 입력해주세요"
+                                        class="other-input" rows="1" @input="adjustHeight"></textarea>
                                     <div class="underline"></div>
                                 </div>
                             </div>
@@ -64,36 +57,24 @@
 
                     <!-- 객관식 다중 선택 -->
                     <div v-else-if="question.questionType === 'MULTIPLE_CHOICE'" class="options-container">
-                        <div v-for="(option, optIndex) in question.columns?.split('|`|')" :key="optIndex" class="option-item">
-                            <input
-                                type="checkbox"
-                                :id="'option-' + index + '-' + optIndex"
-                                :value="optIndex"  
-                                v-model="answers[index].selectedOptions"
-                            >
+                        <div v-for="(option, optIndex) in question.columns?.split('|`|')" :key="optIndex"
+                            class="option-item">
+                            <input type="checkbox" :id="'option-' + index + '-' + optIndex" :value="optIndex"
+                                v-model="answers[index].selectedOptions">
                             <label :for="'option-' + index + '-' + optIndex">{{ option }}</label>
                         </div>
                         <!-- 기타 옵션 (etc가 true일 때만 표시) -->
                         <template v-if="question.etc">
                             <div class="option-item">
-                                <input
-                                    type="checkbox"
-                                    :id="'option-' + index + '-other'"
-                                    value="other"
-                                    v-model="answers[index].hasOther"
-                                >
+                                <input type="checkbox" :id="'option-' + index + '-other'" value="other"
+                                    v-model="answers[index].hasOther">
                                 <label :for="'option-' + index + '-other'">기타...</label>
                             </div>
                             <!-- 기타 텍스트 입력 -->
                             <div v-if="answers[index].hasOther" class="other-input-container">
                                 <div class="input-wrapper">
-                                    <textarea
-                                        v-model="answers[index].otherText"
-                                        placeholder="기타 내용을 입력해주세요"
-                                        class="other-input"
-                                        rows="1"
-                                        @input="adjustHeight"
-                                    ></textarea>
+                                    <textarea v-model="answers[index].otherText" placeholder="기타 내용을 입력해주세요"
+                                        class="other-input" rows="1" @input="adjustHeight"></textarea>
                                     <div class="underline"></div>
                                 </div>
                             </div>
@@ -102,22 +83,13 @@
 
                     <!-- 주관식 답변들은 동일 -->
                     <div v-else-if="question.questionType === 'SHORT_ANSWER'" class="text-answer">
-                        <input
-                            type="text"
-                            placeholder="답변을 입력하세요 (최대 100자)"
-                            class="short-answer-input"
-                            maxlength="100"
-                            v-model="answers[index].text"
-                        >
+                        <input type="text" placeholder="답변을 입력하세요 (최대 100자)" class="short-answer-input" maxlength="100"
+                            v-model="answers[index].text">
                     </div>
 
                     <div v-else-if="question.questionType === 'LONG_ANSWER'" class="text-answer">
-                        <textarea
-                            placeholder="답변을 입력하세요 (최대 2000자)"
-                            class="long-answer-input"
-                            maxlength="2000"
-                            v-model="answers[index].text"
-                        ></textarea>
+                        <textarea placeholder="답변을 입력하세요 (최대 2000자)" class="long-answer-input" maxlength="2000"
+                            v-model="answers[index].text"></textarea>
                     </div>
                 </div>
             </div>
@@ -161,7 +133,7 @@ export default {
         };
 
         const initializeAnswer = (questionType) => {
-            switch(questionType) {
+            switch (questionType) {
                 case 'SINGLE_CHOICE':
                     return { selectedOption: null, otherText: '' };  // '' 대신 null
                 case 'MULTIPLE_CHOICE':
@@ -212,7 +184,7 @@ export default {
 }
 
 .survey-tab::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 .preview-container {
@@ -250,12 +222,12 @@ export default {
 }
 
 .required-notice {
-  text-align: right;
-  color: #ff6b6b;
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  margin-right: 20px;
+    text-align: right;
+    color: #ff6b6b;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    margin-right: 20px;
 }
 
 .question-item {
@@ -291,7 +263,8 @@ export default {
 
 .option-item {
     display: flex;
-    align-items: center;  /* flex-start에서 center로 변경 */
+    align-items: center;
+    /* flex-start에서 center로 변경 */
     gap: 8px;
 }
 
@@ -301,7 +274,8 @@ export default {
     height: 16px;
     min-width: 16px;
     min-height: 16px;
-    margin: 0;           /* margin-top 제거 */
+    margin: 0;
+    /* margin-top 제거 */
     accent-color: steelblue;
     flex-shrink: 0;
 }
@@ -309,8 +283,10 @@ export default {
 .option-item label {
     word-break: break-all;
     line-height: 1.4;
-    display: flex;      /* 레이블도 flex로 */
-    align-items: center; /* 레이블 내용 중앙 정렬 */
+    display: flex;
+    /* 레이블도 flex로 */
+    align-items: center;
+    /* 레이블 내용 중앙 정렬 */
 }
 
 .text-answer input,
@@ -365,7 +341,7 @@ export default {
     transition: background 0.2s ease;
 }
 
-.other-input:focus + .underline {
+.other-input:focus+.underline {
     background: steelblue;
 }
 
@@ -394,4 +370,3 @@ export default {
     }
 }
 </style>
-

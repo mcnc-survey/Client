@@ -1,4 +1,9 @@
-// components/BackButton.vue
+<!--
+  Author: 이새롬
+  Description: 뒤로가기 버튼 컴포넌트
+  - 뒤로가기 버튼을 렌더링하고, 버튼 클릭 시 페이지를 이전 페이지로 이동
+-->
+
 <template>
   <button class="back-button" @click="goBack">
     <img :src="iconSrc" :alt="altText" />

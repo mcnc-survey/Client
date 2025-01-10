@@ -1,3 +1,9 @@
+<!--
+  Author : 이새롬
+  Description : 삭제된 설문조사 관리 페이지
+  - 삭제된 설문 항목을 선택하고 복구하거나 영구 삭제할 수 있는 기능 제공
+-->
+
 <template>
   <div class="survey-deletedItems">
     <div class="header">

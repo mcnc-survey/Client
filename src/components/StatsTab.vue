@@ -1,3 +1,8 @@
+<!-- 
+  Author : 이새롬
+  Description : 로그인 페이지 (이메일 로그인, 소셜로그인 기능 포함)
+-->
+
 <template>
     <div class="stats-section">
         <div v-if="loading" class="loading-container">
@@ -246,7 +251,7 @@ export default {
                     style.element.style.overflow = style.overflow;
                 });
 
-                const sanitizedFileName = (surveySummary.value.title || '설문조사').replace(/[\/\\?%*:|"<>]/g, '_');
+                const sanitizedFileName = (surveySummary.value.title || '설문조사').replace(/[\\/\\?%*:|"<>]/g, '_');
                 pdf.save(`${sanitizedFileName}.pdf`);
             } catch (error) {
                 console.error('PDF 생성 오류:', error);

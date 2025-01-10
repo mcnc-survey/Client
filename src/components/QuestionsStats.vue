@@ -1,3 +1,12 @@
+<!--
+  Author: 이새롬
+  Description: 설문 질문 통계 및 응답 표시 컴포넌트
+  - 객관식 질문에 대한 도넛 차트 및 막대 차트 전환 기능 제공
+  - 주관식 질문에 대한 응답 목록 표시
+  - 응답 수에 따라 차트 또는 응답 목록을 동적으로 렌더링
+  - 기타 의견을 별도로 표시하는 섹션 제공
+-->
+
 <template>
     <div class="question-stats">
         <div class="question-header">

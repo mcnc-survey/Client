@@ -1,3 +1,8 @@
+/* 
+  Author: 이새롬
+  Description: swalutils.js에서 사용되는 alert 팝업에 대한 공통 스타일 정의
+*/
+
 /* 공통 팝업 스타일 */
 .custom-swal-popup {
   width: 560px;

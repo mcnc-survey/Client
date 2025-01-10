@@ -1,7 +1,11 @@
+/*
+  Author: 이새롬
+  Description: SweetAlert2 기반 커스텀 알림 함수들 모음
+*/
 import Swal from "sweetalert2";
 import "@/assets/css/CustomAlert.css";
 
-// 성공 알림 표시 함수
+// 성공 알림을 표시하는 함수
 export const showSuccessAlert = (
   title,
   message = null,
@@ -32,7 +36,7 @@ export const showSuccessAlert = (
   });
 };
 
-// 에러 알림 표시 함수
+// 에러 알림을 표시하는 함수
 export const showErrorAlert = (title, message = null) => {
   // 'DELETED' 메시지가 포함된 경우 오류로 처리하지 않음
   if (message && message.includes("DELETED")) {
@@ -63,7 +67,7 @@ export const showErrorAlert = (title, message = null) => {
   });
 };
 
-// 확인/취소 알림 표시 함수
+// 확인/취소 버튼이 있는 알림을 표시하는 함수
 export const showConfirmAlert = (options) => {
   const defaultOptions = {
     title: "알림",
@@ -104,7 +108,7 @@ export const showConfirmAlert = (options) => {
   });
 };
 
-// 확인 버튼 클릭시 페이지 이동하는 알림 표시 함수
+// 확인 버튼 클릭 시 페이지 이동을 유도하는 알림 함수
 export const showNavigateAlert = (options) => {
   const defaultOptions = {
     title: "알림",
@@ -149,6 +153,7 @@ export const showNavigateAlert = (options) => {
   });
 };
 
+// 이메일 입력을 통해 설문 링크를 공유하는 다이얼로그 함수
 export const showEmailInviteDialog = async (options) => {
   const defaultOptions = {
     title: "설문 링크를 공유할 이메일을 입력해주세요",
