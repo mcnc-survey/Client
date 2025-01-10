@@ -1,3 +1,9 @@
+<!-- 
+  Author: 배수호 
+  Description: 설문조사 제출 확인 페이지 
+  - 설문 응답 제출 완료 메시지와 홈으로 돌아가기 버튼 렌더링
+-->
+
 <template>
   <div class="confirmation-page">
     <div class="confirmation-content">

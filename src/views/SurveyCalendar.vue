@@ -1,3 +1,11 @@
+<!--
+  Author: 배수호
+  Description: FullCalendar를 이용한 설문 일정 표시 컴포넌트
+  - 설문 데이터에 맞춰 FullCalendar 캘린더에 이벤트를 표시
+  - 각 이벤트 클릭 시 해당 설문 통계 페이지로 이동
+  - 캘린더 높이 및 너비 자동 조정, 다양한 색상으로 이벤트 표시
+-->
+
 <template>
   <div class="calendar-wrapper">
     <div>
@@ -22,8 +30,8 @@ export default {
         plugins: [dayGridPlugin, timeGridPlugin],
         initialView: "dayGridMonth",
         locale: "ko",
-        width: '100%', // 100%로 변경
-        maxWidth: '980px', // 최대 너비 명시
+        width: "100%", // 100%로 변경
+        maxWidth: "980px", // 최대 너비 명시
         height: "auto", // 캘린더 높이를 자동으로 조정
         expandRows: false, // 행 높이 확장 비활성화
         headerToolbar: {
@@ -47,23 +55,33 @@ export default {
         const response = await surveyAPI.getCalendarSurvey();
 
         if (response.data.success && response.data.body) {
-          this.calendarOptions.events = response.data.body.map((survey, index) => ({
-            id: survey.id,
-            title: survey.title,
-            start: survey.startAt.split('T')[0],  // 'T' 이전의 날짜 부분만 사용
-            end: survey.endAt.split('T')[0],      // 'T' 이전의 날짜 부분만 사용
-            allDay: true,
-            color: this.getEventColor(index),
-          }));
+          this.calendarOptions.events = response.data.body.map(
+            (survey, index) => ({
+              id: survey.id,
+              title: survey.title,
+              start: survey.startAt.split("T")[0], // 'T' 이전의 날짜 부분만 사용
+              end: survey.endAt.split("T")[0], // 'T' 이전의 날짜 부분만 사용
+              allDay: true,
+              color: this.getEventColor(index),
+            })
+          );
         }
       } catch (error) {
-        console.error('Error fetching survey data:', error);
+        console.error("Error fetching survey data:", error);
       }
     },
 
     // 이벤트 색상을 번갈아가며 다르게 설정
     getEventColor(index) {
-      const colors = ["#FFFAC3", "#FEE4CB", "#E9D0E5", "#D1E2F4", "#D9C6BA", "F9C8CB", "#CCE6BF"];
+      const colors = [
+        "#FFFAC3",
+        "#FEE4CB",
+        "#E9D0E5",
+        "#D1E2F4",
+        "#D9C6BA",
+        "F9C8CB",
+        "#CCE6BF",
+      ];
       return colors[index % colors.length]; // 배열에서 순서대로 색상 사용
     },
 
@@ -116,7 +134,7 @@ export default {
   padding: 10px 14px 10px 24px;
   font-size: 12px;
   font-weight: 500;
-  background: #DFE7EF;
+  background: #dfe7ef;
   border-radius: 16px;
 }
 
@@ -151,11 +169,11 @@ export default {
 
 .fc .fc-button:disabled {
   font-weight: bold;
-  background-color: #F7F9FC;
+  background-color: #f7f9fc;
 }
 
-.fc-direction-ltr .fc-button-group>.fc-button:not(:first-child),
-.fc-direction-ltr .fc-button-group>.fc-button:not(:last-child) {
+.fc-direction-ltr .fc-button-group > .fc-button:not(:first-child),
+.fc-direction-ltr .fc-button-group > .fc-button:not(:last-child) {
   padding: 5px;
   background-color: transparent;
 }
@@ -201,7 +219,7 @@ export default {
 }
 
 .fc .fc-daygrid-day.fc-day-today {
-  background-color: #DFE7EF;
+  background-color: #dfe7ef;
 }
 
 .fc-day-sun a {

@@ -1,3 +1,8 @@
+// Author : 배수호
+// Description : Vue Router 설정
+// - WebLayout 및 MobileLayout을 기반으로 웹과 모바일 경로 관리
+// - 각 경로별 컴포넌트 연결 및 메타 데이터 설정
+
 import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/Login.vue";
 import Signup from "../views/Signup.vue";

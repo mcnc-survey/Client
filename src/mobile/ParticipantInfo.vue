@@ -1,3 +1,12 @@
+<!--
+  Author: 배수호
+  Description: 참여자 정보 입력 페이지 컴포넌트
+  - 설문 참여를 위한 기본 정보를 입력 받는 페이지
+  - 이메일 인증 및 전화번호 입력 기능 제공
+  - 소셜 로그인(구글, 카카오, 네이버) 지원
+  - 입력값 유효성 검사 및 인증번호 검증 기능 포함
+-->
+
 <template>
   <div class="mobile-survey-container">
     <p class="instruction">참여자 확인을 위해 아래 정보를 입력해주세요.</p>

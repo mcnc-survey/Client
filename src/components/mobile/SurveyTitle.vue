@@ -1,3 +1,11 @@
+<!--
+  Author: 배수호
+  Description: 설문 제목 및 설명 표시 컴포넌트
+  - 설문 제목과 설명을 표시하는 간단한 컴포넌트
+  - `title`과 `description`을 부모 컴포넌트로부터 받아와서 출력
+  - 스타일은 설문 항목을 구분할 수 있도록 디자인됨
+-->
+
 <template>
   <div class="survey-box">
     <h2 class="survey-title">{{ title }}</h2>

@@ -1,3 +1,10 @@
+<!-- 
+  Author: 배수호 
+  Description: 설문조사 질문 탭 컴포넌트 
+  - 설문조사 데이터를 로드하여 제목, 설명, 기간, 질문, 응답 렌더링
+  - 질문 유형(단일 선택, 다중 선택, 단답형, 장문형)에 따라 동적 렌더링
+-->
+
 <template>
   <div class="survey-page">
     <SurveyTitle :title="survey.title" :description="survey.description" />
