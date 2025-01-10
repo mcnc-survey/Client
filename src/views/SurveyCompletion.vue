@@ -1,3 +1,10 @@
+<!--
+  Author: 이새롬
+  Description: 설문조사 완료 페이지
+  - 설문조사 등록 완료 후 사용자에게 안내 메시지 제공
+  - 설문 목록으로 돌아가기 및 이메일 초대 기능 제공
+-->
+
 <template>
   <div class="survey-completion">
     <h2 class="survey-title">설문조사 완료</h2>
